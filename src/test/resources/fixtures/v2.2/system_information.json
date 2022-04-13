@@ -1,0 +1,20 @@
+{
+  "last_updated":1611598155,
+  "ttl":1800,
+  "version": "2.2",
+  "data":{
+    "phone_number":"1-800-555-1234",
+    "name":"Example Ride",
+    "operator":"Example Sharing, Inc",
+    "start_date":"2010-06-10",
+    "purchase_url":"https://www.exampleride.org",
+    "timezone":"US/Central",
+    "license_url":"https://exampleride.org/data-license.html",
+    "short_name":"Example Ride",
+    "email":"customerservice@exampleride.org",
+    "url":"http://www.exampleride.org",
+    "feed_contact_email": datafeed@exampleride.org,
+    "system_id":"exampleride",
+    "language":"en",
+  }
+}

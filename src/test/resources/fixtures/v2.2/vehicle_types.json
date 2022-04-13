@@ -1,0 +1,29 @@
+{
+  "last_updated": 1609866247,
+  "ttl": 0,
+  "version": "2.2",
+  "data": {
+    "vehicle_types": [
+      {
+        "vehicle_type_id": "abc123",
+        "form_factor": "bicycle",
+        "propulsion_type": "human",
+        "name": "Example Basic Bike"
+      },
+      {
+        "vehicle_type_id": "def456",
+        "form_factor": "scooter",
+        "propulsion_type": "electric",
+        "name": "Example E-scooter V2",
+        "max_range_meters": 12345
+      },
+      {
+        "vehicle_type_id": "car1",
+        "form_factor": "car",
+        "propulsion_type": "combustion",
+        "name": "Foor-door Sedan",
+        "max_range_meters": 523992
+      }
+    ]
+  }
+}
