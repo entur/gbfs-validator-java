@@ -1,0 +1,30 @@
+{
+  "last_updated": 1434054678,
+  "ttl": 0,
+  "data": {
+    "en": {
+      "feeds": [
+        {
+          "name": "system_information",
+          "url": "https://www.example.com/gbfs/en/system_information"
+        },
+        {
+          "name": "station_information",
+          "url": "https://www.example.com/gbfs/en/station_information"
+        }
+      ]
+    },
+    "fr" : {
+      "feeds": [
+        {
+          "name": "system_information",
+          "url": "https://www.example.com/gbfs/fr/system_information"
+        },
+        {
+          "name": "station_information",
+          "url": "https://www.example.com/gbfs/fr/station_information"
+        }
+      ]
+    }
+  }
+}
