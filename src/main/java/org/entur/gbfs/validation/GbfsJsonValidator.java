@@ -26,20 +26,9 @@ public class GbfsJsonValidator implements GbfsValidator {
 
     @Override
     public ValidationResult validate(Map<String, InputStream> feedMap) {
-        if (feedMap.get("gbfs") == null) {
-            // validate without discovery feed
-            return validateWithoutDiscoveryFeed(feedMap);
-        } else {
-            //return validateWithDiscoveryFeed(feedMap);
-            return validateWithoutDiscoveryFeed(feedMap);
-        }
-    }
-
-    private ValidationResult validateWithoutDiscoveryFeed(Map<String, InputStream> feedMap) {
         ValidationResult result = new ValidationResult();
         ValidationSummary summary = new ValidationSummary();
         Map<String, FileValidationResult> fileValidations = new HashMap<>();
-
 
         Arrays.stream(GBFSFeedName.values()).forEach(gbfsFeedName -> {
             String key = gbfsFeedName.toString();
@@ -83,14 +72,6 @@ public class GbfsJsonValidator implements GbfsValidator {
         // find correct file validator
         FileValidator fileValidator = FileValidator.getFileValidator(detectedVersion, isFreeFloating, isDocked);
         return fileValidator.validate(feedName, feed);
-    }
-
-    private ValidationResult validateWithDiscoveryFeed(Map<String, InputStream> feedMap) {
-
-        // This validator should enforce detected language from discovery feed
-        // and check presence of all files in all languages?
-
-        return null;
     }
 
     private JSONObject extractJSONObject(InputStream raw) {

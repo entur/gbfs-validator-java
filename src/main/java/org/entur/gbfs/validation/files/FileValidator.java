@@ -3,6 +3,10 @@ package org.entur.gbfs.validation.files;
 import org.entur.gbfs.validation.versions.Version;
 import org.entur.gbfs.validation.versions.Version1_0;
 import org.entur.gbfs.validation.versions.Version1_1;
+import org.entur.gbfs.validation.versions.Version2_0;
+import org.entur.gbfs.validation.versions.Version2_1;
+import org.entur.gbfs.validation.versions.Version2_2;
+import org.entur.gbfs.validation.versions.Version2_3;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
@@ -10,10 +14,7 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 
@@ -32,9 +33,13 @@ public class FileValidator {
             case "1.1":
                 return new FileValidator(new Version1_1(isDocked, isFreeFloating));
             case "2.0":
+                return new FileValidator(new Version2_0(isDocked, isFreeFloating));
             case "2.1":
+                return new FileValidator(new Version2_1(isDocked, isFreeFloating));
             case "2.2":
+                return new FileValidator(new Version2_2(isDocked, isFreeFloating));
             case "2.3":
+                return new FileValidator(new Version2_3(isDocked, isFreeFloating));
             default:
                 throw new UnsupportedOperationException("Version not implemented");
         }
@@ -44,7 +49,7 @@ public class FileValidator {
             Version version
     ) {
         this.version = version;
-        this.schemas = FileValidator.getSchemas(version, version.getFeeds());
+        this.schemas = FileValidator.getSchemas(version);
     }
 
     public FileValidationResult validate(String feedName, JSONObject feed) {
@@ -52,7 +57,7 @@ public class FileValidator {
             return validate(schemas.get(feedName), feed, feedName);
         }
 
-        throw new UnsupportedOperationException("Unknown gbfs feed");
+        throw new UnsupportedOperationException("Unknown gbfs feed: " + feedName);
     }
 
     private FileValidationResult validate(Schema schema, JSONObject feed, String feedName) {
@@ -77,19 +82,25 @@ public class FileValidator {
         return version.isFileRequired(feedName);
     }
 
-    protected static Map<String, Schema> getSchemas(Version version, List<String> feeds) {
+    protected static Map<String, Schema> getSchemas(Version version) {
         Map<String, Schema> schemas = new HashMap<>();
 
-        feeds.forEach(feed -> {
-            schemas.put(feed, loadSchema(version, feed));
+        version.getFeeds().forEach(feed -> {
+            schemas.put(feed, loadSchema(version.getVersion(), feed));
         });
 
         return schemas;
     }
 
-    protected static Schema loadSchema(Version version, String feedName) {
-        InputStream inputStream = ClassLoader.getSystemClassLoader().getResourceAsStream("schema/"+version.getVersion()+"/"+feedName+".json");
-        JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
-        return SchemaLoader.load(rawSchema);
+    protected static Schema loadSchema(String version, String feedName) {
+        try {
+            InputStream inputStream = ClassLoader.getSystemClassLoader().getResourceAsStream("schema/"+version+"/"+feedName+".json");
+            JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
+            return SchemaLoader.load(rawSchema);
+        } catch (Exception e) {
+            System.out.println("Caught exception loading schema for " + feedName + " and version " + version);
+            throw e;
+        }
+
     }
 }
