@@ -13,7 +13,7 @@
     "short_name":"Example Ride",
     "email":"customerservice@exampleride.org",
     "url":"http://www.exampleride.org",
-    "feed_contact_email": datafeed@exampleride.org,
+    "feed_contact_email": "datafeed@exampleride.org",
     "system_id":"exampleride",
     "language":"en",
   }
