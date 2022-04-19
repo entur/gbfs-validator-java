@@ -94,7 +94,7 @@ public class FileValidator {
 
     protected static Schema loadSchema(String version, String feedName) {
         try {
-            InputStream inputStream = ClassLoader.getSystemClassLoader().getResourceAsStream("schema/"+version+"/"+feedName+".json");
+            InputStream inputStream = ClassLoader.getSystemClassLoader().getResourceAsStream("schema/v"+version+"/"+feedName+".json");
             JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
             return SchemaLoader.load(rawSchema);
         } catch (Exception e) {

@@ -1,15 +1,11 @@
 package org.entur.gbfs.validation;
 
-import org.assertj.core.api.Assert;
-import org.entur.gbfs.validation.files.FileValidationResult;
-import org.everit.json.schema.ValidationException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class GbfsJsonValidatorTest {
     @Test
@@ -149,6 +145,32 @@ public class GbfsJsonValidatorTest {
 
         Assertions.assertEquals("2.3", result.getSummary().getVersion());
         Assertions.assertEquals(0, result.getSummary().getErrorsCount());
+    }
+
+    @Test
+    void testMissingRequiredFile() {
+        GbfsJsonValidator validator = new GbfsJsonValidator(false, true);
+
+        Map<String, InputStream> deliveryMap = new HashMap<>();
+        deliveryMap.put("gbfs", getFixture("fixtures/v2.2/gbfs.json"));
+
+        ValidationResult result = validator.validate(deliveryMap);
+
+        Assertions.assertTrue(result.getFiles().get("system_information").isRequired());
+        Assertions.assertFalse(result.getFiles().get("system_information").isExists());
+    }
+
+    @Test
+    void testMissingNotRequiredFile() {
+        GbfsJsonValidator validator = new GbfsJsonValidator(false, true);
+
+        Map<String, InputStream> deliveryMap = new HashMap<>();
+        deliveryMap.put("gbfs", getFixture("fixtures/v2.2/gbfs.json"));
+
+        ValidationResult result = validator.validate(deliveryMap);
+
+        Assertions.assertFalse(result.getFiles().get("vehicle_types").isRequired());
+        Assertions.assertFalse(result.getFiles().get("vehicle_types").isExists());
     }
 
     private InputStream getFixture(String name) {

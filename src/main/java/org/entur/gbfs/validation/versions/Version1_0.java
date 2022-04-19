@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Version1_0 implements Version {
-    public static String version = "v1.0";
+    public static String version = "1.0";
 
     private static final List<String> feeds = Arrays.asList(
             "gbfs",

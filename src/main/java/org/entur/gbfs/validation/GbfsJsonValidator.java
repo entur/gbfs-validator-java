@@ -3,6 +3,8 @@ package org.entur.gbfs.validation;
 import org.entur.gbfs.validation.files.FileValidationResult;
 import org.entur.gbfs.validation.files.FileValidator;
 import org.entur.gbfs.validation.files.GBFSFeedName;
+import org.entur.gbfs.validation.versions.AbstractVersion;
+import org.entur.gbfs.validation.versions.Version;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -11,8 +13,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class GbfsJsonValidator implements GbfsValidator {
 
@@ -32,26 +37,60 @@ public class GbfsJsonValidator implements GbfsValidator {
 
         Arrays.stream(GBFSFeedName.values()).forEach(gbfsFeedName -> {
             String key = gbfsFeedName.toString();
-            fileValidations.put(key, validateFile(key, feedMap.get(key), summary));
+            fileValidations.put(key, validateFile(key, feedMap.get(key)));
         });
 
+        Version version = findVersion(fileValidations);
+
+        handleMissingFiles(fileValidations, version);
+
+        summary.setVersion(version.getVersion());
         summary.setErrorsCount(
                 fileValidations.values().stream()
                         .filter(Objects::nonNull)
                         .map(FileValidationResult::getErrorsCount)
                         .reduce(Integer::sum).orElse(0));
-
         result.setSummary(summary);
         result.setFiles(fileValidations);
 
         return result;
     }
 
-    private FileValidationResult validateFile(String feedName, InputStream value, ValidationSummary summary) {
+    private void handleMissingFiles(Map<String, FileValidationResult> fileValidations, Version version) {
+        fileValidations.values().stream()
+                        .filter(fvr -> !fvr.isExists())
+                                .forEach(fvr -> {
+                                    fvr.setVersion(version.getVersion());
+                                    fvr.setRequired(version.isFileRequired(fvr.getFile()));
+                                });
+    }
+
+    private Version findVersion(Map<String, FileValidationResult> fileValidations) {
+        Set<String> versions = fileValidations.values().stream()
+            .filter(Objects::nonNull)
+            .map(FileValidationResult::getVersion)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+
+        if (versions.size() > 1) {
+            // TODO warn or error on multiple versions?
+        }
+
+        Version version = AbstractVersion.createVersion(
+                versions.stream().findFirst().get(),
+                isDocked,
+                isFreeFloating
+        );
+        return version;
+    }
+
+    private FileValidationResult validateFile(String feedName, InputStream value) {
 
         if (value == null) {
-            // TODO: deal with missing files
-            return null;
+            FileValidationResult result = new FileValidationResult();
+            result.setFile(feedName);
+            result.setExists(false);
+            return result;
         }
 
         JSONObject feed = extractJSONObject(value);
@@ -61,12 +100,6 @@ public class GbfsJsonValidator implements GbfsValidator {
 
         if (feed.has("version")) {
             detectedVersion = feed.getString("version");
-        }
-
-        if (summary.getVersion() == null) {
-            summary.setVersion(detectedVersion);
-        } else {
-            // TODO: multiple versions is error or warning?
         }
 
         // find correct file validator
