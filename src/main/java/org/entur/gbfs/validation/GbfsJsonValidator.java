@@ -76,12 +76,11 @@ public class GbfsJsonValidator implements GbfsValidator {
             // TODO warn or error on multiple versions?
         }
 
-        Version version = AbstractVersion.createVersion(
+        return  AbstractVersion.createVersion(
                 versions.stream().findFirst().get(),
                 isDocked,
                 isFreeFloating
         );
-        return version;
     }
 
     private FileValidationResult validateFile(String feedName, InputStream value) {

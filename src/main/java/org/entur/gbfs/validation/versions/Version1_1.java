@@ -3,7 +3,7 @@ package org.entur.gbfs.validation.versions;
 import java.util.Arrays;
 import java.util.List;
 
-public class Version1_1 implements Version {
+public class Version1_1 extends AbstractVersion {
     public static String version = "1.1";
 
     private static final List<String> feeds = Arrays.asList(
@@ -20,36 +20,7 @@ public class Version1_1 implements Version {
             "system_alerts"
     );
 
-    private final boolean isDocked;
-    private final boolean isFreeFloating;
-
-    public Version1_1(boolean isDocked, boolean isFreeFloating) {
-        this.isDocked = isDocked;
-        this.isFreeFloating = isFreeFloating;
-    }
-
-    @Override
-    public String getVersion() {
-        return version;
-    }
-
-    @Override
-    public List<String> getFeeds() {
-        return feeds;
-    }
-
-    @Override
-    public boolean isFileRequired(String file) {
-        switch (file) {
-            case "system_information":
-                return true;
-            case "station_information":
-            case "station_status":
-                return isDocked;
-            case "free_bike_status":
-                return isFreeFloating;
-            default:
-                return false;
-        }
+    protected Version1_1(boolean isDocked, boolean isFreeFloating) {
+        super(version, feeds, isDocked, isFreeFloating);
     }
 }

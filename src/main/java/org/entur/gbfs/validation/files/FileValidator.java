@@ -1,12 +1,7 @@
 package org.entur.gbfs.validation.files;
 
+import org.entur.gbfs.validation.versions.AbstractVersion;
 import org.entur.gbfs.validation.versions.Version;
-import org.entur.gbfs.validation.versions.Version1_0;
-import org.entur.gbfs.validation.versions.Version1_1;
-import org.entur.gbfs.validation.versions.Version2_0;
-import org.entur.gbfs.validation.versions.Version2_1;
-import org.entur.gbfs.validation.versions.Version2_2;
-import org.entur.gbfs.validation.versions.Version2_3;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
@@ -27,22 +22,7 @@ public class FileValidator {
             boolean isDocked,
             boolean isFreeFloating
     ) {
-        switch (detectedVersion) {
-            case "1.0":
-                return new FileValidator(new Version1_0(isDocked, isFreeFloating));
-            case "1.1":
-                return new FileValidator(new Version1_1(isDocked, isFreeFloating));
-            case "2.0":
-                return new FileValidator(new Version2_0(isDocked, isFreeFloating));
-            case "2.1":
-                return new FileValidator(new Version2_1(isDocked, isFreeFloating));
-            case "2.2":
-                return new FileValidator(new Version2_2(isDocked, isFreeFloating));
-            case "2.3":
-                return new FileValidator(new Version2_3(isDocked, isFreeFloating));
-            default:
-                throw new UnsupportedOperationException("Version not implemented");
-        }
+        return new FileValidator(AbstractVersion.createVersion(detectedVersion, isDocked, isFreeFloating));
     }
 
     private FileValidator(

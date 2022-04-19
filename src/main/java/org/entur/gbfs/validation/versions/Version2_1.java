@@ -3,7 +3,7 @@ package org.entur.gbfs.validation.versions;
 import java.util.Arrays;
 import java.util.List;
 
-public class Version2_1 implements Version {
+public class Version2_1 extends AbstractVersion {
     public static String version = "2.1";
 
     private static final List<String> feeds = Arrays.asList(
@@ -22,36 +22,7 @@ public class Version2_1 implements Version {
             "geofencing_zones"
     );
 
-    private final boolean isDocked;
-    private final boolean isFreeFloating;
-
-    public Version2_1(boolean isDocked, boolean isFreeFloating) {
-        this.isDocked = isDocked;
-        this.isFreeFloating = isFreeFloating;
-    }
-
-    @Override
-    public String getVersion() {
-        return version;
-    }
-
-    @Override
-    public List<String> getFeeds() {
-        return feeds;
-    }
-
-    @Override
-    public boolean isFileRequired(String file) {
-        switch (file) {
-            case "system_information":
-                return true;
-            case "station_information":
-            case "station_status":
-                return isDocked;
-            case "free_bike_status":
-                return isFreeFloating;
-            default:
-                return false;
-        }
+    protected Version2_1(boolean isDocked, boolean isFreeFloating) {
+        super(version, feeds, isDocked, isFreeFloating);
     }
 }
