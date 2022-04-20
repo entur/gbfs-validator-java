@@ -5,5 +5,5 @@ import java.util.List;
 public interface Version {
     String getVersion();
     List<String> getFeeds();
-    boolean isFileRequired(String file);
+    boolean isFileRequired(String file, boolean isDocked, boolean isFreeFloating);
 }

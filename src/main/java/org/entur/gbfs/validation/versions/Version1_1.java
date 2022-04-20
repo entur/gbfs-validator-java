@@ -20,7 +20,7 @@ public class Version1_1 extends AbstractVersion {
             "system_alerts"
     );
 
-    protected Version1_1(boolean isDocked, boolean isFreeFloating) {
-        super(version, feeds, isDocked, isFreeFloating);
+    protected Version1_1() {
+        super(version, feeds);
     }
 }

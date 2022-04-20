@@ -22,7 +22,7 @@ public class Version2_1 extends AbstractVersion {
             "geofencing_zones"
     );
 
-    protected Version2_1(boolean isDocked, boolean isFreeFloating) {
-        super(version, feeds, isDocked, isFreeFloating);
+    protected Version2_1() {
+        super(version, feeds);
     }
 }

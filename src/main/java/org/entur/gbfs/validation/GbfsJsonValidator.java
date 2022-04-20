@@ -60,7 +60,7 @@ public class GbfsJsonValidator implements GbfsValidator {
                         .filter(fvr -> !fvr.isExists())
                                 .forEach(fvr -> {
                                     fvr.setVersion(version.getVersion());
-                                    fvr.setRequired(version.isFileRequired(fvr.getFile()));
+                                    fvr.setRequired(version.isFileRequired(fvr.getFile(), isDocked, isFreeFloating));
                                 });
     }
 
@@ -76,9 +76,7 @@ public class GbfsJsonValidator implements GbfsValidator {
         }
 
         return  VersionFactory.createVersion(
-                versions.stream().findFirst().get(),
-                isDocked,
-                isFreeFloating
+                versions.stream().findFirst().get()
         );
     }
 

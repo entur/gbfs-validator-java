@@ -18,7 +18,7 @@ public class Version1_0 extends AbstractVersion {
             "system_regions"
     );
 
-    protected Version1_0(boolean isDocked, boolean isFreeFloating) {
-        super(version, feeds, isDocked, isFreeFloating);
+    protected Version1_0() {
+        super(version, feeds);
     }
 }

@@ -16,20 +16,26 @@ import java.util.Map;
 public class FileValidator {
     private final Version version;
     private final Map<String, Schema> schemas;
+    private final boolean isDocked;
+    private final boolean isFreeFloating;
 
     public static FileValidator getFileValidator(
             String detectedVersion,
             boolean isDocked,
             boolean isFreeFloating
     ) {
-        return new FileValidator(VersionFactory.createVersion(detectedVersion, isDocked, isFreeFloating));
+        return new FileValidator(VersionFactory.createVersion(detectedVersion), isDocked, isFreeFloating);
     }
 
     private FileValidator(
-            Version version
+            Version version,
+            boolean isDocked,
+            boolean isFreeFloating
     ) {
         this.version = version;
         this.schemas = FileValidator.getSchemas(version);
+        this.isDocked = isDocked;
+        this.isFreeFloating = isFreeFloating;
     }
 
     public FileValidationResult validate(String feedName, JSONObject feed) {
@@ -59,7 +65,7 @@ public class FileValidator {
     }
 
     private boolean isRequired(String feedName) {
-        return version.isFileRequired(feedName);
+        return version.isFileRequired(feedName, isDocked, isFreeFloating);
     }
 
     protected static Map<String, Schema> getSchemas(Version version) {
