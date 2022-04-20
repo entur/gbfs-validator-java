@@ -3,8 +3,8 @@ package org.entur.gbfs.validation;
 import org.entur.gbfs.validation.files.FileValidationResult;
 import org.entur.gbfs.validation.files.FileValidator;
 import org.entur.gbfs.validation.files.GBFSFeedName;
-import org.entur.gbfs.validation.versions.AbstractVersion;
 import org.entur.gbfs.validation.versions.Version;
+import org.entur.gbfs.validation.versions.VersionFactory;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -13,7 +13,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -76,7 +75,7 @@ public class GbfsJsonValidator implements GbfsValidator {
             // TODO warn or error on multiple versions?
         }
 
-        return  AbstractVersion.createVersion(
+        return  VersionFactory.createVersion(
                 versions.stream().findFirst().get(),
                 isDocked,
                 isFreeFloating

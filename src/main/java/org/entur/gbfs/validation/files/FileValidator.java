@@ -1,7 +1,7 @@
 package org.entur.gbfs.validation.files;
 
-import org.entur.gbfs.validation.versions.AbstractVersion;
 import org.entur.gbfs.validation.versions.Version;
+import org.entur.gbfs.validation.versions.VersionFactory;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
@@ -22,7 +22,7 @@ public class FileValidator {
             boolean isDocked,
             boolean isFreeFloating
     ) {
-        return new FileValidator(AbstractVersion.createVersion(detectedVersion, isDocked, isFreeFloating));
+        return new FileValidator(VersionFactory.createVersion(detectedVersion, isDocked, isFreeFloating));
     }
 
     private FileValidator(
