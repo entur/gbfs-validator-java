@@ -66,8 +66,7 @@ public class GbfsJsonValidator implements GbfsValidator {
         Map<String, FileValidationResult> fileValidations = new HashMap<>();
 
         FEEDS.forEach(gbfsFeedName -> {
-            String key = gbfsFeedName.toString();
-            fileValidations.put(key, validateFile(key, feedMap.get(key)));
+            fileValidations.put(gbfsFeedName, validateFile(gbfsFeedName, feedMap.get(gbfsFeedName)));
         });
 
         Version version = findVersion(fileValidations);
