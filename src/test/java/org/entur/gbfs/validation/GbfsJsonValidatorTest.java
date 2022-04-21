@@ -183,7 +183,7 @@ public class GbfsJsonValidatorTest {
                 .filter(entry -> entry.getValue().getErrorsCount() > 0)
                 .forEach(entry -> {
                     System.out.println("Version " + version + " - File: " + entry.getKey());
-                    System.out.println(entry.getValue().getError().toJSON().toString(2));
+                    entry.getValue().getErrors().forEach(System.out::println);
                 });
     }
 }
