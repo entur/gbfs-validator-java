@@ -48,8 +48,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jdk.version>1.8</jdk.version>
 
-        <gbfsGithubUrl>https://github.com/entur/gbfs-json-schema/archive/refs/tags/v2.3.0.zip</gbfsGithubUrl>
-        <schemaVersion>2.3.0</schemaVersion>
+        <gbfsGithubUrl>https://github.com/entur/gbfs-json-schema/archive/refs/tags/v2.3.1.zip</gbfsGithubUrl>
+        <schemaVersion>2.3.1</schemaVersion>
 
         <everit-json-schema.version>1.14.1</everit-json-schema.version>
 
