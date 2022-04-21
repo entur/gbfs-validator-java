@@ -20,8 +20,12 @@ import java.util.stream.Collectors;
 
 public class GbfsJsonValidator implements GbfsValidator {
 
+    private static final String DEFAULT_VERSION = "2.3";
+
     @Override
-    public ValidationResult validate(Map<String, InputStream> feedMap) {
+    public ValidationResult validate(Map<String, InputStream> rawFeeds) {
+        Map<String, JSONObject> feedMap = parseFeeds(rawFeeds);
+
         ValidationResult result = new ValidationResult();
         ValidationSummary summary = new ValidationSummary();
         Map<String, FileValidationResult> fileValidations = new HashMap<>();
@@ -32,7 +36,6 @@ public class GbfsJsonValidator implements GbfsValidator {
         });
 
         Version version = findVersion(fileValidations);
-
         handleMissingFiles(fileValidations, version);
 
         summary.setVersion(version.getVersion());
@@ -68,20 +71,18 @@ public class GbfsJsonValidator implements GbfsValidator {
         }
 
         return  VersionFactory.createVersion(
-                versions.stream().findFirst().get()
+                versions.stream().findFirst().orElse(DEFAULT_VERSION)
         );
     }
 
-    private FileValidationResult validateFile(String feedName, InputStream value) {
+    private FileValidationResult validateFile(String feedName, JSONObject feed) {
 
-        if (value == null) {
+        if (feed == null) {
             FileValidationResult result = new FileValidationResult();
             result.setFile(feedName);
             result.setExists(false);
             return result;
         }
-
-        JSONObject feed = extractJSONObject(value);
 
         // Assume no version means version 1.0
         String detectedVersion = "1.0";
@@ -95,7 +96,13 @@ public class GbfsJsonValidator implements GbfsValidator {
         return fileValidator.validate(feedName, feed);
     }
 
-    private JSONObject extractJSONObject(InputStream raw) {
+    private Map<String, JSONObject> parseFeeds(Map<String, InputStream> rawFeeds) {
+        Map<String, JSONObject> feedMap = new HashMap<>();
+        rawFeeds.forEach((name, value) -> feedMap.put(name, parseFeed(value)));
+        return feedMap;
+    }
+
+    private JSONObject parseFeed(InputStream raw) {
         String asString = getFeedAsString(raw);
         return new JSONObject(asString);
     }

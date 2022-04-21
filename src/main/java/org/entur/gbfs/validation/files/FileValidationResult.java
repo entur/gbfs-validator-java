@@ -1,8 +1,5 @@
 package org.entur.gbfs.validation.files;
 
-import org.everit.json.schema.ValidationException;
-
-import java.util.ArrayList;
 import java.util.List;
 
 public class FileValidationResult {
@@ -12,7 +9,7 @@ public class FileValidationResult {
     private int errorsCount;
     private String schema;
     private String version;
-    private ValidationException error;
+    private List<ValidationError> errors;
 
     public String getFile() {
         return file;
@@ -62,11 +59,11 @@ public class FileValidationResult {
         this.version = version;
     }
 
-    public ValidationException getError() {
-        return error;
+    public List<ValidationError> getErrors() {
+        return errors;
     }
 
-    public void setError(ValidationException error) {
-        this.error = error;
+    public void setErrors(List<ValidationError> errors) {
+        this.errors = errors;
     }
 }

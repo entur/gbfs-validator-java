@@ -9,8 +9,11 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 public class FileValidator {
@@ -49,11 +52,26 @@ public class FileValidator {
         try {
             schema.validate(feed);
         } catch (ValidationException validationException) {
-            fileValidationResult.setError(validationException);
+            fileValidationResult.setErrors(mapToValidationErrors(validationException));
             fileValidationResult.setErrorsCount(validationException.getViolationCount());
         }
 
         return fileValidationResult;
+    }
+
+    List<ValidationError> mapToValidationErrors(ValidationException validationException) {
+        if (validationException.getCausingExceptions().isEmpty()) {
+            ValidationError error = new ValidationError();
+            error.setSchemaPath(validationException.getSchemaLocation());
+            error.setViolationPath(validationException.getPointerToViolation());
+            error.setMessage(validationException.getMessage());
+            return Collections.singletonList(error);
+        } else {
+            return validationException.getCausingExceptions().stream()
+                    .map(this::mapToValidationErrors)
+                    .flatMap(List::stream)
+                    .collect(Collectors.toList());
+        }
     }
 
     private boolean isRequired(String feedName) {
