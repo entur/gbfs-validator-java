@@ -1,7 +1,7 @@
 {
   "last_updated": 1640887163,
   "ttl": 86400,
-  "version": "2.3-RC2",
+  "version": "2.3",
   "data": {
     "rental_hours": [
       {

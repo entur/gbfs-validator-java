@@ -1,6 +1,7 @@
 {
   "last_updated":1604333830,
   "ttl":86400,
+  "version": "2.1",
   "data":{
     "calendars":[
       {

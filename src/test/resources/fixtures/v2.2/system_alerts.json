@@ -14,8 +14,8 @@
         ],
         "times":[
           {
-            "start":"1604448000",
-            "end":"1604674800"
+            "start":1604448000,
+            "end":1604674800
           }
         ],
         "url":"https://example.com/more-info",

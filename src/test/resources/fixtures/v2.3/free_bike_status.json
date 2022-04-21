@@ -1,7 +1,7 @@
 {
   "last_updated":1640887163,
   "ttl":0,
-  "version":"2.3-RC2",
+  "version":"2.3",
   "data":{
     "bikes":[
       {
@@ -24,7 +24,7 @@
         "is_disabled":false,
         "vehicle_type_id":"def456",
         "current_range_meters":6543.0,
-        "station_id":86,
+        "station_id":"86",
         "pricing_plan_id":"plan3"
       }
     ]

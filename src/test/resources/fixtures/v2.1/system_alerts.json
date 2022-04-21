@@ -1,6 +1,7 @@
 {
   "last_updated":1604198100,
   "ttl":60,
+  "version": "2.1",
   "data":{
     "alerts":[
       {
@@ -13,8 +14,8 @@
         ],
         "times":[
           {
-            "start":"1604448000",
-            "end":"1604674800"
+            "start":1604448000,
+            "end":1604674800
           }
         ],
         "url":"https://example.com/more-info",
