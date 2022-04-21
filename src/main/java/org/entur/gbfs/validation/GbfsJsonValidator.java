@@ -20,7 +20,6 @@ package org.entur.gbfs.validation;
 
 import org.entur.gbfs.validation.files.FileValidationResult;
 import org.entur.gbfs.validation.files.FileValidator;
-import org.entur.gbfs.validation.files.GBFSFeedName;
 import org.entur.gbfs.validation.versions.Version;
 import org.entur.gbfs.validation.versions.VersionFactory;
 import org.json.JSONObject;
@@ -31,6 +30,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -40,6 +40,23 @@ public class GbfsJsonValidator implements GbfsValidator {
 
     private static final String DEFAULT_VERSION = "2.3";
 
+    private static final List<String> FEEDS = Arrays.asList(
+            "gbfs",
+            "gbfs_versions",
+            "system_information",
+            "vehicle_types",
+            "station_information",
+            "station_status",
+            "free_bike_status",
+            "system_hours",
+            "system_alerts",
+            "system_alerts",
+            "system_calendar",
+            "system_regions",
+            "system_pricing_plans",
+            "geofencing_zones"
+    );
+
     @Override
     public ValidationResult validate(Map<String, InputStream> rawFeeds) {
         Map<String, JSONObject> feedMap = parseFeeds(rawFeeds);
@@ -48,7 +65,7 @@ public class GbfsJsonValidator implements GbfsValidator {
         ValidationSummary summary = new ValidationSummary();
         Map<String, FileValidationResult> fileValidations = new HashMap<>();
 
-        Arrays.stream(GBFSFeedName.values()).forEach(gbfsFeedName -> {
+        FEEDS.forEach(gbfsFeedName -> {
             String key = gbfsFeedName.toString();
             fileValidations.put(key, validateFile(key, feedMap.get(key)));
         });

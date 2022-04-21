@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-
 public class FileValidator {
     private final Version version;
     private final Map<String, Schema> schemas;
