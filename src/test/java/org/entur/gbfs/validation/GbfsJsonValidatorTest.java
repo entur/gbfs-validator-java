@@ -81,7 +81,6 @@ public class GbfsJsonValidatorTest {
         deliveryMap.put("system_hours", getFixture("fixtures/v2.1/system_hours.json"));
         deliveryMap.put("system_calendar", getFixture("fixtures/v2.1/system_calendar.json"));
         deliveryMap.put("system_regions", getFixture("fixtures/v2.1/system_regions.json"));
-        deliveryMap.put("system_pricing_plans", getFixture("fixtures/v2.1/system_pricing_plans.json"));
         deliveryMap.put("system_alerts", getFixture("fixtures/v2.1/system_alerts.json"));
         deliveryMap.put("geofencing_zones", getFixture("fixtures/v2.1/geofencing_zones.json"));
 
