@@ -20,14 +20,6 @@ import java.util.stream.Collectors;
 
 public class GbfsJsonValidator implements GbfsValidator {
 
-    private boolean isDocked;
-    private boolean isFreeFloating;
-
-    public GbfsJsonValidator(boolean isDocked, boolean isFreeFloating) {
-        this.isDocked = isDocked;
-        this.isFreeFloating = isFreeFloating;
-    }
-
     @Override
     public ValidationResult validate(Map<String, InputStream> feedMap) {
         ValidationResult result = new ValidationResult();
@@ -60,7 +52,7 @@ public class GbfsJsonValidator implements GbfsValidator {
                         .filter(fvr -> !fvr.isExists())
                                 .forEach(fvr -> {
                                     fvr.setVersion(version.getVersion());
-                                    fvr.setRequired(version.isFileRequired(fvr.getFile(), isDocked, isFreeFloating));
+                                    fvr.setRequired(version.isFileRequired(fvr.getFile()));
                                 });
     }
 
@@ -99,7 +91,7 @@ public class GbfsJsonValidator implements GbfsValidator {
         }
 
         // find correct file validator
-        FileValidator fileValidator = FileValidator.getFileValidator(detectedVersion, isFreeFloating, isDocked);
+        FileValidator fileValidator = FileValidator.getFileValidator(detectedVersion);
         return fileValidator.validate(feedName, feed);
     }
 

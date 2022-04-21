@@ -23,17 +23,10 @@ public abstract class AbstractVersion implements Version {
     }
 
     @Override
-    public boolean isFileRequired(String file, boolean isDocked, boolean isFreeFloating) {
-        switch (file) {
-            case "system_information":
-                return true;
-            case "station_information":
-            case "station_status":
-                return isDocked;
-            case "free_bike_status":
-                return isFreeFloating;
-            default:
-                return false;
+    public boolean isFileRequired(String file) {
+        if ("system_information".equals(file)) {
+            return true;
         }
+        return false;
     }
 }

@@ -10,7 +10,7 @@ import java.util.Map;
 public class GbfsJsonValidatorTest {
     @Test
     void testEmptyDeliveryMapValidation() {
-        GbfsJsonValidator validator = new GbfsJsonValidator(false, true);
+        GbfsJsonValidator validator = new GbfsJsonValidator();
         Map<String, InputStream> deliveryMap = new HashMap<>();
         ValidationResult result = validator.validate(deliveryMap);
         Assertions.assertEquals(0, result.getSummary().getErrorsCount());
@@ -18,7 +18,7 @@ public class GbfsJsonValidatorTest {
 
     @Test
     void testSuccessfulV1_0Validation() {
-        GbfsJsonValidator validator = new GbfsJsonValidator(false, true);
+        GbfsJsonValidator validator = new GbfsJsonValidator();
 
         Map<String, InputStream> deliveryMap = new HashMap<>();
         deliveryMap.put("gbfs", getFixture("fixtures/v1.0/gbfs.json"));
@@ -34,7 +34,7 @@ public class GbfsJsonValidatorTest {
 
     @Test
     void testSuccessfulV1_1Validation() {
-        GbfsJsonValidator validator = new GbfsJsonValidator(false, true);
+        GbfsJsonValidator validator = new GbfsJsonValidator();
 
         Map<String, InputStream> deliveryMap = new HashMap<>();
         deliveryMap.put("gbfs", getFixture("fixtures/v1.1/gbfs.json"));
@@ -51,7 +51,7 @@ public class GbfsJsonValidatorTest {
 
     @Test
     void testSuccessfulV2_0Validation() {
-        GbfsJsonValidator validator = new GbfsJsonValidator(false, true);
+        GbfsJsonValidator validator = new GbfsJsonValidator();
 
         Map<String, InputStream> deliveryMap = new HashMap<>();
         deliveryMap.put("gbfs", getFixture("fixtures/v2.0/gbfs.json"));
@@ -68,7 +68,7 @@ public class GbfsJsonValidatorTest {
 
     @Test
     void testSuccessfulV2_1Validation() {
-        GbfsJsonValidator validator = new GbfsJsonValidator(false, true);
+        GbfsJsonValidator validator = new GbfsJsonValidator();
 
         Map<String, InputStream> deliveryMap = new HashMap<>();
         deliveryMap.put("gbfs", getFixture("fixtures/v2.1/gbfs.json"));
@@ -95,7 +95,7 @@ public class GbfsJsonValidatorTest {
 
     @Test
     void testSuccessfulV2_2Validation() {
-        GbfsJsonValidator validator = new GbfsJsonValidator(false, true);
+        GbfsJsonValidator validator = new GbfsJsonValidator();
 
         Map<String, InputStream> deliveryMap = new HashMap<>();
         deliveryMap.put("gbfs", getFixture("fixtures/v2.2/gbfs.json"));
@@ -122,7 +122,7 @@ public class GbfsJsonValidatorTest {
 
     @Test
     void testSuccessfulV2_3Validation() {
-        GbfsJsonValidator validator = new GbfsJsonValidator(false, true);
+        GbfsJsonValidator validator = new GbfsJsonValidator();
 
         Map<String, InputStream> deliveryMap = new HashMap<>();
         deliveryMap.put("gbfs", getFixture("fixtures/v2.3/gbfs.json"));
@@ -149,7 +149,7 @@ public class GbfsJsonValidatorTest {
 
     @Test
     void testMissingRequiredFile() {
-        GbfsJsonValidator validator = new GbfsJsonValidator(false, true);
+        GbfsJsonValidator validator = new GbfsJsonValidator();
 
         Map<String, InputStream> deliveryMap = new HashMap<>();
         deliveryMap.put("gbfs", getFixture("fixtures/v2.2/gbfs.json"));
@@ -162,7 +162,7 @@ public class GbfsJsonValidatorTest {
 
     @Test
     void testMissingNotRequiredFile() {
-        GbfsJsonValidator validator = new GbfsJsonValidator(false, true);
+        GbfsJsonValidator validator = new GbfsJsonValidator();
 
         Map<String, InputStream> deliveryMap = new HashMap<>();
         deliveryMap.put("gbfs", getFixture("fixtures/v2.2/gbfs.json"));
