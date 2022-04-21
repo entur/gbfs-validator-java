@@ -1,16 +1,12 @@
 {
-  "last_updated": 1434054678,
+  "last_updated": 1450155600,
   "ttl": 0,
   "version": "1.1",
   "data": {
     "versions": [
       {
-        "version":"1",
+        "version":"1.1",
         "url":"https://www.example.com/gbfs/1/gbfs"
-      },
-      {
-        "version":"2",
-        "url":"https://www.example.com/gbfs/2/gbfs"
       }
     ]
   }
