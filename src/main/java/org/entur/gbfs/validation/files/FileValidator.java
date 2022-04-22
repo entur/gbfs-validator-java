@@ -97,11 +97,7 @@ public class FileValidator {
 
     protected static Map<String, Schema> getSchemas(Version version) {
         Map<String, Schema> schemas = new HashMap<>();
-
-        version.getFeeds().forEach(feed -> {
-            schemas.put(feed, loadSchema(version.getVersion(), feed));
-        });
-
+        version.getFeeds().forEach(feed -> schemas.put(feed, loadSchema(version.getVersion(), feed)));
         return schemas;
     }
 

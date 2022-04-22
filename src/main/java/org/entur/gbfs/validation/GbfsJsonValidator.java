@@ -65,9 +65,7 @@ public class GbfsJsonValidator implements GbfsValidator {
         ValidationSummary summary = new ValidationSummary();
         Map<String, FileValidationResult> fileValidations = new HashMap<>();
 
-        FEEDS.forEach(gbfsFeedName -> {
-            fileValidations.put(gbfsFeedName, validateFile(gbfsFeedName, feedMap.get(gbfsFeedName)));
-        });
+        FEEDS.forEach(feed-> fileValidations.put(feed, validateFile(feed, feedMap.get(feed))));
 
         Version version = findVersion(fileValidations);
         handleMissingFiles(fileValidations, version);
