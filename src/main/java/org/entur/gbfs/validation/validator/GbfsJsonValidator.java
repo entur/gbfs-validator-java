@@ -109,7 +109,7 @@ public class GbfsJsonValidator implements GbfsValidator {
             .collect(Collectors.toSet());
 
         if (versions.size() > 1) {
-            LOG.warn("Found multiple versions in files while during validation: {}", versions.toString());
+            LOG.warn("Found multiple versions in files while during validation: {}", versions);
         }
 
         return  VersionFactory.createVersion(

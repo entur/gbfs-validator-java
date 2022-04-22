@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Version11 extends AbstractVersion {
-    public static final String version = "1.1";
+    public static final String VERSION = "1.1";
 
     private static final List<String> feeds = Arrays.asList(
             "gbfs",
@@ -39,6 +39,6 @@ public class Version11 extends AbstractVersion {
     );
 
     protected Version11() {
-        super(version, feeds);
+        super(VERSION, feeds);
     }
 }
