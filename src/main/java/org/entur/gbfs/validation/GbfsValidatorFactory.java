@@ -21,6 +21,8 @@ package org.entur.gbfs.validation;
 import org.entur.gbfs.validation.validator.GbfsJsonValidator;
 
 public class GbfsValidatorFactory {
+    private GbfsValidatorFactory() {}
+
     public static GbfsValidator getGbfsJsonValidator() {
         return new GbfsJsonValidator();
     }

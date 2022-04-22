@@ -19,6 +19,8 @@
 package org.entur.gbfs.validation.versions;
 
 public class VersionFactory {
+    private VersionFactory() {}
+
     public static Version createVersion(String version) {
         switch (version) {
             case "1.0":
