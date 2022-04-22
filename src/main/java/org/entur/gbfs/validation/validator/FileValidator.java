@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class FileValidator {
@@ -66,6 +67,7 @@ public class FileValidator {
         fileValidationResult.setRequired(isRequired(feedName));
         fileValidationResult.setExists(feed != null);
         fileValidationResult.setSchema(schema.toString());
+        fileValidationResult.setFileContents(Optional.ofNullable(feed).map(JSONObject::toString).orElse(null));
         fileValidationResult.setVersion(version.getVersion());
 
         try {

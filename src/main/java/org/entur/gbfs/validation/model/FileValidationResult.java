@@ -26,6 +26,7 @@ public class FileValidationResult {
     private boolean exists;
     private int errorsCount;
     private String schema;
+    private String fileContents;
     private String version;
     private List<FileValidationError> errors;
 
@@ -67,6 +68,14 @@ public class FileValidationResult {
 
     public void setSchema(String schema) {
         this.schema = schema;
+    }
+
+    public String getFileContents() {
+        return fileContents;
+    }
+
+    public void setFileContents(String fileContents) {
+        this.fileContents = fileContents;
     }
 
     public String getVersion() {
