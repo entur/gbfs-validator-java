@@ -16,8 +16,10 @@
  *
  */
 
-package org.entur.gbfs.validation.files;
+package org.entur.gbfs.validation.validator;
 
+import org.entur.gbfs.validation.model.FileValidationError;
+import org.entur.gbfs.validation.model.FileValidationResult;
 import org.entur.gbfs.validation.versions.Version;
 import org.entur.gbfs.validation.versions.VersionFactory;
 import org.everit.json.schema.Schema;
@@ -76,9 +78,9 @@ public class FileValidator {
         return fileValidationResult;
     }
 
-    List<ValidationError> mapToValidationErrors(ValidationException validationException) {
+    List<FileValidationError> mapToValidationErrors(ValidationException validationException) {
         if (validationException.getCausingExceptions().isEmpty()) {
-            ValidationError error = new ValidationError();
+            FileValidationError error = new FileValidationError();
             error.setSchemaPath(validationException.getSchemaLocation());
             error.setViolationPath(validationException.getPointerToViolation());
             error.setMessage(validationException.getMessage());

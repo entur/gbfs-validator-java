@@ -16,9 +16,9 @@
  *
  */
 
-package org.entur.gbfs.validation.files;
+package org.entur.gbfs.validation.model;
 
-public class ValidationError {
+public class FileValidationError {
     private String schemaPath;
     private String violationPath;
     private String message;

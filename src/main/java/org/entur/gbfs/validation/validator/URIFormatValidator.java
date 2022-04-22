@@ -16,15 +16,30 @@
  *
  */
 
-package org.entur.gbfs.validation;
+package org.entur.gbfs.validation.validator;
 
-import org.entur.gbfs.validation.model.FileValidationResult;
-import org.entur.gbfs.validation.model.ValidationResult;
+import org.everit.json.schema.FormatValidator;
 
-import java.io.InputStream;
-import java.util.Map;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Optional;
 
-public interface GbfsValidator {
-    ValidationResult validate(Map<String, InputStream> fileMap);
-    FileValidationResult validateFile(String fileName, InputStream file);
+public class URIFormatValidator implements FormatValidator {
+    @Override
+    public Optional<String> validate(String subject) {
+        try {
+            new URI(subject);
+            return Optional.empty();
+        } catch (URISyntaxException e) {
+            if (e.getReason().equalsIgnoreCase("expected authority")) {
+                return Optional.empty();
+            }
+        }
+        return Optional.of("Invalid URI");
+    }
+
+    @Override
+    public String formatName() {
+        return "uri";
+    }
 }

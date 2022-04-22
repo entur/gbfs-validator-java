@@ -16,7 +16,7 @@
  *
  */
 
-package org.entur.gbfs.validation.files;
+package org.entur.gbfs.validation.model;
 
 import java.util.List;
 
@@ -27,7 +27,7 @@ public class FileValidationResult {
     private int errorsCount;
     private String schema;
     private String version;
-    private List<ValidationError> errors;
+    private List<FileValidationError> errors;
 
     public String getFile() {
         return file;
@@ -77,11 +77,11 @@ public class FileValidationResult {
         this.version = version;
     }
 
-    public List<ValidationError> getErrors() {
+    public List<FileValidationError> getErrors() {
         return errors;
     }
 
-    public void setErrors(List<ValidationError> errors) {
+    public void setErrors(List<FileValidationError> errors) {
         this.errors = errors;
     }
 }

@@ -16,8 +16,10 @@
  *
  */
 
-package org.entur.gbfs.validation;
+package org.entur.gbfs.validation.validator;
 
+import org.entur.gbfs.validation.model.FileValidationResult;
+import org.entur.gbfs.validation.model.ValidationResult;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -168,28 +170,11 @@ public class GbfsJsonValidatorTest {
     void testFailed2_3Validation() {
         GbfsJsonValidator validator = new GbfsJsonValidator();
 
-        Map<String, InputStream> deliveryMap = new HashMap<>();
-        deliveryMap.put("gbfs", getFixture("fixtures/v2.3/gbfs.json"));
-        deliveryMap.put("gbfs_versions", getFixture("fixtures/v2.3/gbfs_versions.json"));
-        deliveryMap.put("system_information", getFixture("fixtures/v2.3/system_information.json"));
-        deliveryMap.put("vehicle_types", getFixture("fixtures/v2.3/vehicle_types.json"));
-        deliveryMap.put("station_information", getFixture("fixtures/v2.3/station_information.json"));
-        deliveryMap.put("station_status", getFixture("fixtures/v2.3/station_status.json"));
-        deliveryMap.put("free_bike_status", getFixture("fixtures/v2.3/free_bike_status_with_error.json"));
-        deliveryMap.put("system_hours", getFixture("fixtures/v2.3/system_hours.json"));
-        deliveryMap.put("system_calendar", getFixture("fixtures/v2.3/system_calendar.json"));
-        deliveryMap.put("system_regions", getFixture("fixtures/v2.3/system_regions.json"));
-        deliveryMap.put("system_pricing_plans", getFixture("fixtures/v2.3/system_pricing_plans.json"));
-        deliveryMap.put("system_alerts", getFixture("fixtures/v2.3/system_alerts.json"));
-        deliveryMap.put("geofencing_zones", getFixture("fixtures/v2.3/geofencing_zones.json"));
+        InputStream freeBikeStatus = getFixture("fixtures/v2.3/free_bike_status_with_error.json");
+        FileValidationResult result = validator.validateFile("free_bike_status", freeBikeStatus);
 
-        ValidationResult result = validator.validate(deliveryMap);
-
-        printErrors("2.3", result);
-
-        Assertions.assertEquals("2.3", result.getSummary().getVersion());
-        Assertions.assertEquals(3, result.getFiles().get("free_bike_status").getErrorsCount());
-        Assertions.assertEquals(3, result.getSummary().getErrorsCount());
+        Assertions.assertEquals("2.3", result.getVersion());
+        Assertions.assertEquals(3, result.getErrorsCount());
     }
 
     @Test

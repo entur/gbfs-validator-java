@@ -16,10 +16,13 @@
  *
  */
 
-package org.entur.gbfs.validation;
+package org.entur.gbfs.validation.validator;
 
-import org.entur.gbfs.validation.files.FileValidationResult;
-import org.entur.gbfs.validation.files.FileValidator;
+import org.entur.gbfs.validation.GbfsValidator;
+import org.entur.gbfs.validation.model.FileValidationResult;
+import org.entur.gbfs.validation.validator.FileValidator;
+import org.entur.gbfs.validation.model.ValidationResult;
+import org.entur.gbfs.validation.model.ValidationSummary;
 import org.entur.gbfs.validation.versions.Version;
 import org.entur.gbfs.validation.versions.VersionFactory;
 import org.json.JSONObject;
@@ -80,6 +83,11 @@ public class GbfsJsonValidator implements GbfsValidator {
         result.setFiles(fileValidations);
 
         return result;
+    }
+
+    @Override
+    public FileValidationResult validateFile(String fileName, InputStream file) {
+        return validateFile(fileName, parseFeed(file));
     }
 
     private void handleMissingFiles(Map<String, FileValidationResult> fileValidations, Version version) {
