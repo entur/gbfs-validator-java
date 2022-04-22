@@ -116,4 +116,12 @@ public class FileValidator {
 
         return schemaLoader.load().build();
     }
+
+    public void validateMissingFile(FileValidationResult fvr) {
+        if (version.getFeeds().contains(fvr.getFile())) {
+            fvr.setVersion(version.getVersion());
+            fvr.setSchema(schemas.get(fvr.getFile()).toString());
+            fvr.setRequired(version.isFileRequired(fvr.getFile()));
+        }
+    }
 }

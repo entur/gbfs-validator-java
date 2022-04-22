@@ -94,12 +94,10 @@ public class GbfsJsonValidator implements GbfsValidator {
     }
 
     private void handleMissingFiles(Map<String, FileValidationResult> fileValidations, Version version) {
+        FileValidator fileValidator = FileValidator.getFileValidator(version.getVersion());
         fileValidations.values().stream()
-                        .filter(fvr -> !fvr.isExists())
-                                .forEach(fvr -> {
-                                    fvr.setVersion(version.getVersion());
-                                    fvr.setRequired(version.isFileRequired(fvr.getFile()));
-                                });
+                .filter(fvr -> !fvr.isExists())
+                .forEach(fileValidator::validateMissingFile);
     }
 
     private Version findVersion(Map<String, FileValidationResult> fileValidations) {
