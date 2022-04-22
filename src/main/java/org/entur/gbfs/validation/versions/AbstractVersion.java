@@ -42,9 +42,6 @@ public abstract class AbstractVersion implements Version {
 
     @Override
     public boolean isFileRequired(String file) {
-        if ("system_information".equals(file)) {
-            return true;
-        }
-        return false;
+        return "system_information".equals(file);
     }
 }

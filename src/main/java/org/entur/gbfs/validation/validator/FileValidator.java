@@ -104,19 +104,14 @@ public class FileValidator {
     }
 
     protected static Schema loadSchema(String version, String feedName) {
-        try {
-            InputStream inputStream = ClassLoader.getSystemClassLoader().getResourceAsStream("schema/v"+version+"/"+feedName+".json");
-            JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
-            SchemaLoader schemaLoader = SchemaLoader.builder()
-                    .enableOverrideOfBuiltInFormatValidators()
-                    .addFormatValidator(new URIFormatValidator())
-                    .schemaJson(rawSchema)
-                    .build();
+        InputStream inputStream = ClassLoader.getSystemClassLoader().getResourceAsStream("schema/v"+version+"/"+feedName+".json");
+        JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
+        SchemaLoader schemaLoader = SchemaLoader.builder()
+                .enableOverrideOfBuiltInFormatValidators()
+                .addFormatValidator(new URIFormatValidator())
+                .schemaJson(rawSchema)
+                .build();
 
-            return schemaLoader.load().build();
-        } catch (Exception e) {
-            System.out.println("Caught exception loading schema for " + feedName + " and version " + version);
-            throw e;
-        }
+        return schemaLoader.load().build();
     }
 }

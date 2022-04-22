@@ -20,12 +20,13 @@ package org.entur.gbfs.validation.validator;
 
 import org.entur.gbfs.validation.GbfsValidator;
 import org.entur.gbfs.validation.model.FileValidationResult;
-import org.entur.gbfs.validation.validator.FileValidator;
 import org.entur.gbfs.validation.model.ValidationResult;
 import org.entur.gbfs.validation.model.ValidationSummary;
 import org.entur.gbfs.validation.versions.Version;
 import org.entur.gbfs.validation.versions.VersionFactory;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -40,6 +41,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class GbfsJsonValidator implements GbfsValidator {
+    private static final Logger LOG = LoggerFactory.getLogger(GbfsJsonValidator.class);
 
     private static final String DEFAULT_VERSION = "2.3";
 
@@ -107,7 +109,7 @@ public class GbfsJsonValidator implements GbfsValidator {
             .collect(Collectors.toSet());
 
         if (versions.size() > 1) {
-            // TODO warn or error on multiple versions?
+            LOG.warn("Found multiple versions in files while during validation: {}", versions.toString());
         }
 
         return  VersionFactory.createVersion(

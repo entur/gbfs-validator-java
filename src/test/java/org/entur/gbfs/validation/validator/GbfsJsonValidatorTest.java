@@ -27,7 +27,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GbfsJsonValidatorTest {
+class GbfsJsonValidatorTest {
     @Test
     void testEmptyDeliveryMapValidation() {
         GbfsJsonValidator validator = new GbfsJsonValidator();

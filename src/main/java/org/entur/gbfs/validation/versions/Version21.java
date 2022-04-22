@@ -21,22 +21,26 @@ package org.entur.gbfs.validation.versions;
 import java.util.Arrays;
 import java.util.List;
 
-public class Version1_0 extends AbstractVersion {
-    public static String version = "1.0";
+public class Version21 extends AbstractVersion {
+    public static final String version = "2.1";
 
     private static final List<String> feeds = Arrays.asList(
             "gbfs",
+            "gbfs_versions",
             "system_information",
+            "vehicle_types",
             "station_information",
             "station_status",
             "free_bike_status",
-            "system_calendar",
             "system_hours",
+            "system_calendar",
+            "system_regions",
             "system_pricing_plans",
-            "system_regions"
+            "system_alerts",
+            "geofencing_zones"
     );
 
-    protected Version1_0() {
+    protected Version21() {
         super(version, feeds);
     }
 }
