@@ -20,6 +20,7 @@ package org.entur.gbfs.validation.model;
 
 public class ValidationSummary {
     private String version;
+    private long timestamp;
     private int errorsCount;
 
     public String getVersion() {
@@ -28,6 +29,14 @@ public class ValidationSummary {
 
     public void setVersion(String version) {
         this.version = version;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 
     public int getErrorsCount() {

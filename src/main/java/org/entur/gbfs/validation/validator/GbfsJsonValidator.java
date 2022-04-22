@@ -76,6 +76,7 @@ public class GbfsJsonValidator implements GbfsValidator {
         handleMissingFiles(fileValidations, version);
 
         summary.setVersion(version.getVersion());
+        summary.setTimestamp(System.currentTimeMillis());
         summary.setErrorsCount(
                 fileValidations.values().stream()
                         .filter(Objects::nonNull)
