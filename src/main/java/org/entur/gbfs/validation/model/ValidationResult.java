@@ -40,4 +40,12 @@ public class ValidationResult {
     public void setFiles(Map<String, FileValidationResult> files) {
         this.files = files;
     }
+
+    @Override
+    public String toString() {
+        return "ValidationResult{" +
+                "summary=" + summary +
+                ", files=" + files +
+                '}';
+    }
 }

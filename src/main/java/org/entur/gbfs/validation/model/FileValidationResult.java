@@ -93,4 +93,18 @@ public class FileValidationResult {
     public void setErrors(List<FileValidationError> errors) {
         this.errors = errors;
     }
+
+    @Override
+    public String toString() {
+        return "FileValidationResult{" +
+                "file='" + file + '\'' +
+                ", required=" + required +
+                ", exists=" + exists +
+                ", errorsCount=" + errorsCount +
+                ", schema='" + schema + '\'' +
+                ", fileContents='" + fileContents + '\'' +
+                ", version='" + version + '\'' +
+                ", errors=" + errors +
+                '}';
+    }
 }

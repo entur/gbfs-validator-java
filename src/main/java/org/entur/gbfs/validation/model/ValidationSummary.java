@@ -46,4 +46,13 @@ public class ValidationSummary {
     public void setErrorsCount(int errorsCount) {
         this.errorsCount = errorsCount;
     }
+
+    @Override
+    public String toString() {
+        return "ValidationSummary{" +
+                "version='" + version + '\'' +
+                ", timestamp=" + timestamp +
+                ", errorsCount=" + errorsCount +
+                '}';
+    }
 }
