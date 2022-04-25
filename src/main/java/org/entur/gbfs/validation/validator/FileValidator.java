@@ -27,6 +27,8 @@ import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.util.Collections;
@@ -38,6 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class FileValidator {
+    private static final Logger logger = LoggerFactory.getLogger(FileValidator.class);
     private final Version version;
     private final Map<String, Schema> schemas;
 
@@ -110,12 +113,23 @@ public class FileValidator {
 
     protected static Map<String, Schema> getSchemas(Version version) {
         Map<String, Schema> schemas = new HashMap<>();
-        version.getFeeds().forEach(feed -> schemas.put(feed, loadSchema(version.getVersion(), feed)));
+        version.getFeeds().forEach(feed -> {
+            Schema schema = loadSchema(version.getVersion(), feed);
+            if (schema != null) {
+                schemas.put(feed, schema);
+            }
+        });
         return schemas;
     }
 
     protected static Schema loadSchema(String version, String feedName) {
         InputStream inputStream = ClassLoader.getSystemClassLoader().getResourceAsStream("schema/v"+version+"/"+feedName+".json");
+
+        if (inputStream == null) {
+            logger.warn("Unable to load schema version={} feedName={}", version, feedName);
+            return null;
+        }
+
         JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
         SchemaLoader schemaLoader = SchemaLoader.builder()
                 .enableOverrideOfBuiltInFormatValidators()
