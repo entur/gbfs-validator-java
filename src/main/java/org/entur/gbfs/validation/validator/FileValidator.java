@@ -34,16 +34,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class FileValidator {
     private final Version version;
     private final Map<String, Schema> schemas;
 
+    private static final Map<String, FileValidator> FILE_VALIDATORS = new ConcurrentHashMap<>();
+
     public static FileValidator getFileValidator(
             String detectedVersion
     ) {
-        return new FileValidator(VersionFactory.createVersion(detectedVersion));
+        if (FILE_VALIDATORS.containsKey(detectedVersion)) {
+            return FILE_VALIDATORS.get(detectedVersion);
+        } else {
+            FileValidator fileValidator = new FileValidator(VersionFactory.createVersion(detectedVersion));
+            FILE_VALIDATORS.put(detectedVersion, fileValidator);
+            return fileValidator;
+        }
     }
 
     private FileValidator(
