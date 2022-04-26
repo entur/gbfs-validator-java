@@ -52,17 +52,20 @@ public class FileValidator {
         if (FILE_VALIDATORS.containsKey(detectedVersion)) {
             return FILE_VALIDATORS.get(detectedVersion);
         } else {
-            FileValidator fileValidator = new FileValidator(VersionFactory.createVersion(detectedVersion));
+            Version version = VersionFactory.createVersion(detectedVersion);
+            Map<String, Schema> schemas = FileValidator.getSchemas(version);
+            FileValidator fileValidator = new FileValidator(version, schemas);
             FILE_VALIDATORS.put(detectedVersion, fileValidator);
             return fileValidator;
         }
     }
 
     private FileValidator(
-            Version version
+            Version version,
+            Map<String, Schema> schemas
     ) {
         this.version = version;
-        this.schemas = FileValidator.getSchemas(version);
+        this.schemas = schemas;
     }
 
     public FileValidationResult validate(String feedName, JSONObject feed) {
