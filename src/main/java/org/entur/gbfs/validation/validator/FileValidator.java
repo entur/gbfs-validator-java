@@ -73,7 +73,8 @@ public class FileValidator {
             return validate(schemas.get(feedName), feed, feedName);
         }
 
-        throw new UnsupportedOperationException("Unknown gbfs feed: " + feedName);
+        logger.warn("Unknown gbfs feed={} version={}", feedName, version.getVersion());
+        return null;
     }
 
     private FileValidationResult validate(Schema schema, JSONObject feed, String feedName) {
