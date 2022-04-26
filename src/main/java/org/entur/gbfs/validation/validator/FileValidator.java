@@ -127,7 +127,7 @@ public class FileValidator {
     }
 
     protected static Schema loadSchema(String version, String feedName) {
-        InputStream inputStream = ClassLoader.getSystemClassLoader().getResourceAsStream("schema/v"+version+"/"+feedName+".json");
+        InputStream inputStream = FileValidator.class.getClassLoader().getResourceAsStream("schema/v"+version+"/"+feedName+".json");
 
         if (inputStream == null) {
             logger.warn("Unable to load schema version={} feedName={}", version, feedName);
