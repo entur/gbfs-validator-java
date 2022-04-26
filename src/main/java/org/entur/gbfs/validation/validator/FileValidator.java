@@ -73,7 +73,7 @@ public class FileValidator {
             return validate(schemas.get(feedName), feed, feedName);
         }
 
-        logger.warn("Unknown gbfs feed={} version={}", feedName, version.getVersion());
+        logger.warn("Schema not found for gbfs feed={} version={}", feedName, version.getVersion());
         return null;
     }
 
