@@ -4,7 +4,7 @@
 
     <groupId>org.entur.gbfs</groupId>
     <artifactId>gbfs-validator-java</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3-SNAPSHOT</version>
 
     <name>gbfs-validator-java</name>
     <description>Validate GBFS feeds</description>
@@ -32,7 +32,7 @@
         <connection>scm:git:ssh://git@github.com/entur/gbfs-validator-java.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/entur/gbfs-validator-java.git</developerConnection>
         <url>https://github.com/entur/gbfs-validator-java/tree/master</url>
-        <tag>gbfs-validator-java-1.0.2</tag>
+        <tag>HEAD</tag>
     </scm>
     <distributionManagement>
         <snapshotRepository>
