@@ -43,4 +43,9 @@ public class Version21 extends AbstractVersion {
     protected Version21() {
         super(VERSION, feeds);
     }
+
+    @Override
+    public boolean isFileRequired(String file) {
+        return super.isFileRequired(file) || "gbfs".equals(file);
+    }
 }

@@ -191,6 +191,19 @@ class GbfsJsonValidatorTest {
     }
 
     @Test
+    void testMissingDiscoveryFileAsOf20() {
+        GbfsJsonValidator validator = new GbfsJsonValidator();
+
+        Map<String, InputStream> deliveryMap = new HashMap<>();
+        deliveryMap.put("system_hours", getFixture("fixtures/v2.0/system_hours.json"));
+
+        ValidationResult result = validator.validate(deliveryMap);
+
+        Assertions.assertTrue(result.getFiles().get("gbfs").isRequired());
+        Assertions.assertFalse(result.getFiles().get("gbfs").isExists());
+    }
+
+    @Test
     void testMissingNotRequiredFile() {
         GbfsJsonValidator validator = new GbfsJsonValidator();
 
