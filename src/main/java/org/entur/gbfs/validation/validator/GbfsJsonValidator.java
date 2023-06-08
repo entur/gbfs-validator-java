@@ -53,6 +53,7 @@ public class GbfsJsonValidator implements GbfsValidator {
             "station_information",
             "station_status",
             "free_bike_status",
+            "vehicle_status",
             "system_hours",
             "system_alerts",
             "system_alerts",
