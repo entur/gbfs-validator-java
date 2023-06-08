@@ -216,6 +216,16 @@ class GbfsJsonValidatorTest {
         Assertions.assertFalse(result.getFiles().get("vehicle_types").isExists());
     }
 
+    @Test
+    void testSystemInformationTimeZones() {
+        GbfsJsonValidator validator = new GbfsJsonValidator();
+
+        Map<String, InputStream> deliveryMap = new HashMap<>();
+        deliveryMap.put("gbfs", getFixture("fixtures/v2.2/system_information.json"));
+
+        ValidationResult result = validator.validate(deliveryMap);
+    }
+
     private InputStream getFixture(String name) {
         InputStream inputStream = getClass().getClassLoader().getResourceAsStream(name);
         return inputStream;
