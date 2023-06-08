@@ -167,6 +167,32 @@ class GbfsJsonValidatorTest {
     }
 
     @Test
+    void testSuccessfulV3_0_RCValidation() {
+        GbfsJsonValidator validator = new GbfsJsonValidator();
+
+        Map<String, InputStream> deliveryMap = new HashMap<>();
+        deliveryMap.put("gbfs", getFixture("fixtures/v3.0-RC/gbfs.json"));
+        deliveryMap.put("gbfs_versions", getFixture("fixtures/v3.0-RC/gbfs_versions.json"));
+        deliveryMap.put("system_information", getFixture("fixtures/v3.0-RC/system_information.json"));
+        deliveryMap.put("vehicle_types", getFixture("fixtures/v3.0-RC/vehicle_types.json"));
+        deliveryMap.put("station_information", getFixture("fixtures/v3.0-RC/station_information.json"));
+        deliveryMap.put("station_status", getFixture("fixtures/v3.0-RC/station_status.json"));
+        deliveryMap.put("vehicle_status", getFixture("fixtures/v3.0-RC/vehicle_status.json"));
+        deliveryMap.put("manifest", getFixture("fixtures/v3.0-RC/manifest.json"));
+        deliveryMap.put("system_regions", getFixture("fixtures/v3.0-RC/system_regions.json"));
+        deliveryMap.put("system_pricing_plans", getFixture("fixtures/v3.0-RC/system_pricing_plans.json"));
+        deliveryMap.put("system_alerts", getFixture("fixtures/v3.0-RC/system_alerts.json"));
+        deliveryMap.put("geofencing_zones", getFixture("fixtures/v3.0-RC/geofencing_zones.json"));
+
+        ValidationResult result = validator.validate(deliveryMap);
+
+        printErrors("3.0-RC", result);
+
+        Assertions.assertEquals("3.0-RC", result.getSummary().getVersion());
+        Assertions.assertEquals(0, result.getSummary().getErrorsCount());
+    }
+
+    @Test
     void testFailed2_3Validation() {
         GbfsJsonValidator validator = new GbfsJsonValidator();
 
