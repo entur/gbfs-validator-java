@@ -44,6 +44,9 @@ public class VehicleTypesSchemaV2_3 extends GBFSSchema {
         return schema;
     }
 
+    /**
+     * Adds an enum to vehicle_type's default_pricing_plan_id schema with the plan ids from the system_pricing_plan feed
+     */
     private JSONObject addDefaultPricingPlanSchema(JSONObject rawSchema, JSONObject pricingPlansFeed) {
         JSONArray pricingPlanIds = JsonPath.parse(pricingPlansFeed).read("$.data.plans[*].plan_id");
         JSONObject defaultPricingPlanIdSchema = JsonPath.parse(rawSchema).read("$.properties.data.properties.vehicle_types.items.properties.default_pricing_plan_id");
