@@ -25,6 +25,7 @@ import org.entur.gbfs.validation.model.ValidationSummary;
 import org.entur.gbfs.validation.versions.Version;
 import org.entur.gbfs.validation.versions.VersionFactory;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +72,7 @@ public class GbfsJsonValidator implements GbfsValidator {
         ValidationSummary summary = new ValidationSummary();
         Map<String, FileValidationResult> fileValidations = new HashMap<>();
 
-        FEEDS.forEach(feed-> fileValidations.put(feed, validateFile(feed, feedMap.get(feed))));
+        FEEDS.forEach(feed-> fileValidations.put(feed, validateFile(feed, feedMap)));
 
         Version version = findVersion(fileValidations);
         handleMissingFiles(fileValidations, version);
@@ -91,7 +92,7 @@ public class GbfsJsonValidator implements GbfsValidator {
 
     @Override
     public FileValidationResult validateFile(String fileName, InputStream file) {
-        return validateFile(fileName, parseFeed(file));
+        return validateFile(fileName, Map.of(fileName, new JSONObject(new JSONTokener(file))));
     }
 
     private void handleMissingFiles(Map<String, FileValidationResult> fileValidations, Version version) {
@@ -117,8 +118,8 @@ public class GbfsJsonValidator implements GbfsValidator {
         );
     }
 
-    private FileValidationResult validateFile(String feedName, JSONObject feed) {
-
+    private FileValidationResult validateFile(String feedName, Map<String, JSONObject> feedMap) {
+        JSONObject feed = feedMap.get(feedName);
         if (feed == null) {
             FileValidationResult result = new FileValidationResult();
             result.setFile(feedName);
@@ -135,7 +136,7 @@ public class GbfsJsonValidator implements GbfsValidator {
 
         // find correct file validator
         FileValidator fileValidator = FileValidator.getFileValidator(detectedVersion);
-        return fileValidator.validate(feedName, feed);
+        return fileValidator.validate(feedName, feedMap);
     }
 
     private Map<String, JSONObject> parseFeeds(Map<String, InputStream> rawFeeds) {

@@ -20,19 +20,16 @@ package org.entur.gbfs.validation.validator;
 
 import org.entur.gbfs.validation.model.FileValidationError;
 import org.entur.gbfs.validation.model.FileValidationResult;
+import org.entur.gbfs.validation.validator.schema.GBFSSchema;
 import org.entur.gbfs.validation.versions.Version;
 import org.entur.gbfs.validation.versions.VersionFactory;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
-import org.everit.json.schema.loader.SchemaLoader;
 import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -42,9 +39,10 @@ import java.util.stream.Collectors;
 public class FileValidator {
     private static final Logger logger = LoggerFactory.getLogger(FileValidator.class);
     private final Version version;
-    private final Map<String, Schema> schemas;
+    private final Map<String, GBFSSchema> schemas;
 
     private static final Map<String, FileValidator> FILE_VALIDATORS = new ConcurrentHashMap<>();
+
 
     public static FileValidator getFileValidator(
             String detectedVersion
@@ -53,47 +51,52 @@ public class FileValidator {
             return FILE_VALIDATORS.get(detectedVersion);
         } else {
             Version version = VersionFactory.createVersion(detectedVersion);
-            Map<String, Schema> schemas = FileValidator.getSchemas(version);
-            FileValidator fileValidator = new FileValidator(version, schemas);
+
+            FileValidator fileValidator = new FileValidator(version, FileValidator.getRawSchemas(version));
             FILE_VALIDATORS.put(detectedVersion, fileValidator);
             return fileValidator;
         }
     }
 
-    private FileValidator(
+    protected FileValidator(
             Version version,
-            Map<String, Schema> schemas
+            Map<String, GBFSSchema> schemas
     ) {
         this.version = version;
         this.schemas = schemas;
     }
 
-    public FileValidationResult validate(String feedName, JSONObject feed) {
+    protected static Map<String, GBFSSchema> getRawSchemas(Version version) {
+        return version.getFeeds().stream().map(
+                feed -> GBFSSchema.getGBFSchema(version, feed)
+        ).collect(Collectors.toMap(GBFSSchema::getFeedName, e -> e));
+    }
+
+    public FileValidationResult validate(String feedName, Map<String, JSONObject> feedMap) {
         if (schemas.containsKey(feedName)) {
-            return validate(schemas.get(feedName), feed, feedName);
+            JSONObject feed = feedMap.get(feedName);
+            GBFSSchema gbfsSchema = schemas.get(feedName);
+            Schema schema = gbfsSchema.getSchema(feedName, feedMap);
+            FileValidationResult fileValidationResult = new FileValidationResult();
+            fileValidationResult.setFile(feedName);
+            fileValidationResult.setRequired(isRequired(feedName));
+            fileValidationResult.setExists(feed != null);
+            fileValidationResult.setSchema(schema.toString());
+            fileValidationResult.setFileContents(Optional.ofNullable(feed).map(JSONObject::toString).orElse(null));
+            fileValidationResult.setVersion(version.getVersion());
+
+            try {
+                schema.validate(feed);
+            } catch (ValidationException validationException) {
+                fileValidationResult.setErrors(mapToValidationErrors(validationException));
+                fileValidationResult.setErrorsCount(validationException.getViolationCount());
+            }
+
+            return fileValidationResult;
         }
 
         logger.warn("Schema not found for gbfs feed={} version={}", feedName, version.getVersion());
         return null;
-    }
-
-    private FileValidationResult validate(Schema schema, JSONObject feed, String feedName) {
-        FileValidationResult fileValidationResult = new FileValidationResult();
-        fileValidationResult.setFile(feedName);
-        fileValidationResult.setRequired(isRequired(feedName));
-        fileValidationResult.setExists(feed != null);
-        fileValidationResult.setSchema(schema.toString());
-        fileValidationResult.setFileContents(Optional.ofNullable(feed).map(JSONObject::toString).orElse(null));
-        fileValidationResult.setVersion(version.getVersion());
-
-        try {
-            schema.validate(feed);
-        } catch (ValidationException validationException) {
-            fileValidationResult.setErrors(mapToValidationErrors(validationException));
-            fileValidationResult.setErrorsCount(validationException.getViolationCount());
-        }
-
-        return fileValidationResult;
     }
 
     List<FileValidationError> mapToValidationErrors(ValidationException validationException) {
@@ -115,34 +118,6 @@ public class FileValidator {
         return version.isFileRequired(feedName);
     }
 
-    protected static Map<String, Schema> getSchemas(Version version) {
-        Map<String, Schema> schemas = new HashMap<>();
-        version.getFeeds().forEach(feed -> {
-            Schema schema = loadSchema(version.getVersion(), feed);
-            if (schema != null) {
-                schemas.put(feed, schema);
-            }
-        });
-        return schemas;
-    }
-
-    protected static Schema loadSchema(String version, String feedName) {
-        InputStream inputStream = FileValidator.class.getClassLoader().getResourceAsStream("schema/v"+version+"/"+feedName+".json");
-
-        if (inputStream == null) {
-            logger.warn("Unable to load schema version={} feedName={}", version, feedName);
-            return null;
-        }
-
-        JSONObject rawSchema = new JSONObject(new JSONTokener(inputStream));
-        SchemaLoader schemaLoader = SchemaLoader.builder()
-                .enableOverrideOfBuiltInFormatValidators()
-                .addFormatValidator(new URIFormatValidator())
-                .schemaJson(rawSchema)
-                .build();
-
-        return schemaLoader.load().build();
-    }
 
     public void validateMissingFile(FileValidationResult fvr) {
         if (version.getFeeds().contains(fvr.getFile())) {
