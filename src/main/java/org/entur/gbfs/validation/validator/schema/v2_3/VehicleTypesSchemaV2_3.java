@@ -35,11 +35,6 @@ public class VehicleTypesSchemaV2_3 extends GBFSSchema {
     }
 
     @Override
-    public Schema getSchema(String feedName, Map<String, JSONObject> feedMap) {
-        return super.getSchema(feedName, feedMap);
-    }
-
-    @Override
     protected JSONObject injectCustomRules(JSONObject rawSchema, Map<String, JSONObject> feedMap) {
         JSONObject schema = rawSchema;
         if (feedMap.containsKey("system_pricing_plans")) {
