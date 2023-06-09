@@ -28,7 +28,7 @@ import com.jayway.jsonpath.spi.mapper.JsonOrgMappingProvider;
 import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import org.entur.gbfs.validation.validator.FileValidator;
 import org.entur.gbfs.validation.validator.URIFormatValidator;
-import org.entur.gbfs.validation.validator.schema.v2_3.VehicleTypesSchemaV2_0;
+import org.entur.gbfs.validation.validator.schema.v2_3.VehicleTypesSchemaV2_3;
 import org.entur.gbfs.validation.versions.Version;
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.loader.SchemaLoader;
@@ -80,7 +80,7 @@ public class GBFSSchema {
 
     public static GBFSSchema getGBFSchema(Version version, String feedName) {
         if (feedName.equals("vehicle_types") && version.getVersion().equals("2.3")) {
-            return new VehicleTypesSchemaV2_0(version, feedName);
+            return new VehicleTypesSchemaV2_3(version, feedName);
         }
         return new GBFSSchema(version, feedName);
     }
