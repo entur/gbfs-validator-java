@@ -20,38 +20,25 @@
 
 package org.entur.gbfs.validation.validator.schema.v2_3;
 
-import com.jayway.jsonpath.JsonPath;
+import org.entur.gbfs.validation.validator.rules.CustomRuleSchemaPatcher;
+import org.entur.gbfs.validation.validator.rules.VehicleTypeDefaultPricingPlanIdExistsInSystemPricingPlans;
 import org.entur.gbfs.validation.validator.schema.GBFSSchema;
 import org.entur.gbfs.validation.versions.Version;
-import org.everit.json.schema.Schema;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
-import java.util.Map;
+import java.util.List;
 
 public class VehicleTypesSchemaV2_3 extends GBFSSchema {
+
+    List<CustomRuleSchemaPatcher> customRules = List.of(
+            new VehicleTypeDefaultPricingPlanIdExistsInSystemPricingPlans()
+    );
+
     public VehicleTypesSchemaV2_3(Version version, String feedName) {
         super(version, feedName);
     }
 
     @Override
-    protected JSONObject injectCustomRules(JSONObject rawSchema, Map<String, JSONObject> feedMap) {
-        JSONObject schema = rawSchema;
-        if (feedMap.containsKey("system_pricing_plans")) {
-            schema = addDefaultPricingPlanSchema(rawSchema, feedMap.get("system_pricing_plans"));
-        }
-
-        return schema;
+    protected List<CustomRuleSchemaPatcher> getCustomRules() {
+        return customRules;
     }
-
-    /**
-     * Adds an enum to vehicle_type's default_pricing_plan_id schema with the plan ids from the system_pricing_plan feed
-     */
-    private JSONObject addDefaultPricingPlanSchema(JSONObject rawSchema, JSONObject pricingPlansFeed) {
-        JSONArray pricingPlanIds = JsonPath.parse(pricingPlansFeed).read("$.data.plans[*].plan_id");
-        JSONObject defaultPricingPlanIdSchema = JsonPath.parse(rawSchema).read("$.properties.data.properties.vehicle_types.items.properties.default_pricing_plan_id");
-        defaultPricingPlanIdSchema.put("enum", pricingPlanIds);
-        return JsonPath.parse(rawSchema).set("$.properties.data.properties.vehicle_types.items.properties.default_pricing_plan_id", defaultPricingPlanIdSchema).json();
-    }
-
 }

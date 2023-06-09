@@ -28,6 +28,7 @@ import com.jayway.jsonpath.spi.mapper.JsonOrgMappingProvider;
 import com.jayway.jsonpath.spi.mapper.MappingProvider;
 import org.entur.gbfs.validation.validator.FileValidator;
 import org.entur.gbfs.validation.validator.URIFormatValidator;
+import org.entur.gbfs.validation.validator.rules.CustomRuleSchemaPatcher;
 import org.entur.gbfs.validation.validator.schema.v2_3.VehicleTypesSchemaV2_3;
 import org.entur.gbfs.validation.versions.Version;
 import org.everit.json.schema.Schema;
@@ -39,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -97,11 +99,22 @@ public class GBFSSchema {
         if (rawSchema == null) {
             rawSchema = loadRawSchema(version.getVersion(), feedName);
         }
-        return loadSchema(injectCustomRules(rawSchema, feedMap));
+        return loadSchema(applyCustomRules(rawSchema, feedMap));
     }
 
-    protected JSONObject injectCustomRules(JSONObject rawSchema, Map<String, JSONObject> feedMap) {
-        return rawSchema;
+    private JSONObject applyCustomRules(JSONObject rawSchema, Map<String, JSONObject> feedMap) {
+        List<CustomRuleSchemaPatcher> customRules = getCustomRules();
+
+        // Risky use of reduce?
+        return customRules.stream().reduce(rawSchema, (schema, patcher) -> applyRule(schema, patcher, feedMap), (a, b) -> a);
+    }
+
+    protected JSONObject applyRule(JSONObject schema, CustomRuleSchemaPatcher patcher, Map<String, JSONObject> feedMap) {
+        return patcher.addRule(schema, feedMap);
+    }
+
+    protected List<CustomRuleSchemaPatcher> getCustomRules() {
+        return List.of();
     }
 
     protected JSONObject loadRawSchema(String version, String feedName) {
