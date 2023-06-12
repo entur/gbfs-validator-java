@@ -22,8 +22,8 @@ import org.entur.gbfs.validation.GbfsValidator;
 import org.entur.gbfs.validation.model.FileValidationResult;
 import org.entur.gbfs.validation.model.ValidationResult;
 import org.entur.gbfs.validation.model.ValidationSummary;
-import org.entur.gbfs.validation.versions.Version;
-import org.entur.gbfs.validation.versions.VersionFactory;
+import org.entur.gbfs.validation.validator.versions.Version;
+import org.entur.gbfs.validation.validator.versions.VersionFactory;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.slf4j.Logger;
@@ -77,7 +77,7 @@ public class GbfsJsonValidator implements GbfsValidator {
         Version version = findVersion(fileValidations);
         handleMissingFiles(fileValidations, version);
 
-        summary.setVersion(version.getVersion());
+        summary.setVersion(version.getVersionString());
         summary.setTimestamp(System.currentTimeMillis());
         summary.setErrorsCount(
                 fileValidations.values().stream()
@@ -96,7 +96,7 @@ public class GbfsJsonValidator implements GbfsValidator {
     }
 
     private void handleMissingFiles(Map<String, FileValidationResult> fileValidations, Version version) {
-        FileValidator fileValidator = FileValidator.getFileValidator(version.getVersion());
+        FileValidator fileValidator = FileValidator.getFileValidator(version.getVersionString());
         fileValidations.values().stream()
                 .filter(fvr -> !fvr.isExists())
                 .forEach(fileValidator::validateMissingFile);

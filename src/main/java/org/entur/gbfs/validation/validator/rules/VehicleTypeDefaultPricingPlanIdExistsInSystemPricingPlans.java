@@ -20,6 +20,7 @@
 
 package org.entur.gbfs.validation.validator.rules;
 
+import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -33,10 +34,11 @@ public class VehicleTypeDefaultPricingPlanIdExistsInSystemPricingPlans implement
 
     @Override
     public JSONObject addRule(JSONObject rawSchema, Map<String, JSONObject> feeds) {
+        DocumentContext rawSchemaDocumentContext = JsonPath.parse(rawSchema);
         JSONObject pricingPlansFeed = feeds.get("system_pricing_plans");
         JSONArray pricingPlanIds = JsonPath.parse(pricingPlansFeed).read("$.data.plans[*].plan_id");
-        JSONObject defaultPricingPlanIdSchema = JsonPath.parse(rawSchema).read("$.properties.data.properties.vehicle_types.items.properties.default_pricing_plan_id");
+        JSONObject defaultPricingPlanIdSchema = rawSchemaDocumentContext.read("$.properties.data.properties.vehicle_types.items.properties.default_pricing_plan_id");
         defaultPricingPlanIdSchema.put("enum", pricingPlanIds);
-        return JsonPath.parse(rawSchema).set("$.properties.data.properties.vehicle_types.items.properties.default_pricing_plan_id", defaultPricingPlanIdSchema).json();
+        return rawSchemaDocumentContext.set("$.properties.data.properties.vehicle_types.items.properties.default_pricing_plan_id", defaultPricingPlanIdSchema).json();
     }
 }
