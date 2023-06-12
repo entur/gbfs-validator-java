@@ -93,8 +93,7 @@ public abstract class AbstractVersion implements Version {
     }
 
     private JSONObject getRawSchema(String feedName) {
-        schemas.computeIfAbsent(feedName, this::loadRawSchema);
-        return schemas.get(feedName);
+        return schemas.computeIfAbsent(feedName, this::loadRawSchema);
     }
 
     private JSONObject applyCustomRules(String feedName, JSONObject rawSchema, Map<String, JSONObject> feedMap) {
