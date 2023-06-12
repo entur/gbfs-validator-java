@@ -5,7 +5,7 @@
   "data": {
     "plans": [
       {
-        "plan_id": "plan2",
+        "plan_id": "bike_plan_1",
         "name": [
           {
             "text": "One-Way",
@@ -42,7 +42,7 @@
         ]
       },
       {
-        "plan_id": "plan3",
+        "plan_id": "cargo_plan_1",
         "name": [
           {
             "text": "Simple Rate",
