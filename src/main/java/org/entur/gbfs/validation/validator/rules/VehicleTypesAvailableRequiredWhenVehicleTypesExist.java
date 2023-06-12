@@ -35,7 +35,7 @@ public class VehicleTypesAvailableRequiredWhenVehicleTypesExist implements Custo
     public static final String STATION_ITEMS_REQUIRED_SCHEMA_PATH = "$.properties.data.properties.stations.items.required";
 
     /**
-     * Adds an enum to the vehicle_type_id schema of vehicle_types_available with the vehilce type ids from vehicle_types.json
+     * Adds vehicle_types_available to list of required properties on stations in station_status
      */
     @Override
     public DocumentContext addRule(DocumentContext rawSchemaDocumentContext, Map<String, JSONObject> feeds) {
