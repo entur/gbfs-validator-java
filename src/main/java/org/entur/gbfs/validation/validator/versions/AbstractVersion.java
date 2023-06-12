@@ -93,7 +93,7 @@ public abstract class AbstractVersion implements Version {
     }
 
     private JSONObject getRawSchema(String feedName) {
-        schemas.computeIfAbsent(feedName, _ -> loadRawSchema(feedName));
+        schemas.computeIfAbsent(feedName, this::loadRawSchema);
         return schemas.get(feedName);
     }
 
