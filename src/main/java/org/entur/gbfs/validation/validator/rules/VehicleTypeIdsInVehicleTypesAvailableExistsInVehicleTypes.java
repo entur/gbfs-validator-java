@@ -28,21 +28,21 @@ import org.json.JSONObject;
 import java.util.Map;
 
 /**
- * A vehicle's default_pricing_plan_id must exist in the system's system_pricing_plan file
+ * Available vehicle types in station_status must exist in the system's vehicle_types file
  */
-public class VehicleTypeDefaultPricingPlanIdExistsInSystemPricingPlans implements CustomRuleSchemaPatcher {
+public class VehicleTypeIdsInVehicleTypesAvailableExistsInVehicleTypes implements CustomRuleSchemaPatcher {
 
-    public static final String DEFAULT_PRICING_PLAN_ID_SCHEMA_PATH = "$.properties.data.properties.vehicle_types.items.properties.default_pricing_plan_id";
+    public static final String VEHICLE_TYPE_ID_SCHEMA_PATH = "$.properties.data.properties.stations.items.properties.vehicle_types_available.items.properties.vehicle_type_id";
 
     /**
-     * Adds an enum to vehicle_type's default_pricing_plan_id schema with the plan ids from the system_pricing_plan feed
+     * Adds an enum to the vehicle_type_id schema of vehicle_types_available with the vehilce type ids from vehicle_types.json
      */
     @Override
     public DocumentContext addRule(DocumentContext rawSchemaDocumentContext, Map<String, JSONObject> feeds) {
-        JSONObject pricingPlansFeed = feeds.get("system_pricing_plans");
-        JSONArray pricingPlanIds = JsonPath.parse(pricingPlansFeed).read("$.data.plans[*].plan_id");
-        JSONObject defaultPricingPlanIdSchema = rawSchemaDocumentContext.read(DEFAULT_PRICING_PLAN_ID_SCHEMA_PATH);
-        defaultPricingPlanIdSchema.put("enum", pricingPlanIds);
-        return rawSchemaDocumentContext.set(DEFAULT_PRICING_PLAN_ID_SCHEMA_PATH, defaultPricingPlanIdSchema);
+        JSONObject vehicleTypesFeed = feeds.get("vehicle_types");
+        JSONArray vehicleTypeIds = JsonPath.parse(vehicleTypesFeed).read("$.data.vehicle_types[*].vehicle_type_id");
+        JSONObject vehicleTypeIdSchema = rawSchemaDocumentContext.read(VEHICLE_TYPE_ID_SCHEMA_PATH);
+        vehicleTypeIdSchema.put("enum", vehicleTypeIds);
+        return rawSchemaDocumentContext.set(VEHICLE_TYPE_ID_SCHEMA_PATH, vehicleTypeIdSchema);
     }
 }

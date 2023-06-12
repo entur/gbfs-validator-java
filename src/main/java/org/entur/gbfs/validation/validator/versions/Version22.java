@@ -18,8 +18,13 @@
 
 package org.entur.gbfs.validation.validator.versions;
 
+import org.entur.gbfs.validation.validator.rules.CustomRuleSchemaPatcher;
+import org.entur.gbfs.validation.validator.rules.VehicleTypeDefaultPricingPlanIdExistsInSystemPricingPlans;
+import org.entur.gbfs.validation.validator.rules.VehicleTypeIdsInVehicleTypesAvailableExistsInVehicleTypes;
+
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class Version22 extends AbstractVersion {
     public static final String VERSION = "2.2";
@@ -40,8 +45,14 @@ public class Version22 extends AbstractVersion {
             "geofencing_zones"
     );
 
+    private static final Map<String, List<CustomRuleSchemaPatcher>> customRules = Map.of(
+            "station_status", List.of(
+                    new VehicleTypeIdsInVehicleTypesAvailableExistsInVehicleTypes()
+            )
+    );
+
     protected Version22() {
-        super(VERSION, feeds);
+        super(VERSION, feeds, customRules);
     }
 
     @Override

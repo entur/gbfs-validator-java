@@ -19,6 +19,7 @@
 package org.entur.gbfs.validation.validator.versions;
 
 import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.JsonOrgJsonProvider;
 import com.jayway.jsonpath.spi.json.JsonProvider;
@@ -103,7 +104,7 @@ public abstract class AbstractVersion implements Version {
     }
 
     private JSONObject applyRule(JSONObject schema, CustomRuleSchemaPatcher patcher, Map<String, JSONObject> feedMap) {
-        return patcher.addRule(schema, feedMap);
+        return patcher.addRule(JsonPath.parse(schema), feedMap).json();
     }
 
     private void configureJsonPath() {

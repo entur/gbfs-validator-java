@@ -20,10 +20,11 @@
 
 package org.entur.gbfs.validation.validator.rules;
 
+import com.jayway.jsonpath.DocumentContext;
 import org.json.JSONObject;
 
 import java.util.Map;
 
 public interface CustomRuleSchemaPatcher {
-    JSONObject addRule(JSONObject rawSchema, Map<String, JSONObject> feeds);
+    DocumentContext addRule(DocumentContext rawSchemaDocumentContext, Map<String, JSONObject> feeds);
 }
