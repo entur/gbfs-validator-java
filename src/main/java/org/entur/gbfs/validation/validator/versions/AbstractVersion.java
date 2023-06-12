@@ -102,7 +102,7 @@ public abstract class AbstractVersion implements Version {
         return getCustomRules(feedName).stream().reduce(rawSchema, (schema, patcher) -> applyRule(schema, patcher, feedMap), (a, b) -> a);
     }
 
-    protected JSONObject applyRule(JSONObject schema, CustomRuleSchemaPatcher patcher, Map<String, JSONObject> feedMap) {
+    private JSONObject applyRule(JSONObject schema, CustomRuleSchemaPatcher patcher, Map<String, JSONObject> feedMap) {
         return patcher.addRule(schema, feedMap);
     }
 
@@ -132,7 +132,7 @@ public abstract class AbstractVersion implements Version {
         return Optional.ofNullable(customRules.get(fileName)).orElse(Collections.emptyList());
     }
 
-    protected JSONObject loadRawSchema(String feedName) {
+    private JSONObject loadRawSchema(String feedName) {
         InputStream inputStream = FileValidator.class.getClassLoader().getResourceAsStream("schema/v"+ versionString +"/"+feedName+".json");
 
         if (inputStream == null) {
@@ -143,7 +143,7 @@ public abstract class AbstractVersion implements Version {
         return new JSONObject(new JSONTokener(inputStream));
     }
 
-    protected org.everit.json.schema.Schema loadSchema(JSONObject rawSchema) {
+    private org.everit.json.schema.Schema loadSchema(JSONObject rawSchema) {
         SchemaLoader schemaLoader = SchemaLoader.builder()
                 .enableOverrideOfBuiltInFormatValidators()
                 .addFormatValidator(new URIFormatValidator())
