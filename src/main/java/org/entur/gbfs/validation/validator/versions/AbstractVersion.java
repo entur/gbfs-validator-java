@@ -52,18 +52,38 @@ public abstract class AbstractVersion implements Version {
     private Map<String, JSONObject> schemas = new ConcurrentHashMap<>();
     private final Map<String, List<CustomRuleSchemaPatcher>> customRules;
 
+    static {
+        Configuration.setDefaults(new Configuration.Defaults() {
+            final JsonProvider jsonProvider = new JsonOrgJsonProvider();
+            final MappingProvider mappingProvider = new JsonOrgMappingProvider();
+
+            @Override
+            public JsonProvider jsonProvider() {
+                return jsonProvider;
+            }
+
+            @Override
+            public Set<Option> options() {
+                return EnumSet.noneOf(Option.class);
+            }
+
+            @Override
+            public MappingProvider mappingProvider() {
+                return mappingProvider;
+            }
+        });
+    }
+
     protected AbstractVersion(String versionString, List<String> feeds, Map<String, List<CustomRuleSchemaPatcher>> customRules) {
         this.versionString = versionString;
         this.feeds = feeds;
         this.customRules = customRules;
-        configureJsonPath();
     }
 
     protected AbstractVersion(String versionString, List<String> feeds) {
         this.versionString = versionString;
         this.feeds = feeds;
         this.customRules = Map.of();
-        configureJsonPath();
     }
 
     @Override
@@ -103,34 +123,12 @@ public abstract class AbstractVersion implements Version {
         return getCustomRules(feedName).stream().reduce(rawSchema, (schema, patcher) -> applyRule(schema, patcher, feedMap), (a, b) -> a);
     }
 
-    private JSONObject applyRule(JSONObject schema, CustomRuleSchemaPatcher patcher, Map<String, JSONObject> feedMap) {
-        return patcher.addRule(JsonPath.parse(schema), feedMap).json();
-    }
-
-    private void configureJsonPath() {
-        Configuration.setDefaults(new Configuration.Defaults() {
-            JsonProvider jsonProvider = new JsonOrgJsonProvider();
-            MappingProvider mappingProvider = new JsonOrgMappingProvider();
-
-            @Override
-            public JsonProvider jsonProvider() {
-                return jsonProvider;
-            }
-
-            @Override
-            public Set<Option> options() {
-                return EnumSet.noneOf(Option.class);
-            }
-
-            @Override
-            public MappingProvider mappingProvider() {
-                return mappingProvider;
-            }
-        });
-    }
-
     private List<CustomRuleSchemaPatcher> getCustomRules(String fileName) {
         return Optional.ofNullable(customRules.get(fileName)).orElse(Collections.emptyList());
+    }
+
+    private JSONObject applyRule(JSONObject schema, CustomRuleSchemaPatcher patcher, Map<String, JSONObject> feedMap) {
+        return patcher.addRule(JsonPath.parse(schema), feedMap).json();
     }
 
     private JSONObject loadRawSchema(String feedName) {
