@@ -19,7 +19,6 @@
 package org.entur.gbfs.validation.validator.versions;
 
 import org.entur.gbfs.validation.validator.rules.CustomRuleSchemaPatcher;
-import org.entur.gbfs.validation.validator.rules.VehicleTypeDefaultPricingPlanIdExistsInSystemPricingPlans;
 import org.entur.gbfs.validation.validator.rules.VehicleTypeIdsInVehicleTypesAvailableExistsInVehicleTypes;
 
 import java.util.Arrays;
