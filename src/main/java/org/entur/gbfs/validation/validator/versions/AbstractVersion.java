@@ -93,17 +93,14 @@ public abstract class AbstractVersion implements Version {
     }
 
     private JSONObject getRawSchema(String feedName) {
-        if (!schemas.containsKey(feedName)) {
-            schemas.put(feedName, loadRawSchema(feedName));
-        }
+        schemas.computeIfAbsent(feedName, _ -> loadRawSchema(feedName));
         return schemas.get(feedName);
     }
 
     private JSONObject applyCustomRules(String feedName, JSONObject rawSchema, Map<String, JSONObject> feedMap) {
-        List<CustomRuleSchemaPatcher> customRules = getCustomRules(feedName);
 
         // Risky use of reduce?
-        return customRules.stream().reduce(rawSchema, (schema, patcher) -> applyRule(schema, patcher, feedMap), (a, b) -> a);
+        return getCustomRules(feedName).stream().reduce(rawSchema, (schema, patcher) -> applyRule(schema, patcher, feedMap), (a, b) -> a);
     }
 
     protected JSONObject applyRule(JSONObject schema, CustomRuleSchemaPatcher patcher, Map<String, JSONObject> feedMap) {
