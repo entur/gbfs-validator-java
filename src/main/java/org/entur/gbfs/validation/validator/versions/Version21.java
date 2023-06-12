@@ -20,6 +20,7 @@ package org.entur.gbfs.validation.validator.versions;
 
 import org.entur.gbfs.validation.validator.rules.CustomRuleSchemaPatcher;
 import org.entur.gbfs.validation.validator.rules.VehicleTypeIdsInVehicleTypesAvailableExistsInVehicleTypes;
+import org.entur.gbfs.validation.validator.rules.VehicleTypesAvailableRequiredWhenVehicleTypesExist;
 
 import java.util.Arrays;
 import java.util.List;
@@ -46,7 +47,8 @@ public class Version21 extends AbstractVersion {
 
     private static final Map<String, List<CustomRuleSchemaPatcher>> customRules = Map.of(
             "station_status", List.of(
-                    new VehicleTypeIdsInVehicleTypesAvailableExistsInVehicleTypes()
+                    new VehicleTypeIdsInVehicleTypesAvailableExistsInVehicleTypes(),
+                    new VehicleTypesAvailableRequiredWhenVehicleTypesExist()
             )
     );
 

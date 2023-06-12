@@ -18,6 +18,7 @@ List of additional rules:
 
 * `VehicleTypeDefaultPricingPlanIdExistsInSystemPricingPlans`
 * `VehicleTypeIdsInVehicleTypesAvailableExistsInVehicleTypes`
+* `VehicleTypesAvailableRequiredWhenVehicleTypesExist`
 
 Planned rules:
 

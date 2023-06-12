@@ -21,6 +21,7 @@ package org.entur.gbfs.validation.validator.versions;
 import org.entur.gbfs.validation.validator.rules.CustomRuleSchemaPatcher;
 import org.entur.gbfs.validation.validator.rules.VehicleTypeDefaultPricingPlanIdExistsInSystemPricingPlans;
 import org.entur.gbfs.validation.validator.rules.VehicleTypeIdsInVehicleTypesAvailableExistsInVehicleTypes;
+import org.entur.gbfs.validation.validator.rules.VehicleTypesAvailableRequiredWhenVehicleTypesExist;
 
 import java.util.Arrays;
 import java.util.List;
@@ -50,7 +51,8 @@ public class Version23 extends AbstractVersion {
                     new VehicleTypeDefaultPricingPlanIdExistsInSystemPricingPlans()
             ),
             "station_status", List.of(
-                    new VehicleTypeIdsInVehicleTypesAvailableExistsInVehicleTypes()
+                    new VehicleTypeIdsInVehicleTypesAvailableExistsInVehicleTypes(),
+                    new VehicleTypesAvailableRequiredWhenVehicleTypesExist()
             )
     );
 

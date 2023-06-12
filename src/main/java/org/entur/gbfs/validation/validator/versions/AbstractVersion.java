@@ -128,7 +128,9 @@ public abstract class AbstractVersion implements Version {
     }
 
     private JSONObject applyRule(JSONObject schema, CustomRuleSchemaPatcher patcher, Map<String, JSONObject> feedMap) {
-        return patcher.addRule(JsonPath.parse(schema), feedMap).json();
+
+        // Must make a copy of the schema, otherwise it will be mutated by json-path
+        return patcher.addRule(JsonPath.parse(new JSONObject(schema.toMap())), feedMap).json();
     }
 
     private JSONObject loadRawSchema(String feedName) {
