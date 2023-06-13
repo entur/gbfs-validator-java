@@ -19,6 +19,7 @@
 package org.entur.gbfs.validation.validator.versions;
 
 import org.entur.gbfs.validation.validator.rules.CustomRuleSchemaPatcher;
+import org.entur.gbfs.validation.validator.rules.VehicleTypeIdRequiredInVehicleStatusWhenVehicleTypesExist;
 import org.entur.gbfs.validation.validator.rules.VehicleTypeIdsInVehicleTypesAvailableExistsInVehicleTypes;
 import org.entur.gbfs.validation.validator.rules.VehicleTypesAvailableRequiredWhenVehicleTypesExist;
 
@@ -49,6 +50,9 @@ public class Version22 extends AbstractVersion {
             "station_status", List.of(
                     new VehicleTypeIdsInVehicleTypesAvailableExistsInVehicleTypes(),
                     new VehicleTypesAvailableRequiredWhenVehicleTypesExist()
+            ),
+            "free_bike_status", List.of(
+                    new VehicleTypeIdRequiredInVehicleStatusWhenVehicleTypesExist("free_bike_status")
             )
     );
 
