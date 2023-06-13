@@ -40,9 +40,13 @@ public class VehicleTypeDefaultPricingPlanIdExistsInSystemPricingPlans implement
     @Override
     public DocumentContext addRule(DocumentContext rawSchemaDocumentContext, Map<String, JSONObject> feeds) {
         JSONObject pricingPlansFeed = feeds.get("system_pricing_plans");
-        JSONArray pricingPlanIds = JsonPath.parse(pricingPlansFeed).read("$.data.plans[*].plan_id");
         JSONObject defaultPricingPlanIdSchema = rawSchemaDocumentContext.read(DEFAULT_PRICING_PLAN_ID_SCHEMA_PATH);
-        defaultPricingPlanIdSchema.put("enum", pricingPlanIds);
+
+        if (pricingPlansFeed != null) {
+            JSONArray pricingPlanIds = JsonPath.parse(pricingPlansFeed).read("$.data.plans[*].plan_id");
+            defaultPricingPlanIdSchema.put("enum", pricingPlanIds);
+        }
+
         return rawSchemaDocumentContext.set(DEFAULT_PRICING_PLAN_ID_SCHEMA_PATH, defaultPricingPlanIdSchema);
     }
 }

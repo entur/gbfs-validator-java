@@ -38,6 +38,7 @@ Existing rules:
 Planned rules:
 
 * Either station_information or station_status is required if the other is present
-* vehicle_types is required vehicle types are referenced in other files
+  * Can this be checked by cross-checking ids between files - using schema patching?
+* vehicle_types is required if vehicle types are referenced in other files (already covered?)
 * system_pricing_plans is required if pricing plans are referenced in other files
 

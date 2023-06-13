@@ -40,9 +40,13 @@ public class VehicleTypeIdsInVehicleTypesAvailableExistsInVehicleTypes implement
     @Override
     public DocumentContext addRule(DocumentContext rawSchemaDocumentContext, Map<String, JSONObject> feeds) {
         JSONObject vehicleTypesFeed = feeds.get("vehicle_types");
-        JSONArray vehicleTypeIds = JsonPath.parse(vehicleTypesFeed).read("$.data.vehicle_types[*].vehicle_type_id");
         JSONObject vehicleTypeIdSchema = rawSchemaDocumentContext.read(VEHICLE_TYPE_ID_SCHEMA_PATH);
-        vehicleTypeIdSchema.put("enum", vehicleTypeIds);
+
+        if (vehicleTypesFeed != null) {
+            JSONArray vehicleTypeIds = JsonPath.parse(vehicleTypesFeed).read("$.data.vehicle_types[*].vehicle_type_id");
+            vehicleTypeIdSchema.put("enum", vehicleTypeIds);
+        }
+
         return rawSchemaDocumentContext.set(VEHICLE_TYPE_ID_SCHEMA_PATH, vehicleTypeIdSchema);
     }
 }
