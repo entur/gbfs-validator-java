@@ -22,9 +22,10 @@ import org.entur.gbfs.validation.GbfsValidator;
 import org.entur.gbfs.validation.model.FileValidationResult;
 import org.entur.gbfs.validation.model.ValidationResult;
 import org.entur.gbfs.validation.model.ValidationSummary;
-import org.entur.gbfs.validation.versions.Version;
-import org.entur.gbfs.validation.versions.VersionFactory;
+import org.entur.gbfs.validation.validator.versions.Version;
+import org.entur.gbfs.validation.validator.versions.VersionFactory;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,12 +72,12 @@ public class GbfsJsonValidator implements GbfsValidator {
         ValidationSummary summary = new ValidationSummary();
         Map<String, FileValidationResult> fileValidations = new HashMap<>();
 
-        FEEDS.forEach(feed-> fileValidations.put(feed, validateFile(feed, feedMap.get(feed))));
+        FEEDS.forEach(feed-> fileValidations.put(feed, validateFile(feed, feedMap)));
 
         Version version = findVersion(fileValidations);
         handleMissingFiles(fileValidations, version);
 
-        summary.setVersion(version.getVersion());
+        summary.setVersion(version.getVersionString());
         summary.setTimestamp(System.currentTimeMillis());
         summary.setErrorsCount(
                 fileValidations.values().stream()
@@ -91,11 +92,11 @@ public class GbfsJsonValidator implements GbfsValidator {
 
     @Override
     public FileValidationResult validateFile(String fileName, InputStream file) {
-        return validateFile(fileName, parseFeed(file));
+        return validateFile(fileName, Map.of(fileName, new JSONObject(new JSONTokener(file))));
     }
 
     private void handleMissingFiles(Map<String, FileValidationResult> fileValidations, Version version) {
-        FileValidator fileValidator = FileValidator.getFileValidator(version.getVersion());
+        FileValidator fileValidator = FileValidator.getFileValidator(version.getVersionString());
         fileValidations.values().stream()
                 .filter(fvr -> !fvr.isExists())
                 .forEach(fileValidator::validateMissingFile);
@@ -117,8 +118,8 @@ public class GbfsJsonValidator implements GbfsValidator {
         );
     }
 
-    private FileValidationResult validateFile(String feedName, JSONObject feed) {
-
+    private FileValidationResult validateFile(String feedName, Map<String, JSONObject> feedMap) {
+        JSONObject feed = feedMap.get(feedName);
         if (feed == null) {
             FileValidationResult result = new FileValidationResult();
             result.setFile(feedName);
@@ -135,7 +136,7 @@ public class GbfsJsonValidator implements GbfsValidator {
 
         // find correct file validator
         FileValidator fileValidator = FileValidator.getFileValidator(detectedVersion);
-        return fileValidator.validate(feedName, feed);
+        return fileValidator.validate(feedName, feedMap);
     }
 
     private Map<String, JSONObject> parseFeeds(Map<String, InputStream> rawFeeds) {

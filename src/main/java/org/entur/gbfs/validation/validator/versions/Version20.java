@@ -16,27 +16,34 @@
  *
  */
 
-package org.entur.gbfs.validation.versions;
+package org.entur.gbfs.validation.validator.versions;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class Version10 extends AbstractVersion {
-    public static final String VERSION = "1.0";
+public class Version20 extends AbstractVersion {
+    public static final String VERSION = "2.0";
 
     private static final List<String> feeds = Arrays.asList(
             "gbfs",
+            "gbfs_versions",
             "system_information",
             "station_information",
             "station_status",
             "free_bike_status",
-            "system_calendar",
             "system_hours",
+            "system_calendar",
+            "system_regions",
             "system_pricing_plans",
-            "system_regions"
+            "system_alerts"
     );
 
-    protected Version10() {
+    protected Version20() {
         super(VERSION, feeds);
+    }
+
+    @Override
+    public boolean isFileRequired(String file) {
+        return super.isFileRequired(file) || "gbfs".equals(file);
     }
 }

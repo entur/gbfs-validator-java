@@ -16,7 +16,7 @@
  *
  */
 
-package org.entur.gbfs.validation.versions;
+package org.entur.gbfs.validation.validator.versions;
 
 public class VersionFactory {
     private VersionFactory() {}

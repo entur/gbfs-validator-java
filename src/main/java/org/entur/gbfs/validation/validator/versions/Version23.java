@@ -16,10 +16,18 @@
  *
  */
 
-package org.entur.gbfs.validation.versions;
+package org.entur.gbfs.validation.validator.versions;
+
+import org.entur.gbfs.validation.validator.rules.CurrentRangeMetersIsRequiredInVehicleStatusForMotorizedVehicles;
+import org.entur.gbfs.validation.validator.rules.CustomRuleSchemaPatcher;
+import org.entur.gbfs.validation.validator.rules.VehicleTypeDefaultPricingPlanIdExistsInSystemPricingPlans;
+import org.entur.gbfs.validation.validator.rules.VehicleTypeIdRequiredInVehicleStatusWhenVehicleTypesExist;
+import org.entur.gbfs.validation.validator.rules.VehicleTypeIdsInVehicleTypesAvailableExistsInVehicleTypes;
+import org.entur.gbfs.validation.validator.rules.VehicleTypesAvailableRequiredWhenVehicleTypesExist;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class Version23 extends AbstractVersion {
     public static final String VERSION = "2.3";
@@ -40,8 +48,22 @@ public class Version23 extends AbstractVersion {
             "geofencing_zones"
     );
 
+    private static final Map<String, List<CustomRuleSchemaPatcher>> customRules = Map.of(
+            "vehicle_types", List.of(
+                    new VehicleTypeDefaultPricingPlanIdExistsInSystemPricingPlans()
+            ),
+            "station_status", List.of(
+                    new VehicleTypeIdsInVehicleTypesAvailableExistsInVehicleTypes(),
+                    new VehicleTypesAvailableRequiredWhenVehicleTypesExist()
+            ),
+            "free_bike_status", List.of(
+                    new VehicleTypeIdRequiredInVehicleStatusWhenVehicleTypesExist("free_bike_status"),
+                    new CurrentRangeMetersIsRequiredInVehicleStatusForMotorizedVehicles("free_bike_status")
+            )
+    );
+
     protected Version23() {
-        super(VERSION, feeds);
+        super(VERSION, feeds, customRules);
     }
 
     @Override

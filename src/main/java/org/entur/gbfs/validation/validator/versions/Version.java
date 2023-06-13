@@ -16,32 +16,20 @@
  *
  */
 
-package org.entur.gbfs.validation.versions;
+package org.entur.gbfs.validation.validator.versions;
+
+import org.everit.json.schema.Schema;
+import org.everit.json.schema.ValidationException;
+import org.json.JSONObject;
 
 import java.util.List;
+import java.util.Map;
 
-public abstract class AbstractVersion implements Version {
-
-    private final String version;
-    private final List<String> feeds;
-
-    protected AbstractVersion(String version, List<String> feeds) {
-        this.version = version;
-        this.feeds = feeds;
-    }
-
-    @Override
-    public String getVersion() {
-        return version;
-    }
-
-    @Override
-    public List<String> getFeeds() {
-        return feeds;
-    }
-
-    @Override
-    public boolean isFileRequired(String file) {
-        return "system_information".equals(file);
-    }
+public interface Version {
+    String getVersionString();
+    List<String> getFileNames();
+    boolean isFileRequired(String fileName);
+    Schema getSchema(String fileName, Map<String, JSONObject> feedMap);
+    Schema getSchema(String fileName);
+    void validate(String fileName, Map<String, JSONObject> feedMap) throws ValidationException;
 }

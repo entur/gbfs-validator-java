@@ -5,7 +5,7 @@
   "data": {
     "plans": [
       {
-        "plan_id": "plan2",
+        "plan_id": "bike_plan_1",
         "name": "One-Way",
         "currency": "USD",
         "price": 2.00,

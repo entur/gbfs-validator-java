@@ -37,7 +37,7 @@
           "icon_url_dark": "https://www.example.com/assets/icon_cargobicycle_dark.svg",
           "icon_last_modified": "2021-06-15"
         },
-        "default_pricing_plan": "cargo_plan_1",
+        "default_pricing_plan": "bike_plan_1",
         "pricing_plans": [
           "cargo_plan_1",
           "cargo_plan_2",
@@ -60,7 +60,7 @@
           "icon_url_dark": "https://www.example.com/assets/icon_escooter_dark.svg",
           "icon_last_modified": "2021-06-15"
         },
-        "default_pricing_plan_id": "scooter_plan_1"
+        "default_pricing_plan_id": "bike_plan_1"
       },
       {
         "vehicle_type_id": "car1",
@@ -98,7 +98,7 @@
           "icon_url_dark": "https://www.example.com/assets/icon_car_dark.svg",
           "icon_last_modified": "2021-06-15"
         },
-        "default_pricing_plan_id": "car_plan_1"
+        "default_pricing_plan_id": "bike_plan_1"
       }
     ]
   }
