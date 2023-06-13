@@ -19,11 +19,11 @@ List of additional rules:
 * `VehicleTypeDefaultPricingPlanIdExistsInSystemPricingPlans`
 * `VehicleTypeIdsInVehicleTypesAvailableExistsInVehicleTypes`
 * `VehicleTypesAvailableRequiredWhenVehicleTypesExist`
+* `VehicleTypeIdRequiredInVehicleStatusWhenVehicleTypesExist`
+* `CurrentRangeMetersIsRequiredInVehicleStatusForMotorizedVehicles`
 
 Planned rules:
 
-* vehicle_type_id in free_bike_status / vehicle_status if vehicle_types.json is defined (from v2.1)
-* current_range_meters in free_bike_status is required if vehicle is motorized (from v2.1)
 * if free_bike_status / vehicle_status or station_information has rental uris then system_information must have store_uri in rental_apps (ios and / or android)
 
 ## Non-schema rules:

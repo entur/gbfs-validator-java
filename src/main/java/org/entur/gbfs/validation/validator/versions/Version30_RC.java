@@ -18,6 +18,7 @@
 
 package org.entur.gbfs.validation.validator.versions;
 
+import org.entur.gbfs.validation.validator.rules.CurrentRangeMetersIsRequiredInVehicleStatusForMotorizedVehicles;
 import org.entur.gbfs.validation.validator.rules.CustomRuleSchemaPatcher;
 import org.entur.gbfs.validation.validator.rules.VehicleTypeDefaultPricingPlanIdExistsInSystemPricingPlans;
 import org.entur.gbfs.validation.validator.rules.VehicleTypeIdRequiredInVehicleStatusWhenVehicleTypesExist;
@@ -55,7 +56,8 @@ public class Version30_RC extends AbstractVersion {
                     new VehicleTypesAvailableRequiredWhenVehicleTypesExist()
             ),
             "vehicle_status", List.of(
-                    new VehicleTypeIdRequiredInVehicleStatusWhenVehicleTypesExist("vehicle_status")
+                    new VehicleTypeIdRequiredInVehicleStatusWhenVehicleTypesExist("vehicle_status"),
+                    new CurrentRangeMetersIsRequiredInVehicleStatusForMotorizedVehicles("vehicle_status")
             )
     );
 
