@@ -22,7 +22,7 @@ import org.entur.gbfs.validation.validator.rules.CurrentRangeMetersIsRequiredInV
 import org.entur.gbfs.validation.validator.rules.CustomRuleSchemaPatcher;
 import org.entur.gbfs.validation.validator.rules.VehicleTypeDefaultPricingPlanIdExistsInSystemPricingPlans;
 import org.entur.gbfs.validation.validator.rules.VehicleTypeIdRequiredInVehicleStatusWhenVehicleTypesExist;
-import org.entur.gbfs.validation.validator.rules.VehicleTypeIdsInVehicleTypesAvailableExistsInVehicleTypes;
+import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToVehicleTypesInStationStatus;
 import org.entur.gbfs.validation.validator.rules.VehicleTypesAvailableRequiredWhenVehicleTypesExist;
 
 import java.util.Arrays;
@@ -53,7 +53,7 @@ public class Version23 extends AbstractVersion {
                     new VehicleTypeDefaultPricingPlanIdExistsInSystemPricingPlans()
             ),
             "station_status", List.of(
-                    new VehicleTypeIdsInVehicleTypesAvailableExistsInVehicleTypes(),
+                    new NoInvalidReferenceToVehicleTypesInStationStatus(),
                     new VehicleTypesAvailableRequiredWhenVehicleTypesExist()
             ),
             "free_bike_status", List.of(
