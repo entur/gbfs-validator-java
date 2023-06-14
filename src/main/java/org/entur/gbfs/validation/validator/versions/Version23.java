@@ -18,12 +18,12 @@
 
 package org.entur.gbfs.validation.validator.versions;
 
-import org.entur.gbfs.validation.validator.rules.CurrentRangeMetersIsRequiredInVehicleStatusForMotorizedVehicles;
+import org.entur.gbfs.validation.validator.rules.NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles;
 import org.entur.gbfs.validation.validator.rules.CustomRuleSchemaPatcher;
-import org.entur.gbfs.validation.validator.rules.VehicleTypeDefaultPricingPlanIdExistsInSystemPricingPlans;
-import org.entur.gbfs.validation.validator.rules.VehicleTypeIdRequiredInVehicleStatusWhenVehicleTypesExist;
+import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToPricingPlansInVehicleTypes;
+import org.entur.gbfs.validation.validator.rules.NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist;
 import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToVehicleTypesInStationStatus;
-import org.entur.gbfs.validation.validator.rules.VehicleTypesAvailableRequiredWhenVehicleTypesExist;
+import org.entur.gbfs.validation.validator.rules.NoMissingVehicleTypesAvailableWhenVehicleTypesExists;
 
 import java.util.Arrays;
 import java.util.List;
@@ -50,15 +50,15 @@ public class Version23 extends AbstractVersion {
 
     private static final Map<String, List<CustomRuleSchemaPatcher>> customRules = Map.of(
             "vehicle_types", List.of(
-                    new VehicleTypeDefaultPricingPlanIdExistsInSystemPricingPlans()
+                    new NoInvalidReferenceToPricingPlansInVehicleTypes()
             ),
             "station_status", List.of(
                     new NoInvalidReferenceToVehicleTypesInStationStatus(),
-                    new VehicleTypesAvailableRequiredWhenVehicleTypesExist()
+                    new NoMissingVehicleTypesAvailableWhenVehicleTypesExists()
             ),
             "free_bike_status", List.of(
-                    new VehicleTypeIdRequiredInVehicleStatusWhenVehicleTypesExist("free_bike_status"),
-                    new CurrentRangeMetersIsRequiredInVehicleStatusForMotorizedVehicles("free_bike_status")
+                    new NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist("free_bike_status"),
+                    new NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles("free_bike_status")
             )
     );
 

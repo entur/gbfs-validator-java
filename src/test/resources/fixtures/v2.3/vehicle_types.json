@@ -19,9 +19,7 @@
         },
         "default_pricing_plan_id": "bike_plan_1",
         "pricing_plan_ids": [
-          "bike_plan_1",
-          "bike_plan_2",
-          "bike_plan_3"
+          "bike_plan_1"
         ]
       },
       {

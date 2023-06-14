@@ -34,11 +34,11 @@ import static com.jayway.jsonpath.Criteria.where;
 /**
  * It is required to provide the current_range_meters property in vehicle_status for motorized vehicles
  */
-public class CurrentRangeMetersIsRequiredInVehicleStatusForMotorizedVehicles implements CustomRuleSchemaPatcher {
+public class NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles implements CustomRuleSchemaPatcher {
 
     private final String fileName;
 
-    public CurrentRangeMetersIsRequiredInVehicleStatusForMotorizedVehicles(String fileName) {
+    public NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles(String fileName) {
         this.fileName = fileName;
     }
 

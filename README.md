@@ -16,11 +16,11 @@ The raw schema along with a map of the data feeds is passed to this method. The 
 
 List of additional rules:
 
-* `VehicleTypeDefaultPricingPlanIdExistsInSystemPricingPlans`
-* `VehicleTypeIdsInVehicleTypesAvailableExistsInVehicleTypes`
-* `VehicleTypesAvailableRequiredWhenVehicleTypesExist`
-* `VehicleTypeIdRequiredInVehicleStatusWhenVehicleTypesExist`
-* `CurrentRangeMetersIsRequiredInVehicleStatusForMotorizedVehicles`
+* `NoInvalidReferenceToPricingPlansInVehicleTypes`
+* `NoInvalidReferenceToVehicleTypesInStationStatus`
+* `NoMissingVehicleTypesAvailableWhenVehicleTypesExists`
+* `NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist`
+* `NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles`
 
 Planned rules:
 

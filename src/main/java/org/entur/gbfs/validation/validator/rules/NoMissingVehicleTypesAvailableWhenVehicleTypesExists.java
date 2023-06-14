@@ -27,33 +27,22 @@ import org.json.JSONObject;
 import java.util.Map;
 
 /**
- * Bikes / vehicles must refer to a vehicle type when vehicle_types exists
+ * It is required to list available vehicle types in station_status when vehicle_types file exists
  */
-public class VehicleTypeIdRequiredInVehicleStatusWhenVehicleTypesExist implements CustomRuleSchemaPatcher {
+public class NoMissingVehicleTypesAvailableWhenVehicleTypesExists implements CustomRuleSchemaPatcher {
 
-    private final String fileName;
+    public static final String STATION_ITEMS_REQUIRED_SCHEMA_PATH = "$.properties.data.properties.stations.items.required";
 
-    public VehicleTypeIdRequiredInVehicleStatusWhenVehicleTypesExist(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public static final String BIKE_ITEMS_REQUIRED = "$.properties.data.properties.bikes.items.required";
-    public static final String VEHICLE_ITEMS_REQUIRED = "$.properties.data.properties.vehicles.items.required";
+    /**
+     * Adds vehicle_types_available to list of required properties on stations in station_status
+     */
     @Override
     public DocumentContext addRule(DocumentContext rawSchemaDocumentContext, Map<String, JSONObject> feeds) {
         JSONObject vehicleTypesFeed = feeds.get("vehicle_types");
-
-        String requiredPath = VEHICLE_ITEMS_REQUIRED;
-
-        // backwards compatibility
-        if (fileName.equals("free_bike_status")) {
-            requiredPath = BIKE_ITEMS_REQUIRED;
-        }
-
-        JSONArray vehicleItemsRequiredSchema = rawSchemaDocumentContext.read(requiredPath);
+        JSONArray stationItemsRequiredSchema = rawSchemaDocumentContext.read(STATION_ITEMS_REQUIRED_SCHEMA_PATH);
         if (vehicleTypesFeed != null) {
-            vehicleItemsRequiredSchema.put("vehicle_type_id");
+            stationItemsRequiredSchema.put("vehicle_types_available");
         }
-        return rawSchemaDocumentContext.set(requiredPath, vehicleItemsRequiredSchema);
+        return rawSchemaDocumentContext.set(STATION_ITEMS_REQUIRED_SCHEMA_PATH, stationItemsRequiredSchema);
     }
 }
