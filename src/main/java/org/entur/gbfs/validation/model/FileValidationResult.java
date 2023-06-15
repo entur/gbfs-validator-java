@@ -18,6 +18,7 @@
 
 package org.entur.gbfs.validation.model;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
@@ -30,7 +31,7 @@ public class FileValidationResult implements ValidationResultComponentIdentity<F
     private String schema;
     private String fileContents;
     private String version;
-    private List<FileValidationError> errors;
+    private List<FileValidationError> errors = Collections.emptyList();
 
     public String getFile() {
         return file;
