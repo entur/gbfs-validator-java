@@ -24,15 +24,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
-class FileValidationResultTest {
+class ValidationResultTest {
 
     @Test
     void testSameAsSucceeds() {
-        Assertions.assertTrue(generateFileValidationResult(
+        Assertions.assertTrue(generateValidationResult(
                 "message-1",
                 "message-2"
-        ).sameAs(generateFileValidationResult(
+        ).sameAs(generateValidationResult(
                 "message-1",
                 "message-2"
         )));
@@ -40,13 +41,33 @@ class FileValidationResultTest {
 
     @Test
     void testSameAsFails() {
-        Assertions.assertFalse(generateFileValidationResult(
+        Assertions.assertFalse(generateValidationResult(
                 "message-1",
                 "message-2"
-        ).sameAs(generateFileValidationResult(
+        ).sameAs(generateValidationResult(
                 "message-1",
                 "message-3"
         )));
+    }
+
+    private ValidationResult generateValidationResult(String message1, String message2) {
+        var validationResult = new ValidationResult();
+
+        validationResult.setFiles(
+                Map.of(
+                        "gbfs", generateFileValidationResult(message1, message2)
+                )
+        );
+
+        return validationResult;
+    }
+
+    private ValidationSummary generateValidationSummary() {
+        var validationSummary = new ValidationSummary();
+        validationSummary.setVersion("2.2");
+        validationSummary.setTimestamp(System.currentTimeMillis());
+        validationSummary.setErrorsCount(2);
+        return validationSummary;
     }
 
     private FileValidationResult generateFileValidationResult(String message1, String message2) {
