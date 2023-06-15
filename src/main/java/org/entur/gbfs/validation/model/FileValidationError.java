@@ -18,7 +18,9 @@
 
 package org.entur.gbfs.validation.model;
 
-public class FileValidationError {
+import java.util.Objects;
+
+public class FileValidationError implements ValidationResultComponentIdentity<FileValidationError> {
     private String schemaPath;
     private String violationPath;
     private String message;
@@ -54,5 +56,13 @@ public class FileValidationError {
                 ", violationPath='" + violationPath + '\'' +
                 ", message='" + message + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean sameAs(FileValidationError other) {
+        if (!Objects.equals(schemaPath, other.schemaPath)) return false;
+        if (!Objects.equals(violationPath, other.violationPath))
+            return false;
+        return Objects.equals(message, other.message);
     }
 }

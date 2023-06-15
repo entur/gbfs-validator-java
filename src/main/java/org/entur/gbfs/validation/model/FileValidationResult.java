@@ -19,8 +19,10 @@
 package org.entur.gbfs.validation.model;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.IntStream;
 
-public class FileValidationResult {
+public class FileValidationResult implements ValidationResultComponentIdentity<FileValidationResult> {
     private String file;
     private boolean required;
     private boolean exists;
@@ -106,5 +108,19 @@ public class FileValidationResult {
                 ", version='" + version + '\'' +
                 ", errors=" + errors +
                 '}';
+    }
+
+    @Override
+    public boolean sameAs(FileValidationResult other) {
+        if (required != other.required) return false;
+        if (exists != other.exists) return false;
+        if (errorsCount != other.errorsCount) return false;
+        if (!Objects.equals(file, other.file)) return false;
+        if (!Objects.equals(schema, other.schema)) return false;
+        if (!Objects.equals(fileContents, other.fileContents)) return false;
+        if (!Objects.equals(version, other.version)) return false;
+        return IntStream
+                .range(0, errors.size())
+                .allMatch(i -> errors.get(i).sameAs(other.errors.get(i)));
     }
 }

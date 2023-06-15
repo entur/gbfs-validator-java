@@ -18,7 +18,9 @@
 
 package org.entur.gbfs.validation.model;
 
-public class ValidationSummary {
+import java.util.Objects;
+
+public class ValidationSummary implements ValidationResultComponentIdentity<ValidationSummary> {
     private String version;
     private long timestamp;
     private int errorsCount;
@@ -54,5 +56,11 @@ public class ValidationSummary {
                 ", timestamp=" + timestamp +
                 ", errorsCount=" + errorsCount +
                 '}';
+    }
+
+    @Override
+    public boolean sameAs(ValidationSummary other) {
+        if (errorsCount != other.errorsCount) return false;
+        return Objects.equals(version, other.version);
     }
 }
