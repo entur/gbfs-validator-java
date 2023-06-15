@@ -60,6 +60,7 @@ public class ValidationSummary implements ValidationResultComponentIdentity<Vali
 
     @Override
     public boolean sameAs(ValidationSummary other) {
+        if (other == null) return false;
         if (errorsCount != other.errorsCount) return false;
         return Objects.equals(version, other.version);
     }

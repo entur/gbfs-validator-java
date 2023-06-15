@@ -112,6 +112,7 @@ public class FileValidationResult implements ValidationResultComponentIdentity<F
 
     @Override
     public boolean sameAs(FileValidationResult other) {
+        if (other == null) return false;
         if (required != other.required) return false;
         if (exists != other.exists) return false;
         if (errorsCount != other.errorsCount) return false;

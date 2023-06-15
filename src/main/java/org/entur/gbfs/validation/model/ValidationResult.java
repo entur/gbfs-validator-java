@@ -52,6 +52,7 @@ public class ValidationResult implements ValidationResultComponentIdentity<Valid
 
     @Override
     public boolean sameAs(ValidationResult other) {
+        if (other == null) return false;
         if (!summary.sameAs(other.getSummary())) return false;
         return files.entrySet().stream().allMatch((entry) -> other.files.get(entry.getKey()).sameAs(entry.getValue()));
     }
