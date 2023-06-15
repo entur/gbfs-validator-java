@@ -20,7 +20,6 @@ package org.entur.gbfs.validation.model;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class ValidationResult implements ValidationResultComponentIdentity<ValidationResult> {
     private ValidationSummary summary = new ValidationSummary();
@@ -54,6 +53,6 @@ public class ValidationResult implements ValidationResultComponentIdentity<Valid
     public boolean sameAs(ValidationResult other) {
         if (other == null) return false;
         if (!summary.sameAs(other.getSummary())) return false;
-        return files.entrySet().stream().allMatch((entry) -> other.files.get(entry.getKey()).sameAs(entry.getValue()));
+        return files.entrySet().stream().allMatch(entry -> other.files.get(entry.getKey()).sameAs(entry.getValue()));
     }
 }
