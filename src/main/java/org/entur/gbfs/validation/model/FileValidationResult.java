@@ -117,8 +117,6 @@ public class FileValidationResult implements ValidationResultComponentIdentity<F
         if (exists != other.exists) return false;
         if (errorsCount != other.errorsCount) return false;
         if (!Objects.equals(file, other.file)) return false;
-        if (!Objects.equals(schema, other.schema)) return false;
-        if (!Objects.equals(fileContents, other.fileContents)) return false;
         if (!Objects.equals(version, other.version)) return false;
         return IntStream
                 .range(0, errors.size())
