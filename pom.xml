@@ -44,7 +44,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <jdk.version>11</jdk.version>
+        <jdk.version>17</jdk.version>
 
         <gbfsGithubUrl>https://github.com/entur/gbfs-json-schema/archive/refs/tags/v3.0-RC2.zip</gbfsGithubUrl>
         <schemaVersion>3.0-RC2</schemaVersion>
@@ -380,7 +380,6 @@
             </activation>
 
             <properties>
-                <jdk.version>11</jdk.version>
                 <sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
             </properties>
 
