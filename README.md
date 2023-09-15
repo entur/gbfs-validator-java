@@ -21,10 +21,7 @@ List of additional rules:
 * `NoMissingVehicleTypesAvailableWhenVehicleTypesExists`
 * `NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist`
 * `NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles`
-
-Planned rules:
-
-* if free_bike_status / vehicle_status or station_information has rental uris then system_information must have store_uri in rental_apps (ios and / or android)
+* `NoMissingStoreUriInSystemInformation`
 
 ## Non-schema rules:
 

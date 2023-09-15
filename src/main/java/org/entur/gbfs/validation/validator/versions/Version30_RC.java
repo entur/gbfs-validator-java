@@ -21,6 +21,7 @@ package org.entur.gbfs.validation.validator.versions;
 import org.entur.gbfs.validation.validator.rules.NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles;
 import org.entur.gbfs.validation.validator.rules.CustomRuleSchemaPatcher;
 import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToPricingPlansInVehicleTypes;
+import org.entur.gbfs.validation.validator.rules.NoMissingStoreUriInSystemInformation;
 import org.entur.gbfs.validation.validator.rules.NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist;
 import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToVehicleTypesInStationStatus;
 import org.entur.gbfs.validation.validator.rules.NoMissingVehicleTypesAvailableWhenVehicleTypesExists;
@@ -58,6 +59,9 @@ public class Version30_RC extends AbstractVersion {
             "vehicle_status", List.of(
                     new NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist("vehicle_status"),
                     new NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles("vehicle_status")
+            ),
+            "system_information", List.of(
+                    new NoMissingStoreUriInSystemInformation("vehicle_status")
             )
     );
 
