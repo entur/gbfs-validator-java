@@ -1,0 +1,43 @@
+{
+  "last_updated": "2024-03-21T09:25:53.343Z",
+  "ttl": 60,
+  "version": "3.0-RC2",
+  "data": {
+    "alerts": [
+      {
+        "alert_id": "21",
+        "type": "station_closure",
+        "station_ids": [
+          "123",
+          "456",
+          "789"
+        ],
+        "times": [
+          {
+            "start": "2024-03-21T09:25:53.343Z",
+            "end": "2024-03-21T09:25:53.343Z"
+          }
+        ],
+        "url": [
+          {
+            "text": "https://example.com/more-info",
+            "language": "en"
+          }
+        ],
+        "summary": [
+          {
+            "text": "Disruption of Service",
+            "language": "en"
+          }
+        ],
+        "description": [
+          {
+            "text": "The three stations on Broadway will be out of service from 12:00am Nov 3 to 3:00pm Nov 6th to accommodate road work",
+            "language": "en"
+          }
+        ],
+        "last_updated": "2024-03-21T09:25:53.343Z"
+      }
+    ]
+  }
+}
