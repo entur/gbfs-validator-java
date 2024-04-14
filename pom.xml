@@ -4,7 +4,7 @@
 
     <groupId>org.entur.gbfs</groupId>
     <artifactId>gbfs-validator-java</artifactId>
-    <version>1.0.27-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
 
     <name>gbfs-validator-java</name>
     <description>Validate GBFS feeds</description>
@@ -46,8 +46,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jdk.version>17</jdk.version>
 
-        <gbfsGithubUrl>https://github.com/entur/gbfs-json-schema/archive/refs/tags/v3.0-RC8.zip</gbfsGithubUrl>
-        <schemaVersion>3.0-RC8</schemaVersion>
+        <gbfsGithubUrl>https://github.com/entur/gbfs-json-schema/archive/refs/tags/v3.0.zip</gbfsGithubUrl>
+        <schemaVersion>3.0</schemaVersion>
 
         <everit-json-schema.version>1.14.4</everit-json-schema.version>
         <slf4j.version>1.7.36</slf4j.version>

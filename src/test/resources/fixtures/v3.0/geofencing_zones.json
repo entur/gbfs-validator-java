@@ -1,7 +1,7 @@
 {
-  "last_updated": 1640887163,
+  "last_updated": "2024-03-21T09:25:53.343Z",
   "ttl": 60,
-  "version": "3.0-RC",
+  "version": "3.0",
   "data": {
     "geofencing_zones": {
       "type": "FeatureCollection",
@@ -68,8 +68,8 @@
                 "language": "en"
               }
             ],
-            "start": 1593878400,
-            "end": 1593907260,
+            "start": "2024-03-21T09:25:53.343Z",
+            "end": "2024-03-21T09:25:53.343Z",
             "rules": [
               {
                 "vehicle_type_id": [

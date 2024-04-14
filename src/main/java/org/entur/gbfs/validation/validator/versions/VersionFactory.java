@@ -35,11 +35,8 @@ public class VersionFactory {
                 return new Version22();
             case "2.3":
                 return new Version23();
-            case "3.0-RC":
-                return new Version30_RC();
             case "3.0":
-            case "3.0-RC2":
-                return new Version30_RC2();
+                return new Version30();
             default:
                 throw new UnsupportedOperationException("Version not implemented");
         }
