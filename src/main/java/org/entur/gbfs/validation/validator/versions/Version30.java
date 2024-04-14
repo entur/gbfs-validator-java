@@ -30,8 +30,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class Version30_RC extends AbstractVersion {
-    public static final String VERSION = "3.0-RC";
+public class Version30 extends AbstractVersion {
+    public static final String VERSION = "3.0";
 
     private static final List<String> feeds = Arrays.asList(
             "gbfs",
@@ -65,7 +65,7 @@ public class Version30_RC extends AbstractVersion {
             )
     );
 
-    protected Version30_RC() {
+    protected Version30() {
         super(VERSION, feeds, customRules);
     }
 
