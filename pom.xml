@@ -4,7 +4,7 @@
 
     <groupId>org.entur.gbfs</groupId>
     <artifactId>gbfs-validator-java</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1-SNAPSHOT</version>
 
     <name>gbfs-validator-java</name>
     <description>Validate GBFS feeds</description>
