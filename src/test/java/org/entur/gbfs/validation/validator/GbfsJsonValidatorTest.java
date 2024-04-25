@@ -237,11 +237,14 @@ class GbfsJsonValidatorTest {
 
         Map<String, InputStream> deliveryMap = new HashMap<>();
         deliveryMap.put("gbfs", getFixture("fixtures/v2.2/gbfs.json"));
+        deliveryMap.put("system_information", getFixture("fixtures/v2.2/system_information.json"));
 
         ValidationResult result = validator.validate(deliveryMap);
 
         Assertions.assertFalse(result.getFiles().get("vehicle_types").isRequired());
         Assertions.assertFalse(result.getFiles().get("vehicle_types").isExists());
+
+        Assertions.assertEquals(0, result.getSummary().getErrorsCount());
     }
 
     @Test
