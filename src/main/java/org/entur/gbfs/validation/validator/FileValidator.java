@@ -110,6 +110,9 @@ public class FileValidator {
             fvr.setVersion(version.getVersionString());
             fvr.setSchema(version.getSchema(fvr.getFile()).toString());
             fvr.setRequired(version.isFileRequired(fvr.getFile()));
+            if (version.isFileRequired(fvr.getFile())) {
+                fvr.setErrorsCount(1);
+            }
         }
     }
 }

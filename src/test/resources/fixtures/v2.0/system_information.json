@@ -1,0 +1,11 @@
+{
+  "last_updated":1611598155,
+  "ttl":1800,
+  "version": "2.0",
+  "data":{
+    "system_id":"exampleride",
+    "language":"en",
+    "name":"Example Ride",
+    "timezone":"America/Chicago"
+  }
+}

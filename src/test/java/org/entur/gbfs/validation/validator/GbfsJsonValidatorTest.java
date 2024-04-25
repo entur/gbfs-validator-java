@@ -33,7 +33,10 @@ class GbfsJsonValidatorTest {
         GbfsJsonValidator validator = new GbfsJsonValidator();
         Map<String, InputStream> deliveryMap = new HashMap<>();
         ValidationResult result = validator.validate(deliveryMap);
-        Assertions.assertEquals(0, result.getSummary().getErrorsCount());
+
+        // The expected error count is 2, because there are two required files
+        // missing in an empty delivery, gbfs.json, and system_information.json
+        Assertions.assertEquals(2, result.getSummary().getErrorsCount());
     }
 
     @Test
@@ -42,6 +45,7 @@ class GbfsJsonValidatorTest {
 
         Map<String, InputStream> deliveryMap = new HashMap<>();
         deliveryMap.put("gbfs", getFixture("fixtures/v1.0/gbfs.json"));
+        deliveryMap.put("system_information", getFixture("fixtures/v1.0/system_information.json"));
         deliveryMap.put("system_hours", getFixture("fixtures/v1.0/system_hours.json"));
 
         ValidationResult result = validator.validate(deliveryMap);
@@ -59,6 +63,7 @@ class GbfsJsonValidatorTest {
         Map<String, InputStream> deliveryMap = new HashMap<>();
         deliveryMap.put("gbfs", getFixture("fixtures/v1.1/gbfs.json"));
         deliveryMap.put("gbfs_versions", getFixture("fixtures/v1.1/gbfs_versions.json"));
+        deliveryMap.put("system_information", getFixture("fixtures/v1.1/system_information.json"));
         deliveryMap.put("system_hours", getFixture("fixtures/v1.1/system_hours.json"));
 
         ValidationResult result = validator.validate(deliveryMap);
@@ -76,6 +81,7 @@ class GbfsJsonValidatorTest {
         Map<String, InputStream> deliveryMap = new HashMap<>();
         deliveryMap.put("gbfs", getFixture("fixtures/v2.0/gbfs.json"));
         deliveryMap.put("gbfs_versions", getFixture("fixtures/v2.0/gbfs_versions.json"));
+        deliveryMap.put("system_information", getFixture("fixtures/v2.0/system_information.json"));
         deliveryMap.put("system_hours", getFixture("fixtures/v2.0/system_hours.json"));
 
         ValidationResult result = validator.validate(deliveryMap);
@@ -214,6 +220,8 @@ class GbfsJsonValidatorTest {
 
         Assertions.assertTrue(result.getFiles().get("system_information").isRequired());
         Assertions.assertFalse(result.getFiles().get("system_information").isExists());
+
+        Assertions.assertEquals(1, result.getSummary().getErrorsCount());
     }
 
     @Test
@@ -235,11 +243,14 @@ class GbfsJsonValidatorTest {
 
         Map<String, InputStream> deliveryMap = new HashMap<>();
         deliveryMap.put("gbfs", getFixture("fixtures/v2.2/gbfs.json"));
+        deliveryMap.put("system_information", getFixture("fixtures/v2.2/system_information.json"));
 
         ValidationResult result = validator.validate(deliveryMap);
 
         Assertions.assertFalse(result.getFiles().get("vehicle_types").isRequired());
         Assertions.assertFalse(result.getFiles().get("vehicle_types").isExists());
+
+        Assertions.assertEquals(0, result.getSummary().getErrorsCount());
     }
 
     @Test
