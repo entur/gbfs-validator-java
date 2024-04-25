@@ -214,6 +214,8 @@ class GbfsJsonValidatorTest {
 
         Assertions.assertTrue(result.getFiles().get("system_information").isRequired());
         Assertions.assertFalse(result.getFiles().get("system_information").isExists());
+
+        Assertions.assertEquals(1, result.getSummary().getErrorsCount());
     }
 
     @Test
