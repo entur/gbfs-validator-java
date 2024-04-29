@@ -24,7 +24,25 @@ import org.entur.gbfs.validation.model.ValidationResult;
 import java.io.InputStream;
 import java.util.Map;
 
+/**
+ * Represents a validator of GBFS files
+ */
 public interface GbfsValidator {
+
+    /**
+     * Validate all files in the map of GBFS files, keyed by the name of the file. Will validate using
+     * custom rules in addition to the static schema
+     * @param fileMap
+     * @return
+     */
     ValidationResult validate(Map<String, InputStream> fileMap);
+
+    /**
+     * Validate the GBFS file with the given name and the file itself as an InputStream. Will not apply
+     * custom rules, but only validate using the static schema
+     * @param fileName
+     * @param file
+     * @return
+     */
     FileValidationResult validateFile(String fileName, InputStream file);
 }

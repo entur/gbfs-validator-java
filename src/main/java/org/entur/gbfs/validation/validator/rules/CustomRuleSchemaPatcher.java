@@ -25,6 +25,17 @@ import org.json.JSONObject;
 
 import java.util.Map;
 
+/**
+ * A CustomRuleSchemaPatcher is capapable of patching the raw json schema, adding custom rules using GBFS
+ * data dynamically
+ */
 public interface CustomRuleSchemaPatcher {
+
+    /**
+     *
+     * @param rawSchemaDocumentContext
+     * @param feeds
+     * @return
+     */
     DocumentContext addRule(DocumentContext rawSchemaDocumentContext, Map<String, JSONObject> feeds);
 }
