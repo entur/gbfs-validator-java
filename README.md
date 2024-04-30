@@ -6,6 +6,47 @@ Validate GBFS feeds. Intended as Java native alternative to https://github.com/M
 
 Uses the official json schema to validate files.
 
+## Usage
+
+Create an instance of `GbfsValidator`:
+
+    GbfsValidator gbfsValidator = GbfsValidatorFactory.getGbfsJsonValidator();
+
+The `GbfsValidator` interface has two methods:
+
+### Validate a set of GBFS Files
+
+Validate a set of GBFS files by providing a map of InputStreams, keyed by filename. 
+The input streams maybe come from an HTTP response or from files. This validation
+method will apply custom rules (see below), by dynamically patching the static JSON
+schemas using data from the files themselves.
+
+    gbfsValidator.validate(
+      Map.of(
+        "gbfs", gbfsInputStream,
+        "system_information", systemInformationInputStream
+        ...
+      )
+    );
+
+
+### Validate a single GBFS file
+
+Validate a single GBFS file by providing a filename and an InputStream. This validation
+method will not apply any custom rules, but will validate only using the static JSON
+schemas.
+
+
+    gbfsValidator.validate(
+      "system_information", systemInformationInputStream
+    ); 
+
+### Using the validation results
+
+The validation methods above will return an instance of `ValidationResult`.
+
+TODO: add more documentation here - consider turning ValidationResult and friends into interfaces or records...?
+
 ## Additional validation rules
 
 The interface `CustomRuleSchemaPatcher` enables adding additional rules dynamically by schema patching:
