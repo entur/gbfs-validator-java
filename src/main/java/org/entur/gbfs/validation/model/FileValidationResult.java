@@ -18,84 +18,31 @@
 
 package org.entur.gbfs.validation.model;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
-public class FileValidationResult implements ValidationResultComponentIdentity<FileValidationResult> {
-    private String file;
-    private boolean required;
-    private boolean exists;
-    private int errorsCount;
-    private String schema;
-    private String fileContents;
-    private String version;
-    private List<FileValidationError> errors = Collections.emptyList();
-
-    public String getFile() {
-        return file;
-    }
-
-    public void setFile(String file) {
-        this.file = file;
-    }
-
-    public boolean isRequired() {
-        return required;
-    }
-
-    public void setRequired(boolean required) {
-        this.required = required;
-    }
-
-    public boolean isExists() {
-        return exists;
-    }
-
-    public void setExists(boolean exists) {
-        this.exists = exists;
-    }
-
-    public int getErrorsCount() {
-        return errorsCount;
-    }
-
-    public void setErrorsCount(int errorsCount) {
-        this.errorsCount = errorsCount;
-    }
-
-    public String getSchema() {
-        return schema;
-    }
-
-    public void setSchema(String schema) {
-        this.schema = schema;
-    }
-
-    public String getFileContents() {
-        return fileContents;
-    }
-
-    public void setFileContents(String fileContents) {
-        this.fileContents = fileContents;
-    }
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public List<FileValidationError> getErrors() {
-        return errors;
-    }
-
-    public void setErrors(List<FileValidationError> errors) {
-        this.errors = errors;
-    }
+/**
+ * The result of validating a single GBFS file
+ * @param file The name of the file that was validated
+ * @param required Whether the file is required in the given version of GBFS
+ * @param exists Whether the file existed in the validation input
+ * @param errorsCount The number of errors found while validating the file
+ * @param schema The schema used to validate the file
+ * @param fileContents The contents of the file
+ * @param version The version of the file
+ * @param errors A list of errors encountered while validating the file
+ */
+public record FileValidationResult(
+        String file,
+         boolean required,
+         boolean exists,
+         int errorsCount,
+         String schema,
+         String fileContents,
+         String version,
+         List<FileValidationError> errors
+) implements ValidationResultComponentIdentity<FileValidationResult> {
 
     @Override
     public String toString() {

@@ -18,29 +18,17 @@
 
 package org.entur.gbfs.validation.model;
 
-import java.util.HashMap;
 import java.util.Map;
 
-public class ValidationResult implements ValidationResultComponentIdentity<ValidationResult> {
-    private ValidationSummary summary = new ValidationSummary();
-    private Map<String, FileValidationResult> files = new HashMap<>();
-
-    public ValidationSummary getSummary() {
-        return summary;
-    }
-
-    public void setSummary(ValidationSummary summary) {
-        this.summary = summary;
-    }
-
-    public Map<String, FileValidationResult> getFiles() {
-        return files;
-    }
-
-    public void setFiles(Map<String, FileValidationResult> files) {
-        this.files = files;
-    }
-
+/**
+ * This record contains the result of validating a set of GBFS files
+ * @param summary A summary of the validation
+ * @param files A map of files that were validated
+ */
+public record ValidationResult(
+     ValidationSummary summary,
+     Map<String, FileValidationResult> files
+) implements ValidationResultComponentIdentity<ValidationResult> {
     @Override
     public String toString() {
         return "ValidationResult{" +
@@ -52,7 +40,7 @@ public class ValidationResult implements ValidationResultComponentIdentity<Valid
     @Override
     public boolean sameAs(ValidationResult other) {
         if (other == null) return false;
-        if (!summary.sameAs(other.getSummary())) return false;
+        if (!summary.sameAs(other.summary())) return false;
         return files.entrySet().stream().allMatch(entry -> other.files.get(entry.getKey()).sameAs(entry.getValue()));
     }
 }

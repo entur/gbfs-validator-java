@@ -63,22 +63,26 @@ public class FileValidator {
     public FileValidationResult validate(String feedName, Map<String, JSONObject> feedMap) {
         if (version.getFileNames().contains(feedName)) {
             JSONObject feed = feedMap.get(feedName);
-            FileValidationResult fileValidationResult = new FileValidationResult();
-            fileValidationResult.setFile(feedName);
-            fileValidationResult.setRequired(isRequired(feedName));
-            fileValidationResult.setExists(feed != null);
-            fileValidationResult.setSchema(version.getSchema(feedName, feedMap).toString());
-            fileValidationResult.setFileContents(Optional.ofNullable(feed).map(JSONObject::toString).orElse(null));
-            fileValidationResult.setVersion(version.getVersionString());
+            int errorsCount = 0;
+            List<FileValidationError> validationErrors = List.of();
 
             try {
                 version.validate(feedName, feedMap);
             } catch (ValidationException validationException) {
-                fileValidationResult.setErrors(mapToValidationErrors(validationException));
-                fileValidationResult.setErrorsCount(validationException.getViolationCount());
+                errorsCount = validationException.getViolationCount();
+                validationErrors = mapToValidationErrors(validationException);
             }
 
-            return fileValidationResult;
+            return new FileValidationResult(
+                    feedName,
+                    isRequired(feedName),
+                    feed != null,
+                    errorsCount,
+                    version.getSchema(feedName, feedMap).toString(),
+                    Optional.ofNullable(feed).map(JSONObject::toString).orElse(null),
+                    version.getVersionString(),
+                    validationErrors
+            );
         }
 
         logger.warn("Schema not found for gbfs feed={} version={}", feedName, version.getVersionString());
@@ -87,16 +91,18 @@ public class FileValidator {
 
     List<FileValidationError> mapToValidationErrors(ValidationException validationException) {
         if (validationException.getCausingExceptions().isEmpty()) {
-            FileValidationError error = new FileValidationError();
-            error.setSchemaPath(validationException.getSchemaLocation());
-            error.setViolationPath(validationException.getPointerToViolation());
-            error.setMessage(validationException.getMessage());
-            return Collections.singletonList(error);
+            return List.of(
+                    new FileValidationError(
+                        validationException.getSchemaLocation(),
+                        validationException.getPointerToViolation(),
+                        validationException.getMessage()
+                )
+            );
         } else {
             return validationException.getCausingExceptions().stream()
                     .map(this::mapToValidationErrors)
                     .flatMap(List::stream)
-                    .collect(Collectors.toList());
+                    .toList();
         }
     }
 
@@ -105,14 +111,17 @@ public class FileValidator {
     }
 
 
-    public void validateMissingFile(FileValidationResult fvr) {
-        if (version.getFileNames().contains(fvr.getFile())) {
-            fvr.setVersion(version.getVersionString());
-            fvr.setSchema(version.getSchema(fvr.getFile()).toString());
-            fvr.setRequired(version.isFileRequired(fvr.getFile()));
-            if (version.isFileRequired(fvr.getFile())) {
-                fvr.setErrorsCount(1);
-            }
-        }
+    public FileValidationResult validateMissingFile(String file) {
+        var isRequired = version.isFileRequired(file);
+        return new FileValidationResult(
+                file,
+                isRequired,
+                false,
+                isRequired ? 1 : 0,
+                version.getSchema(file).toString(),
+                null,
+                version.getVersionString(),
+                List.of()
+        );
     }
 }
