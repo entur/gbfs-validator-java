@@ -43,9 +43,9 @@ schemas.
 
 ### Using the validation results
 
-The validation methods above will return an instance of `ValidationResult`.
+The validation methods above will return the `ValidationResult` record. This will contain a summary of the
+validation process, as well as a map of validation results per file. See javadocs in `model` for details.
 
-TODO: add more documentation here - consider turning ValidationResult and friends into interfaces or records...?
 
 ## Additional validation rules
 
