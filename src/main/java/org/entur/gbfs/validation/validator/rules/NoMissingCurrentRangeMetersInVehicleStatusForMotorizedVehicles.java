@@ -71,7 +71,7 @@ public class NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles impl
 
         JSONObject bikeItemsSchema = rawSchemaDocumentContext.read(schemaPath);
 
-        if (motorizedVehicleTypeIds != null && motorizedVehicleTypeIds.length() > 0) {
+        if (motorizedVehicleTypeIds != null && !motorizedVehicleTypeIds.isEmpty()) {
             bikeItemsSchema.put("errorMessage", new JSONObject().put("required", new JSONObject().put("vehicle_type_id", "'vehicle_type_id' is required for this vehicle type")));
             bikeItemsSchema
                     .put("if",

@@ -20,34 +20,17 @@ package org.entur.gbfs.validation.model;
 
 import java.util.Objects;
 
-public class FileValidationError implements ValidationResultComponentIdentity<FileValidationError> {
-    private String schemaPath;
-    private String violationPath;
-    private String message;
-
-    public String getSchemaPath() {
-        return schemaPath;
-    }
-
-    public void setSchemaPath(String schemaPath) {
-        this.schemaPath = schemaPath;
-    }
-
-    public String getViolationPath() {
-        return violationPath;
-    }
-
-    public void setViolationPath(String violationPath) {
-        this.violationPath = violationPath;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
+/**
+ * Representing a single validation error in a GBFS file
+ * @param schemaPath The path in the schema that was violated
+ * @param violationPath The path in the file containing the error
+ * @param message An error message
+ */
+public record FileValidationError(
+        String schemaPath,
+        String violationPath,
+        String message
+) implements ValidationResultComponentIdentity<FileValidationError>  {
 
     @Override
     public String toString() {

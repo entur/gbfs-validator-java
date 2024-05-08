@@ -49,7 +49,7 @@ public abstract class AbstractVersion implements Version {
     private static final Logger logger = LoggerFactory.getLogger(AbstractVersion.class);
     private final String versionString;
     private final List<String> feeds;
-    private Map<String, JSONObject> schemas = new ConcurrentHashMap<>();
+    private final Map<String, JSONObject> schemas = new ConcurrentHashMap<>();
     private final Map<String, List<CustomRuleSchemaPatcher>> customRules;
 
     static {

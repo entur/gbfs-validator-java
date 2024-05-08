@@ -36,7 +36,7 @@ class GbfsJsonValidatorTest {
 
         // The expected error count is 2, because there are two required files
         // missing in an empty delivery, gbfs.json, and system_information.json
-        Assertions.assertEquals(2, result.getSummary().getErrorsCount());
+        Assertions.assertEquals(2, result.summary().errorsCount());
     }
 
     @Test
@@ -52,8 +52,8 @@ class GbfsJsonValidatorTest {
 
         printErrors("1.0", result);
 
-        Assertions.assertEquals("1.0", result.getSummary().getVersion());
-        Assertions.assertEquals(0, result.getSummary().getErrorsCount());
+        Assertions.assertEquals("1.0", result.summary().version());
+        Assertions.assertEquals(0, result.summary().errorsCount());
     }
 
     @Test
@@ -70,8 +70,8 @@ class GbfsJsonValidatorTest {
 
         printErrors("1.1", result);
 
-        Assertions.assertEquals("1.1", result.getSummary().getVersion());
-        Assertions.assertEquals(0, result.getSummary().getErrorsCount());
+        Assertions.assertEquals("1.1", result.summary().version());
+        Assertions.assertEquals(0, result.summary().errorsCount());
     }
 
     @Test
@@ -88,8 +88,8 @@ class GbfsJsonValidatorTest {
 
         printErrors("2.0", result);
 
-        Assertions.assertEquals("2.0", result.getSummary().getVersion());
-        Assertions.assertEquals(0, result.getSummary().getErrorsCount());
+        Assertions.assertEquals("2.0", result.summary().version());
+        Assertions.assertEquals(0, result.summary().errorsCount());
     }
 
     @Test
@@ -114,8 +114,8 @@ class GbfsJsonValidatorTest {
 
         printErrors("2.1", result);
 
-        Assertions.assertEquals("2.1", result.getSummary().getVersion());
-        Assertions.assertEquals(0, result.getSummary().getErrorsCount());
+        Assertions.assertEquals("2.1", result.summary().version());
+        Assertions.assertEquals(0, result.summary().errorsCount());
     }
 
     @Test
@@ -141,8 +141,8 @@ class GbfsJsonValidatorTest {
 
         printErrors("2.2", result);
 
-        Assertions.assertEquals("2.2", result.getSummary().getVersion());
-        Assertions.assertEquals(0, result.getSummary().getErrorsCount());
+        Assertions.assertEquals("2.2", result.summary().version());
+        Assertions.assertEquals(0, result.summary().errorsCount());
     }
 
     @Test
@@ -168,8 +168,8 @@ class GbfsJsonValidatorTest {
 
         printErrors("2.3", result);
 
-        Assertions.assertEquals("2.3", result.getSummary().getVersion());
-        Assertions.assertEquals(0, result.getSummary().getErrorsCount());
+        Assertions.assertEquals("2.3", result.summary().version());
+        Assertions.assertEquals(0, result.summary().errorsCount());
     }
 
     @Test
@@ -194,8 +194,8 @@ class GbfsJsonValidatorTest {
 
         printErrors("3.0", result);
 
-        Assertions.assertEquals("3.0", result.getSummary().getVersion());
-        Assertions.assertEquals(0, result.getSummary().getErrorsCount());
+        Assertions.assertEquals("3.0", result.summary().version());
+        Assertions.assertEquals(0, result.summary().errorsCount());
     }
 
     @Test
@@ -205,8 +205,8 @@ class GbfsJsonValidatorTest {
         InputStream freeBikeStatus = getFixture("fixtures/v2.3/free_bike_status_with_error.json");
         FileValidationResult result = validator.validateFile("free_bike_status", freeBikeStatus);
 
-        Assertions.assertEquals("2.3", result.getVersion());
-        Assertions.assertEquals(3, result.getErrorsCount());
+        Assertions.assertEquals("2.3", result.version());
+        Assertions.assertEquals(3, result.errorsCount());
     }
 
     @Test
@@ -218,10 +218,10 @@ class GbfsJsonValidatorTest {
 
         ValidationResult result = validator.validate(deliveryMap);
 
-        Assertions.assertTrue(result.getFiles().get("system_information").isRequired());
-        Assertions.assertFalse(result.getFiles().get("system_information").isExists());
+        Assertions.assertTrue(result.files().get("system_information").required());
+        Assertions.assertFalse(result.files().get("system_information").exists());
 
-        Assertions.assertEquals(1, result.getSummary().getErrorsCount());
+        Assertions.assertEquals(1, result.summary().errorsCount());
     }
 
     @Test
@@ -233,8 +233,8 @@ class GbfsJsonValidatorTest {
 
         ValidationResult result = validator.validate(deliveryMap);
 
-        Assertions.assertTrue(result.getFiles().get("gbfs").isRequired());
-        Assertions.assertFalse(result.getFiles().get("gbfs").isExists());
+        Assertions.assertTrue(result.files().get("gbfs").required());
+        Assertions.assertFalse(result.files().get("gbfs").exists());
     }
 
     @Test
@@ -247,10 +247,10 @@ class GbfsJsonValidatorTest {
 
         ValidationResult result = validator.validate(deliveryMap);
 
-        Assertions.assertFalse(result.getFiles().get("vehicle_types").isRequired());
-        Assertions.assertFalse(result.getFiles().get("vehicle_types").isExists());
+        Assertions.assertFalse(result.files().get("vehicle_types").required());
+        Assertions.assertFalse(result.files().get("vehicle_types").exists());
 
-        Assertions.assertEquals(0, result.getSummary().getErrorsCount());
+        Assertions.assertEquals(0, result.summary().errorsCount());
     }
 
     @Test
@@ -269,12 +269,12 @@ class GbfsJsonValidatorTest {
     }
 
     private void printErrors(String version, ValidationResult result) {
-        result.getFiles().entrySet().stream()
+        result.files().entrySet().stream()
                 .filter(entry -> entry.getValue() != null)
-                .filter(entry -> entry.getValue().getErrorsCount() > 0)
+                .filter(entry -> entry.getValue().errorsCount() > 0)
                 .forEach(entry -> {
                     System.out.println("Version " + version + " - File: " + entry.getKey());
-                    entry.getValue().getErrors().forEach(System.out::println);
+                    entry.getValue().errors().forEach(System.out::println);
                 });
     }
 }

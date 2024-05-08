@@ -20,34 +20,17 @@ package org.entur.gbfs.validation.model;
 
 import java.util.Objects;
 
-public class ValidationSummary implements ValidationResultComponentIdentity<ValidationSummary> {
-    private String version;
-    private long timestamp;
-    private int errorsCount;
-
-    public String getVersion() {
-        return version;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public int getErrorsCount() {
-        return errorsCount;
-    }
-
-    public void setErrorsCount(int errorsCount) {
-        this.errorsCount = errorsCount;
-    }
+/**
+ * A summary of the validation of a set of GBFS files
+ * @param version The version the files were validated against
+ * @param timestamp The time when validation was performed
+ * @param errorsCount The total amount of errors encountered during validation
+ */
+public record ValidationSummary(
+         String version,
+         long timestamp,
+         int errorsCount
+) implements ValidationResultComponentIdentity<ValidationSummary> {
 
     @Override
     public String toString() {

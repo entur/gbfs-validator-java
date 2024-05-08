@@ -51,47 +51,44 @@ class ValidationResultTest {
     }
 
     private ValidationResult generateValidationResult(String message1, String message2) {
-        var validationResult = new ValidationResult();
-
-        validationResult.setFiles(
+        return new ValidationResult(
+                new ValidationSummary(null, 0, 0),
                 Map.of(
                         "gbfs", generateFileValidationResult(message1, message2)
                 )
         );
-
-        return validationResult;
     }
 
     private ValidationSummary generateValidationSummary() {
-        var validationSummary = new ValidationSummary();
-        validationSummary.setVersion("2.2");
-        validationSummary.setTimestamp(System.currentTimeMillis());
-        validationSummary.setErrorsCount(2);
-        return validationSummary;
+        return new ValidationSummary(
+                "2.2",
+                System.currentTimeMillis(),
+                2
+        );
     }
 
     private FileValidationResult generateFileValidationResult(String message1, String message2) {
-        var fileValidationResult = new FileValidationResult();
 
-        fileValidationResult.setFile("gbfs");
-        fileValidationResult.setExists(true);
-        fileValidationResult.setRequired(true);
-        fileValidationResult.setErrorsCount(2);
-        fileValidationResult.setErrors(List.of(
-                generateFileValidationError(message1),
-                generateFileValidationError(message2)
-        ));
-
-        return fileValidationResult;
+        return new FileValidationResult(
+                "gbfs",
+                true,
+                true,
+                2,
+                null,
+                null,
+                null,
+                List.of(
+                        generateFileValidationError(message1),
+                        generateFileValidationError(message2)
+                )
+        );
     }
 
     private FileValidationError generateFileValidationError(String message) {
-        var fileValidationError = new FileValidationError();
-
-        fileValidationError.setMessage(message);
-        fileValidationError.setSchemaPath("schema/path");
-        fileValidationError.setViolationPath("violation/path");
-
-        return fileValidationError;
+        return new FileValidationError(
+                "schema/path",
+                "violation/path",
+                message
+        );
     }
 }

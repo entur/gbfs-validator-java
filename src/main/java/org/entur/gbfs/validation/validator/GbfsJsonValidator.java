@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class GbfsJsonValidator implements GbfsValidator {
@@ -67,27 +68,37 @@ public class GbfsJsonValidator implements GbfsValidator {
     @Override
     public ValidationResult validate(Map<String, InputStream> rawFeeds) {
         Map<String, JSONObject> feedMap = parseFeeds(rawFeeds);
-
-        ValidationResult result = new ValidationResult();
-        ValidationSummary summary = new ValidationSummary();
         Map<String, FileValidationResult> fileValidations = new HashMap<>();
 
-        FEEDS.forEach(feed-> fileValidations.put(feed, validateFile(feed, feedMap)));
+        FEEDS.stream()
+                .map(feed -> validateFile(feed, feedMap))
+                .filter(Objects::nonNull)
+                .forEach(fileValidationResult -> fileValidations.put(fileValidationResult.file(), fileValidationResult));
+
 
         Version version = findVersion(fileValidations);
-        handleMissingFiles(fileValidations, version);
 
-        summary.setVersion(version.getVersionString());
-        summary.setTimestamp(System.currentTimeMillis());
-        summary.setErrorsCount(
+        List<String> missingFiles = findMissingFiles(version, fileValidations);
+
+        handleMissingFiles(fileValidations, missingFiles, version);
+
+        ValidationSummary summary = new ValidationSummary(
+                version.getVersionString(),
+                System.currentTimeMillis(),
                 fileValidations.values().stream()
                         .filter(Objects::nonNull)
-                        .map(FileValidationResult::getErrorsCount)
-                        .reduce(Integer::sum).orElse(0));
-        result.setSummary(summary);
-        result.setFiles(fileValidations);
+                        .map(FileValidationResult::errorsCount)
+                        .reduce(Integer::sum).orElse(0)
+        );
 
-        return result;
+        return new ValidationResult(
+                summary,
+                fileValidations
+        );
+    }
+
+    private List<String> findMissingFiles(Version version, Map<String, FileValidationResult> fileValidations) {
+        return version.getFileNames().stream().filter(Predicate.not(fileValidations::containsKey)).toList();
     }
 
     @Override
@@ -95,17 +106,18 @@ public class GbfsJsonValidator implements GbfsValidator {
         return validateFile(fileName, Map.of(fileName, new JSONObject(new JSONTokener(file))));
     }
 
-    private void handleMissingFiles(Map<String, FileValidationResult> fileValidations, Version version) {
+    private void handleMissingFiles(Map<String, FileValidationResult> fileValidations, List<String> missingFiles, Version version) {
         FileValidator fileValidator = FileValidator.getFileValidator(version.getVersionString());
-        fileValidations.values().stream()
-                .filter(fvr -> !fvr.isExists())
-                .forEach(fileValidator::validateMissingFile);
+        missingFiles
+                        .forEach(file ->
+                                fileValidations.put(file, fileValidator.validateMissingFile(file))
+                                );
     }
 
     private Version findVersion(Map<String, FileValidationResult> fileValidations) {
         Set<String> versions = fileValidations.values().stream()
             .filter(Objects::nonNull)
-            .map(FileValidationResult::getVersion)
+            .map(FileValidationResult::version)
             .filter(Objects::nonNull)
             .collect(Collectors.toSet());
 
@@ -121,10 +133,7 @@ public class GbfsJsonValidator implements GbfsValidator {
     private FileValidationResult validateFile(String feedName, Map<String, JSONObject> feedMap) {
         JSONObject feed = feedMap.get(feedName);
         if (feed == null) {
-            FileValidationResult result = new FileValidationResult();
-            result.setFile(feedName);
-            result.setExists(false);
-            return result;
+            return null;
         }
 
         // Assume no version means version 1.0
