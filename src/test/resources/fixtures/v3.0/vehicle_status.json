@@ -25,7 +25,7 @@
         "vehicle_type_id":"def456",
         "current_range_meters":6543.0,
         "station_id":"86",
-        "pricing_plan_id":"plan3"
+        "pricing_plan_id":"bike_plan_1"
       },
       {
         "vehicle_id":"45bd3fb7-a2d5-4def-9de1-c645844ba962",
@@ -52,7 +52,7 @@
         "current_fuel_percent":0.7,
         "current_range_meters":6543.0,
         "station_id":"86",
-        "pricing_plan_id":"plan3",
+        "pricing_plan_id":"bike_plan_1",
         "home_station_id":"146",
         "vehicle_equipment":[
           "child_seat_a"

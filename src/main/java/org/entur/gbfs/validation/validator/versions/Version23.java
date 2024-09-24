@@ -18,12 +18,13 @@
 
 package org.entur.gbfs.validation.validator.versions;
 
-import org.entur.gbfs.validation.validator.rules.NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles;
 import org.entur.gbfs.validation.validator.rules.CustomRuleSchemaPatcher;
+import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToPricingPlansInVehicleStatus;
 import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToPricingPlansInVehicleTypes;
+import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToVehicleTypesInStationStatus;
+import org.entur.gbfs.validation.validator.rules.NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles;
 import org.entur.gbfs.validation.validator.rules.NoMissingStoreUriInSystemInformation;
 import org.entur.gbfs.validation.validator.rules.NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist;
-import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToVehicleTypesInStationStatus;
 import org.entur.gbfs.validation.validator.rules.NoMissingVehicleTypesAvailableWhenVehicleTypesExists;
 
 import java.util.Arrays;
@@ -59,7 +60,8 @@ public class Version23 extends AbstractVersion {
             ),
             "free_bike_status", List.of(
                     new NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist("free_bike_status"),
-                    new NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles("free_bike_status")
+                    new NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles("free_bike_status"),
+                    new NoInvalidReferenceToPricingPlansInVehicleStatus("free_bike_status")
             ),
             "system_information", List.of(
                     new NoMissingStoreUriInSystemInformation("free_bike_status")
