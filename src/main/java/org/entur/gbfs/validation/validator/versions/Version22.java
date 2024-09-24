@@ -18,7 +18,13 @@
 
 package org.entur.gbfs.validation.validator.versions;
 
-import org.entur.gbfs.validation.validator.rules.*;
+import org.entur.gbfs.validation.validator.rules.CustomRuleSchemaPatcher;
+import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToPricingPlansInVehicleStatus;
+import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToVehicleTypesInStationStatus;
+import org.entur.gbfs.validation.validator.rules.NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles;
+import org.entur.gbfs.validation.validator.rules.NoMissingStoreUriInSystemInformation;
+import org.entur.gbfs.validation.validator.rules.NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist;
+import org.entur.gbfs.validation.validator.rules.NoMissingVehicleTypesAvailableWhenVehicleTypesExists;
 
 import java.util.Arrays;
 import java.util.List;
