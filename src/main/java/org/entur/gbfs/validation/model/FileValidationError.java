@@ -26,27 +26,30 @@ import java.util.Objects;
  * @param violationPath The path in the file containing the error
  * @param message An error message
  */
-public record FileValidationError(
-        String schemaPath,
-        String violationPath,
-        String message
-) implements ValidationResultComponentIdentity<FileValidationError>  {
+public record FileValidationError(String schemaPath, String violationPath, String message)
+  implements ValidationResultComponentIdentity<FileValidationError> {
+  @Override
+  public String toString() {
+    return (
+      "ValidationError{" +
+      "schemaPath='" +
+      schemaPath +
+      '\'' +
+      ", violationPath='" +
+      violationPath +
+      '\'' +
+      ", message='" +
+      message +
+      '\'' +
+      '}'
+    );
+  }
 
-    @Override
-    public String toString() {
-        return "ValidationError{" +
-                "schemaPath='" + schemaPath + '\'' +
-                ", violationPath='" + violationPath + '\'' +
-                ", message='" + message + '\'' +
-                '}';
-    }
-
-    @Override
-    public boolean sameAs(FileValidationError other) {
-        if (other == null) return false;
-        if (!Objects.equals(schemaPath, other.schemaPath)) return false;
-        if (!Objects.equals(violationPath, other.violationPath))
-            return false;
-        return Objects.equals(message, other.message);
-    }
+  @Override
+  public boolean sameAs(FileValidationError other) {
+    if (other == null) return false;
+    if (!Objects.equals(schemaPath, other.schemaPath)) return false;
+    if (!Objects.equals(violationPath, other.violationPath)) return false;
+    return Objects.equals(message, other.message);
+  }
 }

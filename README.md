@@ -57,6 +57,7 @@ The raw schema along with a map of the data feeds is passed to this method. The 
 
 List of additional rules:
 
+* `NoInvalidReferenceToPricingPlansInVehicleStatus`
 * `NoInvalidReferenceToPricingPlansInVehicleTypes`
 * `NoInvalidReferenceToVehicleTypesInStationStatus`
 * `NoMissingVehicleTypesAvailableWhenVehicleTypesExists`
@@ -79,4 +80,8 @@ Planned rules:
   * Can this be checked by cross-checking ids between files - using schema patching?
 * vehicle_types is required if vehicle types are referenced in other files (already covered?)
 * system_pricing_plans is required if pricing plans are referenced in other files
+
+## Codestyle
+gbfs-validator-java` uses [Prettier Java](https://github.com/jhipster/prettier-java). Use `mvn prettier:write` to reformat code before
+pushing changes. You can also configure your IDE to reformat code when you save a file.
 

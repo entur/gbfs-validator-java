@@ -18,263 +18,337 @@
 
 package org.entur.gbfs.validation.validator;
 
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import org.entur.gbfs.validation.model.FileValidationResult;
 import org.entur.gbfs.validation.model.ValidationResult;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-
 class GbfsJsonValidatorTest {
-    @Test
-    void testEmptyDeliveryMapValidation() {
-        GbfsJsonValidator validator = new GbfsJsonValidator();
-        Map<String, InputStream> deliveryMap = new HashMap<>();
-        ValidationResult result = validator.validate(deliveryMap);
 
-        // The expected error count is 2, because there are two required files
-        // missing in an empty delivery, gbfs.json, and system_information.json
-        Assertions.assertEquals(2, result.summary().errorsCount());
-    }
+  @Test
+  void testEmptyDeliveryMapValidation() {
+    GbfsJsonValidator validator = new GbfsJsonValidator();
+    Map<String, InputStream> deliveryMap = new HashMap<>();
+    ValidationResult result = validator.validate(deliveryMap);
 
-    @Test
-    void testSuccessfulV1_0Validation() {
-        GbfsJsonValidator validator = new GbfsJsonValidator();
+    // The expected error count is 2, because there are two required files
+    // missing in an empty delivery, gbfs.json, and system_information.json
+    Assertions.assertEquals(2, result.summary().errorsCount());
+  }
 
-        Map<String, InputStream> deliveryMap = new HashMap<>();
-        deliveryMap.put("gbfs", getFixture("fixtures/v1.0/gbfs.json"));
-        deliveryMap.put("system_information", getFixture("fixtures/v1.0/system_information.json"));
-        deliveryMap.put("system_hours", getFixture("fixtures/v1.0/system_hours.json"));
+  @Test
+  void testSuccessfulV1_0Validation() {
+    GbfsJsonValidator validator = new GbfsJsonValidator();
 
-        ValidationResult result = validator.validate(deliveryMap);
+    Map<String, InputStream> deliveryMap = new HashMap<>();
+    deliveryMap.put("gbfs", getFixture("fixtures/v1.0/gbfs.json"));
+    deliveryMap.put(
+      "system_information",
+      getFixture("fixtures/v1.0/system_information.json")
+    );
+    deliveryMap.put("system_hours", getFixture("fixtures/v1.0/system_hours.json"));
 
-        printErrors("1.0", result);
+    ValidationResult result = validator.validate(deliveryMap);
 
-        Assertions.assertEquals("1.0", result.summary().version());
-        Assertions.assertEquals(0, result.summary().errorsCount());
-    }
+    printErrors("1.0", result);
 
-    @Test
-    void testSuccessfulV1_1Validation() {
-        GbfsJsonValidator validator = new GbfsJsonValidator();
+    Assertions.assertEquals("1.0", result.summary().version());
+    Assertions.assertEquals(0, result.summary().errorsCount());
+  }
 
-        Map<String, InputStream> deliveryMap = new HashMap<>();
-        deliveryMap.put("gbfs", getFixture("fixtures/v1.1/gbfs.json"));
-        deliveryMap.put("gbfs_versions", getFixture("fixtures/v1.1/gbfs_versions.json"));
-        deliveryMap.put("system_information", getFixture("fixtures/v1.1/system_information.json"));
-        deliveryMap.put("system_hours", getFixture("fixtures/v1.1/system_hours.json"));
+  @Test
+  void testSuccessfulV1_1Validation() {
+    GbfsJsonValidator validator = new GbfsJsonValidator();
 
-        ValidationResult result = validator.validate(deliveryMap);
+    Map<String, InputStream> deliveryMap = new HashMap<>();
+    deliveryMap.put("gbfs", getFixture("fixtures/v1.1/gbfs.json"));
+    deliveryMap.put("gbfs_versions", getFixture("fixtures/v1.1/gbfs_versions.json"));
+    deliveryMap.put(
+      "system_information",
+      getFixture("fixtures/v1.1/system_information.json")
+    );
+    deliveryMap.put("system_hours", getFixture("fixtures/v1.1/system_hours.json"));
 
-        printErrors("1.1", result);
+    ValidationResult result = validator.validate(deliveryMap);
 
-        Assertions.assertEquals("1.1", result.summary().version());
-        Assertions.assertEquals(0, result.summary().errorsCount());
-    }
+    printErrors("1.1", result);
 
-    @Test
-    void testSuccessfulV2_0Validation() {
-        GbfsJsonValidator validator = new GbfsJsonValidator();
+    Assertions.assertEquals("1.1", result.summary().version());
+    Assertions.assertEquals(0, result.summary().errorsCount());
+  }
 
-        Map<String, InputStream> deliveryMap = new HashMap<>();
-        deliveryMap.put("gbfs", getFixture("fixtures/v2.0/gbfs.json"));
-        deliveryMap.put("gbfs_versions", getFixture("fixtures/v2.0/gbfs_versions.json"));
-        deliveryMap.put("system_information", getFixture("fixtures/v2.0/system_information.json"));
-        deliveryMap.put("system_hours", getFixture("fixtures/v2.0/system_hours.json"));
+  @Test
+  void testSuccessfulV2_0Validation() {
+    GbfsJsonValidator validator = new GbfsJsonValidator();
 
-        ValidationResult result = validator.validate(deliveryMap);
+    Map<String, InputStream> deliveryMap = new HashMap<>();
+    deliveryMap.put("gbfs", getFixture("fixtures/v2.0/gbfs.json"));
+    deliveryMap.put("gbfs_versions", getFixture("fixtures/v2.0/gbfs_versions.json"));
+    deliveryMap.put(
+      "system_information",
+      getFixture("fixtures/v2.0/system_information.json")
+    );
+    deliveryMap.put("system_hours", getFixture("fixtures/v2.0/system_hours.json"));
 
-        printErrors("2.0", result);
+    ValidationResult result = validator.validate(deliveryMap);
 
-        Assertions.assertEquals("2.0", result.summary().version());
-        Assertions.assertEquals(0, result.summary().errorsCount());
-    }
+    printErrors("2.0", result);
 
-    @Test
-    void testSuccessfulV2_1Validation() {
-        GbfsJsonValidator validator = new GbfsJsonValidator();
+    Assertions.assertEquals("2.0", result.summary().version());
+    Assertions.assertEquals(0, result.summary().errorsCount());
+  }
 
-        Map<String, InputStream> deliveryMap = new HashMap<>();
-        deliveryMap.put("gbfs", getFixture("fixtures/v2.1/gbfs.json"));
-        deliveryMap.put("gbfs_versions", getFixture("fixtures/v2.1/gbfs_versions.json"));
-        deliveryMap.put("system_information", getFixture("fixtures/v2.1/system_information.json"));
-        deliveryMap.put("vehicle_types", getFixture("fixtures/v2.1/vehicle_types.json"));
-        deliveryMap.put("station_information", getFixture("fixtures/v2.1/station_information.json"));
-        deliveryMap.put("station_status", getFixture("fixtures/v2.1/station_status.json"));
-        deliveryMap.put("free_bike_status", getFixture("fixtures/v2.1/free_bike_status.json"));
-        deliveryMap.put("system_hours", getFixture("fixtures/v2.1/system_hours.json"));
-        deliveryMap.put("system_calendar", getFixture("fixtures/v2.1/system_calendar.json"));
-        deliveryMap.put("system_regions", getFixture("fixtures/v2.1/system_regions.json"));
-        deliveryMap.put("system_alerts", getFixture("fixtures/v2.1/system_alerts.json"));
-        deliveryMap.put("geofencing_zones", getFixture("fixtures/v2.1/geofencing_zones.json"));
+  @Test
+  void testSuccessfulV2_1Validation() {
+    GbfsJsonValidator validator = new GbfsJsonValidator();
 
-        ValidationResult result = validator.validate(deliveryMap);
+    Map<String, InputStream> deliveryMap = new HashMap<>();
+    deliveryMap.put("gbfs", getFixture("fixtures/v2.1/gbfs.json"));
+    deliveryMap.put("gbfs_versions", getFixture("fixtures/v2.1/gbfs_versions.json"));
+    deliveryMap.put(
+      "system_information",
+      getFixture("fixtures/v2.1/system_information.json")
+    );
+    deliveryMap.put("vehicle_types", getFixture("fixtures/v2.1/vehicle_types.json"));
+    deliveryMap.put(
+      "station_information",
+      getFixture("fixtures/v2.1/station_information.json")
+    );
+    deliveryMap.put("station_status", getFixture("fixtures/v2.1/station_status.json"));
+    deliveryMap.put(
+      "free_bike_status",
+      getFixture("fixtures/v2.1/free_bike_status.json")
+    );
+    deliveryMap.put("system_hours", getFixture("fixtures/v2.1/system_hours.json"));
+    deliveryMap.put("system_calendar", getFixture("fixtures/v2.1/system_calendar.json"));
+    deliveryMap.put("system_regions", getFixture("fixtures/v2.1/system_regions.json"));
+    deliveryMap.put("system_alerts", getFixture("fixtures/v2.1/system_alerts.json"));
+    deliveryMap.put(
+      "geofencing_zones",
+      getFixture("fixtures/v2.1/geofencing_zones.json")
+    );
 
-        printErrors("2.1", result);
+    ValidationResult result = validator.validate(deliveryMap);
 
-        Assertions.assertEquals("2.1", result.summary().version());
-        Assertions.assertEquals(0, result.summary().errorsCount());
-    }
+    printErrors("2.1", result);
 
-    @Test
-    void testSuccessfulV2_2Validation() {
-        GbfsJsonValidator validator = new GbfsJsonValidator();
+    Assertions.assertEquals("2.1", result.summary().version());
+    Assertions.assertEquals(0, result.summary().errorsCount());
+  }
 
-        Map<String, InputStream> deliveryMap = new HashMap<>();
-        deliveryMap.put("gbfs", getFixture("fixtures/v2.2/gbfs.json"));
-        deliveryMap.put("gbfs_versions", getFixture("fixtures/v2.2/gbfs_versions.json"));
-        deliveryMap.put("system_information", getFixture("fixtures/v2.2/system_information.json"));
-        deliveryMap.put("vehicle_types", getFixture("fixtures/v2.2/vehicle_types.json"));
-        deliveryMap.put("station_information", getFixture("fixtures/v2.2/station_information.json"));
-        deliveryMap.put("station_status", getFixture("fixtures/v2.2/station_status.json"));
-        deliveryMap.put("free_bike_status", getFixture("fixtures/v2.2/free_bike_status.json"));
-        deliveryMap.put("system_hours", getFixture("fixtures/v2.2/system_hours.json"));
-        deliveryMap.put("system_calendar", getFixture("fixtures/v2.2/system_calendar.json"));
-        deliveryMap.put("system_regions", getFixture("fixtures/v2.2/system_regions.json"));
-        deliveryMap.put("system_pricing_plans", getFixture("fixtures/v2.2/system_pricing_plans.json"));
-        deliveryMap.put("system_alerts", getFixture("fixtures/v2.2/system_alerts.json"));
-        deliveryMap.put("geofencing_zones", getFixture("fixtures/v2.2/geofencing_zones.json"));
+  @Test
+  void testSuccessfulV2_2Validation() {
+    GbfsJsonValidator validator = new GbfsJsonValidator();
 
-        ValidationResult result = validator.validate(deliveryMap);
+    Map<String, InputStream> deliveryMap = new HashMap<>();
+    deliveryMap.put("gbfs", getFixture("fixtures/v2.2/gbfs.json"));
+    deliveryMap.put("gbfs_versions", getFixture("fixtures/v2.2/gbfs_versions.json"));
+    deliveryMap.put(
+      "system_information",
+      getFixture("fixtures/v2.2/system_information.json")
+    );
+    deliveryMap.put("vehicle_types", getFixture("fixtures/v2.2/vehicle_types.json"));
+    deliveryMap.put(
+      "station_information",
+      getFixture("fixtures/v2.2/station_information.json")
+    );
+    deliveryMap.put("station_status", getFixture("fixtures/v2.2/station_status.json"));
+    deliveryMap.put(
+      "free_bike_status",
+      getFixture("fixtures/v2.2/free_bike_status.json")
+    );
+    deliveryMap.put("system_hours", getFixture("fixtures/v2.2/system_hours.json"));
+    deliveryMap.put("system_calendar", getFixture("fixtures/v2.2/system_calendar.json"));
+    deliveryMap.put("system_regions", getFixture("fixtures/v2.2/system_regions.json"));
+    deliveryMap.put(
+      "system_pricing_plans",
+      getFixture("fixtures/v2.2/system_pricing_plans.json")
+    );
+    deliveryMap.put("system_alerts", getFixture("fixtures/v2.2/system_alerts.json"));
+    deliveryMap.put(
+      "geofencing_zones",
+      getFixture("fixtures/v2.2/geofencing_zones.json")
+    );
 
-        printErrors("2.2", result);
+    ValidationResult result = validator.validate(deliveryMap);
 
-        Assertions.assertEquals("2.2", result.summary().version());
-        Assertions.assertEquals(0, result.summary().errorsCount());
-    }
+    printErrors("2.2", result);
 
-    @Test
-    void testSuccessfulV2_3Validation() {
-        GbfsJsonValidator validator = new GbfsJsonValidator();
+    Assertions.assertEquals("2.2", result.summary().version());
+    Assertions.assertEquals(0, result.summary().errorsCount());
+  }
 
-        Map<String, InputStream> deliveryMap = new HashMap<>();
-        deliveryMap.put("gbfs", getFixture("fixtures/v2.3/gbfs.json"));
-        deliveryMap.put("gbfs_versions", getFixture("fixtures/v2.3/gbfs_versions.json"));
-        deliveryMap.put("system_information", getFixture("fixtures/v2.3/system_information.json"));
-        deliveryMap.put("vehicle_types", getFixture("fixtures/v2.3/vehicle_types.json"));
-        deliveryMap.put("station_information", getFixture("fixtures/v2.3/station_information.json"));
-        deliveryMap.put("station_status", getFixture("fixtures/v2.3/station_status.json"));
-        deliveryMap.put("free_bike_status", getFixture("fixtures/v2.3/free_bike_status.json"));
-        deliveryMap.put("system_hours", getFixture("fixtures/v2.3/system_hours.json"));
-        deliveryMap.put("system_calendar", getFixture("fixtures/v2.3/system_calendar.json"));
-        deliveryMap.put("system_regions", getFixture("fixtures/v2.3/system_regions.json"));
-        deliveryMap.put("system_pricing_plans", getFixture("fixtures/v2.3/system_pricing_plans.json"));
-        deliveryMap.put("system_alerts", getFixture("fixtures/v2.3/system_alerts.json"));
-        deliveryMap.put("geofencing_zones", getFixture("fixtures/v2.3/geofencing_zones.json"));
+  @Test
+  void testSuccessfulV2_3Validation() {
+    GbfsJsonValidator validator = new GbfsJsonValidator();
 
-        ValidationResult result = validator.validate(deliveryMap);
+    Map<String, InputStream> deliveryMap = new HashMap<>();
+    deliveryMap.put("gbfs", getFixture("fixtures/v2.3/gbfs.json"));
+    deliveryMap.put("gbfs_versions", getFixture("fixtures/v2.3/gbfs_versions.json"));
+    deliveryMap.put(
+      "system_information",
+      getFixture("fixtures/v2.3/system_information.json")
+    );
+    deliveryMap.put("vehicle_types", getFixture("fixtures/v2.3/vehicle_types.json"));
+    deliveryMap.put(
+      "station_information",
+      getFixture("fixtures/v2.3/station_information.json")
+    );
+    deliveryMap.put("station_status", getFixture("fixtures/v2.3/station_status.json"));
+    deliveryMap.put(
+      "free_bike_status",
+      getFixture("fixtures/v2.3/free_bike_status.json")
+    );
+    deliveryMap.put("system_hours", getFixture("fixtures/v2.3/system_hours.json"));
+    deliveryMap.put("system_calendar", getFixture("fixtures/v2.3/system_calendar.json"));
+    deliveryMap.put("system_regions", getFixture("fixtures/v2.3/system_regions.json"));
+    deliveryMap.put(
+      "system_pricing_plans",
+      getFixture("fixtures/v2.3/system_pricing_plans.json")
+    );
+    deliveryMap.put("system_alerts", getFixture("fixtures/v2.3/system_alerts.json"));
+    deliveryMap.put(
+      "geofencing_zones",
+      getFixture("fixtures/v2.3/geofencing_zones.json")
+    );
 
-        printErrors("2.3", result);
+    ValidationResult result = validator.validate(deliveryMap);
 
-        Assertions.assertEquals("2.3", result.summary().version());
-        Assertions.assertEquals(0, result.summary().errorsCount());
-    }
+    printErrors("2.3", result);
 
-    @Test
-    void testSuccessfulV3_0Validation() {
-        GbfsJsonValidator validator = new GbfsJsonValidator();
+    Assertions.assertEquals("2.3", result.summary().version());
+    Assertions.assertEquals(0, result.summary().errorsCount());
+  }
 
-        Map<String, InputStream> deliveryMap = new HashMap<>();
-        deliveryMap.put("gbfs", getFixture("fixtures/v3.0/gbfs.json"));
-        deliveryMap.put("gbfs_versions", getFixture("fixtures/v3.0/gbfs_versions.json"));
-        deliveryMap.put("system_information", getFixture("fixtures/v3.0/system_information.json"));
-        deliveryMap.put("vehicle_types", getFixture("fixtures/v3.0/vehicle_types.json"));
-        deliveryMap.put("station_information", getFixture("fixtures/v3.0/station_information.json"));
-        deliveryMap.put("station_status", getFixture("fixtures/v3.0/station_status.json"));
-        deliveryMap.put("vehicle_status", getFixture("fixtures/v3.0/vehicle_status.json"));
-        deliveryMap.put("manifest", getFixture("fixtures/v3.0/manifest.json"));
-        deliveryMap.put("system_regions", getFixture("fixtures/v3.0/system_regions.json"));
-        deliveryMap.put("system_pricing_plans", getFixture("fixtures/v3.0/system_pricing_plans.json"));
-        deliveryMap.put("system_alerts", getFixture("fixtures/v3.0/system_alerts.json"));
-        deliveryMap.put("geofencing_zones", getFixture("fixtures/v3.0/geofencing_zones.json"));
+  @Test
+  void testSuccessfulV3_0Validation() {
+    GbfsJsonValidator validator = new GbfsJsonValidator();
 
-        ValidationResult result = validator.validate(deliveryMap);
+    Map<String, InputStream> deliveryMap = new HashMap<>();
+    deliveryMap.put("gbfs", getFixture("fixtures/v3.0/gbfs.json"));
+    deliveryMap.put("gbfs_versions", getFixture("fixtures/v3.0/gbfs_versions.json"));
+    deliveryMap.put(
+      "system_information",
+      getFixture("fixtures/v3.0/system_information.json")
+    );
+    deliveryMap.put("vehicle_types", getFixture("fixtures/v3.0/vehicle_types.json"));
+    deliveryMap.put(
+      "station_information",
+      getFixture("fixtures/v3.0/station_information.json")
+    );
+    deliveryMap.put("station_status", getFixture("fixtures/v3.0/station_status.json"));
+    deliveryMap.put("vehicle_status", getFixture("fixtures/v3.0/vehicle_status.json"));
+    deliveryMap.put("manifest", getFixture("fixtures/v3.0/manifest.json"));
+    deliveryMap.put("system_regions", getFixture("fixtures/v3.0/system_regions.json"));
+    deliveryMap.put(
+      "system_pricing_plans",
+      getFixture("fixtures/v3.0/system_pricing_plans.json")
+    );
+    deliveryMap.put("system_alerts", getFixture("fixtures/v3.0/system_alerts.json"));
+    deliveryMap.put(
+      "geofencing_zones",
+      getFixture("fixtures/v3.0/geofencing_zones.json")
+    );
 
-        printErrors("3.0", result);
+    ValidationResult result = validator.validate(deliveryMap);
 
-        Assertions.assertEquals("3.0", result.summary().version());
-        Assertions.assertEquals(0, result.summary().errorsCount());
-    }
+    printErrors("3.0", result);
 
-    @Test
-    void testFailed2_3Validation() {
-        GbfsJsonValidator validator = new GbfsJsonValidator();
+    Assertions.assertEquals("3.0", result.summary().version());
+    Assertions.assertEquals(0, result.summary().errorsCount());
+  }
 
-        InputStream freeBikeStatus = getFixture("fixtures/v2.3/free_bike_status_with_error.json");
-        FileValidationResult result = validator.validateFile("free_bike_status", freeBikeStatus);
+  @Test
+  void testFailed2_3Validation() {
+    GbfsJsonValidator validator = new GbfsJsonValidator();
 
-        Assertions.assertEquals("2.3", result.version());
-        Assertions.assertEquals(3, result.errorsCount());
-    }
+    InputStream freeBikeStatus = getFixture(
+      "fixtures/v2.3/free_bike_status_with_error.json"
+    );
+    FileValidationResult result = validator.validateFile(
+      "free_bike_status",
+      freeBikeStatus
+    );
 
-    @Test
-    void testMissingRequiredFile() {
-        GbfsJsonValidator validator = new GbfsJsonValidator();
+    Assertions.assertEquals("2.3", result.version());
+    Assertions.assertEquals(3, result.errorsCount());
+  }
 
-        Map<String, InputStream> deliveryMap = new HashMap<>();
-        deliveryMap.put("gbfs", getFixture("fixtures/v2.2/gbfs.json"));
+  @Test
+  void testMissingRequiredFile() {
+    GbfsJsonValidator validator = new GbfsJsonValidator();
 
-        ValidationResult result = validator.validate(deliveryMap);
+    Map<String, InputStream> deliveryMap = new HashMap<>();
+    deliveryMap.put("gbfs", getFixture("fixtures/v2.2/gbfs.json"));
 
-        Assertions.assertTrue(result.files().get("system_information").required());
-        Assertions.assertFalse(result.files().get("system_information").exists());
+    ValidationResult result = validator.validate(deliveryMap);
 
-        Assertions.assertEquals(1, result.summary().errorsCount());
-    }
+    Assertions.assertTrue(result.files().get("system_information").required());
+    Assertions.assertFalse(result.files().get("system_information").exists());
 
-    @Test
-    void testMissingDiscoveryFileAsOf20() {
-        GbfsJsonValidator validator = new GbfsJsonValidator();
+    Assertions.assertEquals(1, result.summary().errorsCount());
+  }
 
-        Map<String, InputStream> deliveryMap = new HashMap<>();
-        deliveryMap.put("system_hours", getFixture("fixtures/v2.0/system_hours.json"));
+  @Test
+  void testMissingDiscoveryFileAsOf20() {
+    GbfsJsonValidator validator = new GbfsJsonValidator();
 
-        ValidationResult result = validator.validate(deliveryMap);
+    Map<String, InputStream> deliveryMap = new HashMap<>();
+    deliveryMap.put("system_hours", getFixture("fixtures/v2.0/system_hours.json"));
 
-        Assertions.assertTrue(result.files().get("gbfs").required());
-        Assertions.assertFalse(result.files().get("gbfs").exists());
-    }
+    ValidationResult result = validator.validate(deliveryMap);
 
-    @Test
-    void testMissingNotRequiredFile() {
-        GbfsJsonValidator validator = new GbfsJsonValidator();
+    Assertions.assertTrue(result.files().get("gbfs").required());
+    Assertions.assertFalse(result.files().get("gbfs").exists());
+  }
 
-        Map<String, InputStream> deliveryMap = new HashMap<>();
-        deliveryMap.put("gbfs", getFixture("fixtures/v2.2/gbfs.json"));
-        deliveryMap.put("system_information", getFixture("fixtures/v2.2/system_information.json"));
+  @Test
+  void testMissingNotRequiredFile() {
+    GbfsJsonValidator validator = new GbfsJsonValidator();
 
-        ValidationResult result = validator.validate(deliveryMap);
+    Map<String, InputStream> deliveryMap = new HashMap<>();
+    deliveryMap.put("gbfs", getFixture("fixtures/v2.2/gbfs.json"));
+    deliveryMap.put(
+      "system_information",
+      getFixture("fixtures/v2.2/system_information.json")
+    );
 
-        Assertions.assertFalse(result.files().get("vehicle_types").required());
-        Assertions.assertFalse(result.files().get("vehicle_types").exists());
+    ValidationResult result = validator.validate(deliveryMap);
 
-        Assertions.assertEquals(0, result.summary().errorsCount());
-    }
+    Assertions.assertFalse(result.files().get("vehicle_types").required());
+    Assertions.assertFalse(result.files().get("vehicle_types").exists());
 
-    @Test
-    void testSystemInformationTimeZones() {
-        GbfsJsonValidator validator = new GbfsJsonValidator();
+    Assertions.assertEquals(0, result.summary().errorsCount());
+  }
 
-        Map<String, InputStream> deliveryMap = new HashMap<>();
-        deliveryMap.put("gbfs", getFixture("fixtures/v2.2/system_information.json"));
+  @Test
+  void testSystemInformationTimeZones() {
+    GbfsJsonValidator validator = new GbfsJsonValidator();
 
-        ValidationResult result = validator.validate(deliveryMap);
-    }
+    Map<String, InputStream> deliveryMap = new HashMap<>();
+    deliveryMap.put("gbfs", getFixture("fixtures/v2.2/system_information.json"));
 
-    private InputStream getFixture(String name) {
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(name);
-        return inputStream;
-    }
+    ValidationResult result = validator.validate(deliveryMap);
+  }
 
-    private void printErrors(String version, ValidationResult result) {
-        result.files().entrySet().stream()
-                .filter(entry -> entry.getValue() != null)
-                .filter(entry -> entry.getValue().errorsCount() > 0)
-                .forEach(entry -> {
-                    System.out.println("Version " + version + " - File: " + entry.getKey());
-                    entry.getValue().errors().forEach(System.out::println);
-                });
-    }
+  private InputStream getFixture(String name) {
+    InputStream inputStream = getClass().getClassLoader().getResourceAsStream(name);
+    return inputStream;
+  }
+
+  private void printErrors(String version, ValidationResult result) {
+    result
+      .files()
+      .entrySet()
+      .stream()
+      .filter(entry -> entry.getValue() != null)
+      .filter(entry -> entry.getValue().errorsCount() > 0)
+      .forEach(entry -> {
+        System.out.println("Version " + version + " - File: " + entry.getKey());
+        entry.getValue().errors().forEach(System.out::println);
+      });
+  }
 }

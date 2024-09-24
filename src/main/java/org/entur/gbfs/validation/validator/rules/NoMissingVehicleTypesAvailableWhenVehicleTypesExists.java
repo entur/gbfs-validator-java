@@ -21,28 +21,37 @@
 package org.entur.gbfs.validation.validator.rules;
 
 import com.jayway.jsonpath.DocumentContext;
+import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.util.Map;
 
 /**
  * It is required to list available vehicle types in station_status when vehicle_types file exists
  */
-public class NoMissingVehicleTypesAvailableWhenVehicleTypesExists implements CustomRuleSchemaPatcher {
+public class NoMissingVehicleTypesAvailableWhenVehicleTypesExists
+  implements CustomRuleSchemaPatcher {
 
-    public static final String STATION_ITEMS_REQUIRED_SCHEMA_PATH = "$.properties.data.properties.stations.items.required";
+  public static final String STATION_ITEMS_REQUIRED_SCHEMA_PATH =
+    "$.properties.data.properties.stations.items.required";
 
-    /**
-     * Adds vehicle_types_available to list of required properties on stations in station_status
-     */
-    @Override
-    public DocumentContext addRule(DocumentContext rawSchemaDocumentContext, Map<String, JSONObject> feeds) {
-        JSONObject vehicleTypesFeed = feeds.get("vehicle_types");
-        JSONArray stationItemsRequiredSchema = rawSchemaDocumentContext.read(STATION_ITEMS_REQUIRED_SCHEMA_PATH);
-        if (vehicleTypesFeed != null) {
-            stationItemsRequiredSchema.put("vehicle_types_available");
-        }
-        return rawSchemaDocumentContext.set(STATION_ITEMS_REQUIRED_SCHEMA_PATH, stationItemsRequiredSchema);
+  /**
+   * Adds vehicle_types_available to list of required properties on stations in station_status
+   */
+  @Override
+  public DocumentContext addRule(
+    DocumentContext rawSchemaDocumentContext,
+    Map<String, JSONObject> feeds
+  ) {
+    JSONObject vehicleTypesFeed = feeds.get("vehicle_types");
+    JSONArray stationItemsRequiredSchema = rawSchemaDocumentContext.read(
+      STATION_ITEMS_REQUIRED_SCHEMA_PATH
+    );
+    if (vehicleTypesFeed != null) {
+      stationItemsRequiredSchema.put("vehicle_types_available");
     }
+    return rawSchemaDocumentContext.set(
+      STATION_ITEMS_REQUIRED_SCHEMA_PATH,
+      stationItemsRequiredSchema
+    );
+  }
 }

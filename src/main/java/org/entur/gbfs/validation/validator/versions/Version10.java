@@ -22,21 +22,22 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Version10 extends AbstractVersion {
-    public static final String VERSION = "1.0";
 
-    private static final List<String> feeds = Arrays.asList(
-            "gbfs",
-            "system_information",
-            "station_information",
-            "station_status",
-            "free_bike_status",
-            "system_calendar",
-            "system_hours",
-            "system_pricing_plans",
-            "system_regions"
-    );
+  public static final String VERSION = "1.0";
 
-    protected Version10() {
-        super(VERSION, feeds);
-    }
+  private static final List<String> feeds = Arrays.asList(
+    "gbfs",
+    "system_information",
+    "station_information",
+    "station_status",
+    "free_bike_status",
+    "system_calendar",
+    "system_hours",
+    "system_pricing_plans",
+    "system_regions"
+  );
+
+  protected Version10() {
+    super(VERSION, feeds);
+  }
 }

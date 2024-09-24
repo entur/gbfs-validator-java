@@ -21,39 +21,45 @@
 package org.entur.gbfs.validation.validator.rules;
 
 import com.jayway.jsonpath.DocumentContext;
+import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.util.Map;
 
 /**
  * Bikes / vehicles must refer to a vehicle type when vehicle_types exists
  */
-public class NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist implements CustomRuleSchemaPatcher {
+public class NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist
+  implements CustomRuleSchemaPatcher {
 
-    private final String fileName;
+  private final String fileName;
 
-    public NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist(String fileName) {
-        this.fileName = fileName;
+  public NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist(String fileName) {
+    this.fileName = fileName;
+  }
+
+  public static final String BIKE_ITEMS_REQUIRED =
+    "$.properties.data.properties.bikes.items.required";
+  public static final String VEHICLE_ITEMS_REQUIRED =
+    "$.properties.data.properties.vehicles.items.required";
+
+  @Override
+  public DocumentContext addRule(
+    DocumentContext rawSchemaDocumentContext,
+    Map<String, JSONObject> feeds
+  ) {
+    JSONObject vehicleTypesFeed = feeds.get("vehicle_types");
+
+    String requiredPath = VEHICLE_ITEMS_REQUIRED;
+
+    // backwards compatibility
+    if (fileName.equals("free_bike_status")) {
+      requiredPath = BIKE_ITEMS_REQUIRED;
     }
 
-    public static final String BIKE_ITEMS_REQUIRED = "$.properties.data.properties.bikes.items.required";
-    public static final String VEHICLE_ITEMS_REQUIRED = "$.properties.data.properties.vehicles.items.required";
-    @Override
-    public DocumentContext addRule(DocumentContext rawSchemaDocumentContext, Map<String, JSONObject> feeds) {
-        JSONObject vehicleTypesFeed = feeds.get("vehicle_types");
-
-        String requiredPath = VEHICLE_ITEMS_REQUIRED;
-
-        // backwards compatibility
-        if (fileName.equals("free_bike_status")) {
-            requiredPath = BIKE_ITEMS_REQUIRED;
-        }
-
-        JSONArray vehicleItemsRequiredSchema = rawSchemaDocumentContext.read(requiredPath);
-        if (vehicleTypesFeed != null) {
-            vehicleItemsRequiredSchema.put("vehicle_type_id");
-        }
-        return rawSchemaDocumentContext.set(requiredPath, vehicleItemsRequiredSchema);
+    JSONArray vehicleItemsRequiredSchema = rawSchemaDocumentContext.read(requiredPath);
+    if (vehicleTypesFeed != null) {
+      vehicleItemsRequiredSchema.put("vehicle_type_id");
     }
+    return rawSchemaDocumentContext.set(requiredPath, vehicleItemsRequiredSchema);
+  }
 }

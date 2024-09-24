@@ -18,6 +18,9 @@
 
 package org.entur.gbfs.validation.validator.versions;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import org.entur.gbfs.validation.validator.rules.CustomRuleSchemaPatcher;
 import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToPricingPlansInVehicleStatus;
 import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToPricingPlansInVehicleTypes;
@@ -27,53 +30,52 @@ import org.entur.gbfs.validation.validator.rules.NoMissingStoreUriInSystemInform
 import org.entur.gbfs.validation.validator.rules.NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist;
 import org.entur.gbfs.validation.validator.rules.NoMissingVehicleTypesAvailableWhenVehicleTypesExists;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
 public class Version23 extends AbstractVersion {
-    public static final String VERSION = "2.3";
 
-    private static final List<String> feeds = Arrays.asList(
-            "gbfs",
-            "gbfs_versions",
-            "system_information",
-            "vehicle_types",
-            "station_information",
-            "station_status",
-            "free_bike_status",
-            "system_hours",
-            "system_calendar",
-            "system_regions",
-            "system_pricing_plans",
-            "system_alerts",
-            "geofencing_zones"
-    );
+  public static final String VERSION = "2.3";
 
-    private static final Map<String, List<CustomRuleSchemaPatcher>> customRules = Map.of(
-            "vehicle_types", List.of(
-                    new NoInvalidReferenceToPricingPlansInVehicleTypes()
-            ),
-            "station_status", List.of(
-                    new NoInvalidReferenceToVehicleTypesInStationStatus(),
-                    new NoMissingVehicleTypesAvailableWhenVehicleTypesExists()
-            ),
-            "free_bike_status", List.of(
-                    new NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist("free_bike_status"),
-                    new NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles("free_bike_status"),
-                    new NoInvalidReferenceToPricingPlansInVehicleStatus("free_bike_status")
-            ),
-            "system_information", List.of(
-                    new NoMissingStoreUriInSystemInformation("free_bike_status")
-            )
-    );
+  private static final List<String> feeds = Arrays.asList(
+    "gbfs",
+    "gbfs_versions",
+    "system_information",
+    "vehicle_types",
+    "station_information",
+    "station_status",
+    "free_bike_status",
+    "system_hours",
+    "system_calendar",
+    "system_regions",
+    "system_pricing_plans",
+    "system_alerts",
+    "geofencing_zones"
+  );
 
-    protected Version23() {
-        super(VERSION, feeds, customRules);
-    }
+  private static final Map<String, List<CustomRuleSchemaPatcher>> customRules = Map.of(
+    "vehicle_types",
+    List.of(new NoInvalidReferenceToPricingPlansInVehicleTypes()),
+    "station_status",
+    List.of(
+      new NoInvalidReferenceToVehicleTypesInStationStatus(),
+      new NoMissingVehicleTypesAvailableWhenVehicleTypesExists()
+    ),
+    "free_bike_status",
+    List.of(
+      new NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist("free_bike_status"),
+      new NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles(
+        "free_bike_status"
+      ),
+      new NoInvalidReferenceToPricingPlansInVehicleStatus("free_bike_status")
+    ),
+    "system_information",
+    List.of(new NoMissingStoreUriInSystemInformation("free_bike_status"))
+  );
 
-    @Override
-    public boolean isFileRequired(String file) {
-        return super.isFileRequired(file) || "gbfs".equals(file);
-    }
+  protected Version23() {
+    super(VERSION, feeds, customRules);
+  }
+
+  @Override
+  public boolean isFileRequired(String file) {
+    return super.isFileRequired(file) || "gbfs".equals(file);
+  }
 }

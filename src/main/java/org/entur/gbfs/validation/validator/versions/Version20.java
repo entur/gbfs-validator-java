@@ -22,28 +22,29 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Version20 extends AbstractVersion {
-    public static final String VERSION = "2.0";
 
-    private static final List<String> feeds = Arrays.asList(
-            "gbfs",
-            "gbfs_versions",
-            "system_information",
-            "station_information",
-            "station_status",
-            "free_bike_status",
-            "system_hours",
-            "system_calendar",
-            "system_regions",
-            "system_pricing_plans",
-            "system_alerts"
-    );
+  public static final String VERSION = "2.0";
 
-    protected Version20() {
-        super(VERSION, feeds);
-    }
+  private static final List<String> feeds = Arrays.asList(
+    "gbfs",
+    "gbfs_versions",
+    "system_information",
+    "station_information",
+    "station_status",
+    "free_bike_status",
+    "system_hours",
+    "system_calendar",
+    "system_regions",
+    "system_pricing_plans",
+    "system_alerts"
+  );
 
-    @Override
-    public boolean isFileRequired(String file) {
-        return super.isFileRequired(file) || "gbfs".equals(file);
-    }
+  protected Version20() {
+    super(VERSION, feeds);
+  }
+
+  @Override
+  public boolean isFileRequired(String file) {
+    return super.isFileRequired(file) || "gbfs".equals(file);
+  }
 }

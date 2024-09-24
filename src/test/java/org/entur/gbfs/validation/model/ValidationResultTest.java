@@ -20,75 +20,60 @@
 
 package org.entur.gbfs.validation.model;
 
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-import java.util.Map;
-
 class ValidationResultTest {
 
-    @Test
-    void testSameAsSucceeds() {
-        Assertions.assertTrue(generateValidationResult(
-                "message-1",
-                "message-2"
-        ).sameAs(generateValidationResult(
-                "message-1",
-                "message-2"
-        )));
-    }
+  @Test
+  void testSameAsSucceeds() {
+    Assertions.assertTrue(
+      generateValidationResult("message-1", "message-2")
+        .sameAs(generateValidationResult("message-1", "message-2"))
+    );
+  }
 
-    @Test
-    void testSameAsFails() {
-        Assertions.assertFalse(generateValidationResult(
-                "message-1",
-                "message-2"
-        ).sameAs(generateValidationResult(
-                "message-1",
-                "message-3"
-        )));
-    }
+  @Test
+  void testSameAsFails() {
+    Assertions.assertFalse(
+      generateValidationResult("message-1", "message-2")
+        .sameAs(generateValidationResult("message-1", "message-3"))
+    );
+  }
 
-    private ValidationResult generateValidationResult(String message1, String message2) {
-        return new ValidationResult(
-                new ValidationSummary(null, 0, 0),
-                Map.of(
-                        "gbfs", generateFileValidationResult(message1, message2)
-                )
-        );
-    }
+  private ValidationResult generateValidationResult(String message1, String message2) {
+    return new ValidationResult(
+      new ValidationSummary(null, 0, 0),
+      Map.of("gbfs", generateFileValidationResult(message1, message2))
+    );
+  }
 
-    private ValidationSummary generateValidationSummary() {
-        return new ValidationSummary(
-                "2.2",
-                System.currentTimeMillis(),
-                2
-        );
-    }
+  private ValidationSummary generateValidationSummary() {
+    return new ValidationSummary("2.2", System.currentTimeMillis(), 2);
+  }
 
-    private FileValidationResult generateFileValidationResult(String message1, String message2) {
+  private FileValidationResult generateFileValidationResult(
+    String message1,
+    String message2
+  ) {
+    return new FileValidationResult(
+      "gbfs",
+      true,
+      true,
+      2,
+      null,
+      null,
+      null,
+      List.of(
+        generateFileValidationError(message1),
+        generateFileValidationError(message2)
+      )
+    );
+  }
 
-        return new FileValidationResult(
-                "gbfs",
-                true,
-                true,
-                2,
-                null,
-                null,
-                null,
-                List.of(
-                        generateFileValidationError(message1),
-                        generateFileValidationError(message2)
-                )
-        );
-    }
-
-    private FileValidationError generateFileValidationError(String message) {
-        return new FileValidationError(
-                "schema/path",
-                "violation/path",
-                message
-        );
-    }
+  private FileValidationError generateFileValidationError(String message) {
+    return new FileValidationError("schema/path", "violation/path", message);
+  }
 }

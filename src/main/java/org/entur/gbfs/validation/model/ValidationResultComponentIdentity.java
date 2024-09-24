@@ -21,10 +21,9 @@
 package org.entur.gbfs.validation.model;
 
 public interface ValidationResultComponentIdentity<T> {
-
-    /**
-     * Check if the (part of) a validation result is the same as another one. Should return true for two validation
-     * events at different times with the same outcome
-     */
-    boolean sameAs(T other);
+  /**
+   * Check if the (part of) a validation result is the same as another one. Should return true for two validation
+   * events at different times with the same outcome
+   */
+  boolean sameAs(T other);
 }

@@ -34,40 +34,54 @@ import java.util.stream.IntStream;
  * @param errors A list of errors encountered while validating the file
  */
 public record FileValidationResult(
-        String file,
-         boolean required,
-         boolean exists,
-         int errorsCount,
-         String schema,
-         String fileContents,
-         String version,
-         List<FileValidationError> errors
-) implements ValidationResultComponentIdentity<FileValidationResult> {
+  String file,
+  boolean required,
+  boolean exists,
+  int errorsCount,
+  String schema,
+  String fileContents,
+  String version,
+  List<FileValidationError> errors
+)
+  implements ValidationResultComponentIdentity<FileValidationResult> {
+  @Override
+  public String toString() {
+    return (
+      "FileValidationResult{" +
+      "file='" +
+      file +
+      '\'' +
+      ", required=" +
+      required +
+      ", exists=" +
+      exists +
+      ", errorsCount=" +
+      errorsCount +
+      ", schema='" +
+      schema +
+      '\'' +
+      ", fileContents='" +
+      fileContents +
+      '\'' +
+      ", version='" +
+      version +
+      '\'' +
+      ", errors=" +
+      errors +
+      '}'
+    );
+  }
 
-    @Override
-    public String toString() {
-        return "FileValidationResult{" +
-                "file='" + file + '\'' +
-                ", required=" + required +
-                ", exists=" + exists +
-                ", errorsCount=" + errorsCount +
-                ", schema='" + schema + '\'' +
-                ", fileContents='" + fileContents + '\'' +
-                ", version='" + version + '\'' +
-                ", errors=" + errors +
-                '}';
-    }
-
-    @Override
-    public boolean sameAs(FileValidationResult other) {
-        if (other == null) return false;
-        if (required != other.required) return false;
-        if (exists != other.exists) return false;
-        if (errorsCount != other.errorsCount) return false;
-        if (!Objects.equals(file, other.file)) return false;
-        if (!Objects.equals(version, other.version)) return false;
-        return IntStream
-                .range(0, errors.size())
-                .allMatch(i -> errors.get(i).sameAs(other.errors.get(i)));
-    }
+  @Override
+  public boolean sameAs(FileValidationResult other) {
+    if (other == null) return false;
+    if (required != other.required) return false;
+    if (exists != other.exists) return false;
+    if (errorsCount != other.errorsCount) return false;
+    if (!Objects.equals(file, other.file)) return false;
+    if (!Objects.equals(version, other.version)) return false;
+    return IntStream
+      .range(0, errors.size())
+      .allMatch(i -> errors.get(i).sameAs(other.errors.get(i)));
+  }
 }
