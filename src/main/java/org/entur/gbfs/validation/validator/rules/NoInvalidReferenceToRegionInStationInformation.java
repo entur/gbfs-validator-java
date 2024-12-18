@@ -50,10 +50,10 @@ public class NoInvalidReferenceToRegionInStationInformation
     );
 
     if (systemRegionsFeed != null) {
-      JSONArray vehicleTypeIds = JsonPath
+      JSONArray regionIds = JsonPath
         .parse(systemRegionsFeed)
         .read("$.data.regions[*].region_id");
-      regionIdSchema.put("enum", vehicleTypeIds);
+      regionIdSchema.put("enum", regionIds);
     }
 
     return rawSchemaDocumentContext
