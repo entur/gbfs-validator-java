@@ -18,6 +18,7 @@
 
 package org.entur.gbfs.validation.validator.versions;
 
+import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToRegionInStationInformation;
 import org.entur.gbfs.validation.validator.rules.NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles;
 import org.entur.gbfs.validation.validator.rules.CustomRuleSchemaPatcher;
 import org.entur.gbfs.validation.validator.rules.NoMissingStoreUriInSystemInformation;
@@ -59,6 +60,9 @@ public class Version21 extends AbstractVersion {
             ),
             "system_information", List.of(
                     new NoMissingStoreUriInSystemInformation("free_bike_status")
+            ),
+            "station_information", List.of(
+                    new NoInvalidReferenceToRegionInStationInformation()
             )
     );
 

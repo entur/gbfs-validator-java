@@ -57,7 +57,9 @@ The raw schema along with a map of the data feeds is passed to this method. The 
 
 List of additional rules:
 
+* `NoInvalidReferenceToPricingPlansInVehicleStatus`
 * `NoInvalidReferenceToPricingPlansInVehicleTypes`
+* `NoInvalidReferenceToRegionInStationInformation`
 * `NoInvalidReferenceToVehicleTypesInStationStatus`
 * `NoMissingVehicleTypesAvailableWhenVehicleTypesExists`
 * `NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist`

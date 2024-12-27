@@ -21,6 +21,7 @@ package org.entur.gbfs.validation.validator.versions;
 import org.entur.gbfs.validation.validator.rules.CustomRuleSchemaPatcher;
 import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToPricingPlansInVehicleStatus;
 import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToPricingPlansInVehicleTypes;
+import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToRegionInStationInformation;
 import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToVehicleTypesInStationStatus;
 import org.entur.gbfs.validation.validator.rules.NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles;
 import org.entur.gbfs.validation.validator.rules.NoMissingStoreUriInSystemInformation;
@@ -64,6 +65,9 @@ public class Version30 extends AbstractVersion {
             ),
             "system_information", List.of(
                     new NoMissingStoreUriInSystemInformation("vehicle_status")
+            ),
+            "station_information", List.of(
+                    new NoInvalidReferenceToRegionInStationInformation()
             )
     );
 
