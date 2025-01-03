@@ -25,7 +25,7 @@ import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToRegionInSta
 import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToVehicleTypesInStationStatus;
 import org.entur.gbfs.validation.validator.rules.NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles;
 import org.entur.gbfs.validation.validator.rules.NoMissingStoreUriInSystemInformation;
-import org.entur.gbfs.validation.validator.rules.NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist;
+import org.entur.gbfs.validation.validator.rules.NoMissingOrInvalidVehicleTypeIdInVehicleStatusWhenVehicleTypesExist;
 import org.entur.gbfs.validation.validator.rules.NoMissingVehicleTypesAvailableWhenVehicleTypesExists;
 
 import java.util.Arrays;
@@ -59,7 +59,7 @@ public class Version30 extends AbstractVersion {
                     new NoMissingVehicleTypesAvailableWhenVehicleTypesExists()
             ),
             "vehicle_status", List.of(
-                    new NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist("vehicle_status"),
+                    new NoMissingOrInvalidVehicleTypeIdInVehicleStatusWhenVehicleTypesExist("vehicle_status"),
                     new NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles("vehicle_status"),
                     new NoInvalidReferenceToPricingPlansInVehicleStatus("vehicle_status")
             ),
