@@ -22,7 +22,7 @@ import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToRegionInSta
 import org.entur.gbfs.validation.validator.rules.NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles;
 import org.entur.gbfs.validation.validator.rules.CustomRuleSchemaPatcher;
 import org.entur.gbfs.validation.validator.rules.NoMissingStoreUriInSystemInformation;
-import org.entur.gbfs.validation.validator.rules.NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist;
+import org.entur.gbfs.validation.validator.rules.NoMissingOrInvalidVehicleTypeIdInVehicleStatusWhenVehicleTypesExist;
 import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToVehicleTypesInStationStatus;
 import org.entur.gbfs.validation.validator.rules.NoMissingVehicleTypesAvailableWhenVehicleTypesExists;
 
@@ -55,7 +55,7 @@ public class Version21 extends AbstractVersion {
                     new NoMissingVehicleTypesAvailableWhenVehicleTypesExists()
             ),
             "free_bike_status", List.of(
-                    new NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist("free_bike_status"),
+                    new NoMissingOrInvalidVehicleTypeIdInVehicleStatusWhenVehicleTypesExist("free_bike_status"),
                     new NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles("free_bike_status")
             ),
             "system_information", List.of(
