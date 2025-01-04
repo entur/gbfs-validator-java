@@ -53,9 +53,9 @@ public class NoMissingOrInvalidVehicleTypeIdInVehicleStatusWhenVehicleTypesExist
 
         JSONObject vehicleItemsSchema = rawSchemaDocumentContext.read(requiredPath);
         if (vehicleTypesFeed != null) {
-            vehicleItemsSchema.put("required", new JSONArray().put("vehicle_type_id"));
+            vehicleItemsSchema.append("required", "vehicle_type_id");
             JSONArray vehicleTypeIds = JsonPath.parse(vehicleTypesFeed).read("$.data.vehicle_types[*].vehicle_type_id");
-            vehicleItemsSchema.put( "properties", new JSONObject().put("vehicle_type_id", new JSONObject().put("enum", vehicleTypeIds)));
+            vehicleItemsSchema.getJSONObject( "properties").getJSONObject("vehicle_type_id").put("enum", vehicleTypeIds);
         }
         return rawSchemaDocumentContext.set(requiredPath, vehicleItemsSchema);
     }
