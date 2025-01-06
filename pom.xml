@@ -3,34 +3,38 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.entur.gbfs</groupId>
-    <artifactId>gbfs-validator-java</artifactId>
+    <artifactId>gbfs-validator-java-parent</artifactId>
     <version>0-SNAPSHOT</version>
 
     <packaging>pom</packaging>
 
     <name>GBFS Validator Parent</name>
-    <description>Parent POM for GBFS Validator modules</description>
+    <description>Aggregator POM for GBFS Validator modules</description>
 
     <modules>
         <module>gbfs-validator-java</module>
     </modules>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-    </properties>
+        <profiles>
+        <profile>
+            <id>sonar</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
 
-    <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.11.0</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-    </build>
+            <properties>
+                <sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
+            </properties>
+
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.sonarsource.scanner.maven</groupId>
+                        <artifactId>sonar-maven-plugin</artifactId>
+                        <version>${sonar-maven-plugin.version}</version>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
