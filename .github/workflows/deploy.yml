@@ -92,6 +92,7 @@ jobs:
           git checkout master
           mvn gitflow:release-start gitflow:release-finish \
                   -DskipTests=true \
+                  -pl gbfs-validator-java \
                   -Prelease \
                   -DpostReleaseGoals=deploy \
-                  -DargLine='-Prelease -DskipTests -s .github/workflows/settings.xml' -B -s .github/workflows/settings.xml
+                  -DargLine='-Prelease -pl gbfs-validator-java -DskipTests -s .github/workflows/settings.xml' -B -s .github/workflows/settings.xml
