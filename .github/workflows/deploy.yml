@@ -57,7 +57,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4.5.0
         with:
-          path: target/*.jar
+          path: gbfs-validator-java/target/*.jar
   deploy-maven-central:
     if: github.repository_owner == 'entur' && github.event_name == 'push' && github.ref == 'refs/heads/master' && !contains(github.event.head_commit.message, 'ci skip')
     needs: [maven-package]
@@ -95,4 +95,3 @@ jobs:
                   -Prelease \
                   -DpostReleaseGoals=deploy \
                   -DargLine='-Prelease -DskipTests -s .github/workflows/settings.xml' -B -s .github/workflows/settings.xml
-
