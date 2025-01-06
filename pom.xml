@@ -3,9 +3,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.entur.gbfs</groupId>
-    <artifactId>gbfs-validator-parent</artifactId>
-    <version>2.0.21-SNAPSHOT</version>
-    <packaging>pom</packaging>
+    <artifactId>gbfs-validator-java</artifactId>
+    <version>2.0.22-SNAPSHOT</version>
 
     <name>GBFS Validator Parent</name>
     <description>Parent POM for GBFS Validator modules</description>
