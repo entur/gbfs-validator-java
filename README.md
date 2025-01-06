@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/entur/gbfs-validator-java/tree/master.svg?style=svg)](https://circleci.com/gh/entur/gbfs-validator-java/tree/master)
+![Build and Deploy Maven Central](https://github.com/entur/gbfs-validator-java/actions/workflows/deploy.yml/badge.svg)
 
 # gbfs-validator-java
 

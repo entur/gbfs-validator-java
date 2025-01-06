@@ -1,4 +1,4 @@
-name: Build external pull request
+name: Build pull request
 on:
   pull_request:
     branches:
