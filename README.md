@@ -62,7 +62,7 @@ List of additional rules:
 * `NoInvalidReferenceToRegionInStationInformation`
 * `NoInvalidReferenceToVehicleTypesInStationStatus`
 * `NoMissingVehicleTypesAvailableWhenVehicleTypesExists`
-* `NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist`
+* `NoMissingOrInvalidVehicleTypeIdInVehicleStatusWhenVehicleTypesExist`
 * `NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles`
 * `NoMissingStoreUriInSystemInformation`
 

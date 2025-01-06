@@ -21,6 +21,7 @@
 package org.entur.gbfs.validation.validator.rules;
 
 import com.jayway.jsonpath.DocumentContext;
+import com.jayway.jsonpath.JsonPath;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -29,31 +30,33 @@ import java.util.Map;
 /**
  * Bikes / vehicles must refer to a vehicle type when vehicle_types exists
  */
-public class NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist implements CustomRuleSchemaPatcher {
+public class NoMissingOrInvalidVehicleTypeIdInVehicleStatusWhenVehicleTypesExist implements CustomRuleSchemaPatcher {
 
     private final String fileName;
 
-    public NoMissingVehicleTypeIdInVehicleStatusWhenVehicleTypesExist(String fileName) {
+    public NoMissingOrInvalidVehicleTypeIdInVehicleStatusWhenVehicleTypesExist(String fileName) {
         this.fileName = fileName;
     }
 
-    public static final String BIKE_ITEMS_REQUIRED = "$.properties.data.properties.bikes.items.required";
-    public static final String VEHICLE_ITEMS_REQUIRED = "$.properties.data.properties.vehicles.items.required";
+    private static final String BIKE_ITEMS_SCHEMA_PATH = "$.properties.data.properties.bikes.items";
+    private static final String VEHICLE_ITEMS_SCHEMA_PATH = "$.properties.data.properties.vehicles.items";
     @Override
     public DocumentContext addRule(DocumentContext rawSchemaDocumentContext, Map<String, JSONObject> feeds) {
         JSONObject vehicleTypesFeed = feeds.get("vehicle_types");
 
-        String requiredPath = VEHICLE_ITEMS_REQUIRED;
+        String requiredPath = VEHICLE_ITEMS_SCHEMA_PATH;
 
         // backwards compatibility
         if (fileName.equals("free_bike_status")) {
-            requiredPath = BIKE_ITEMS_REQUIRED;
+            requiredPath = BIKE_ITEMS_SCHEMA_PATH;
         }
 
-        JSONArray vehicleItemsRequiredSchema = rawSchemaDocumentContext.read(requiredPath);
+        JSONObject vehicleItemsSchema = rawSchemaDocumentContext.read(requiredPath);
         if (vehicleTypesFeed != null) {
-            vehicleItemsRequiredSchema.put("vehicle_type_id");
+            vehicleItemsSchema.append("required", "vehicle_type_id");
+            JSONArray vehicleTypeIds = JsonPath.parse(vehicleTypesFeed).read("$.data.vehicle_types[*].vehicle_type_id");
+            vehicleItemsSchema.getJSONObject( "properties").getJSONObject("vehicle_type_id").put("enum", vehicleTypeIds);
         }
-        return rawSchemaDocumentContext.set(requiredPath, vehicleItemsRequiredSchema);
+        return rawSchemaDocumentContext.set(requiredPath, vehicleItemsSchema);
     }
 }
