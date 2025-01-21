@@ -206,7 +206,7 @@ class GbfsJsonValidatorTest {
         FileValidationResult result = validator.validateFile("free_bike_status", freeBikeStatus);
 
         Assertions.assertEquals("2.3", result.version());
-        Assertions.assertEquals(3, result.errorsCount());
+        Assertions.assertEquals(6, result.errorsCount());
     }
 
     @Test

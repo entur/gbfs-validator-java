@@ -55,10 +55,10 @@ public class NoInvalidReferenceToPricingPlansInVehicleStatus implements CustomRu
         }
         JSONObject pricingPlanIdSchema = rawSchemaDocumentContext.read(requiredPath);
 
-        if (pricingPlansFeed != null) {
-            JSONArray pricingPlanIds = JsonPath.parse(pricingPlansFeed).read("$.data.plans[*].plan_id");
-            pricingPlanIdSchema.put("enum", pricingPlanIds);
-        }
+        JSONArray pricingPlanIds = pricingPlansFeed != null
+            ? JsonPath.parse(pricingPlansFeed).read("$.data.plans[*].plan_id")
+            : new JSONArray();
+        pricingPlanIdSchema.put("enum", pricingPlanIds);
 
         return rawSchemaDocumentContext
                 .set(requiredPath, pricingPlanIdSchema);

@@ -49,12 +49,13 @@ public class NoInvalidReferenceToRegionInStationInformation
         REGION_IDS_SCHEMA_PATH
     );
 
-    if (systemRegionsFeed != null) {
-      JSONArray regionIds = JsonPath
-        .parse(systemRegionsFeed)
-        .read("$.data.regions[*].region_id");
-      regionIdSchema.put("enum", regionIds);
-    }
+    JSONArray regionIds = systemRegionsFeed != null
+        ? JsonPath
+            .parse(systemRegionsFeed)
+            .read("$.data.regions[*].region_id")
+        : new JSONArray();
+
+    regionIdSchema.put("enum", regionIds);
 
     return rawSchemaDocumentContext
       .set(

@@ -45,11 +45,11 @@ public class NoInvalidReferenceToPricingPlansInVehicleTypes implements CustomRul
         JSONObject defaultPricingPlanIdSchema = rawSchemaDocumentContext.read(DEFAULT_PRICING_PLAN_ID_SCHEMA_PATH);
         JSONObject pricingPlanIdsSchema = rawSchemaDocumentContext.read(PRICING_PLAN_IDS_SCHEMA_PATH);
 
-        if (pricingPlansFeed != null) {
-            JSONArray pricingPlanIds = JsonPath.parse(pricingPlansFeed).read("$.data.plans[*].plan_id");
-            defaultPricingPlanIdSchema.put("enum", pricingPlanIds);
-            pricingPlanIdsSchema.put("enum", pricingPlanIds);
-        }
+        JSONArray pricingPlanIds = pricingPlansFeed != null
+            ? JsonPath.parse(pricingPlansFeed).read("$.data.plans[*].plan_id")
+            : new JSONArray();
+        defaultPricingPlanIdSchema.put("enum", pricingPlanIds);
+        pricingPlanIdsSchema.put("enum", pricingPlanIds);
 
         return rawSchemaDocumentContext
                 .set(DEFAULT_PRICING_PLAN_ID_SCHEMA_PATH, defaultPricingPlanIdSchema)

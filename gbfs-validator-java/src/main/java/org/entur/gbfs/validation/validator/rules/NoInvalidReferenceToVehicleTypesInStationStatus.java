@@ -44,11 +44,12 @@ public class NoInvalidReferenceToVehicleTypesInStationStatus implements CustomRu
         JSONObject vehicleTypesAvailableVehicleTypeIdSchema = rawSchemaDocumentContext.read(VEHICLE_TYPES_AVAILABLE_VEHICLE_TYPE_ID_SCHEMA_PATH);
         JSONObject vehicleDocksAvailableVehiecleTypeIdSchema = rawSchemaDocumentContext.read(VEHICLE_DOCKS_AVAILABLE_VEHICLE_TYPE_IDS_SCHEMA_PATH);
 
-        if (vehicleTypesFeed != null) {
-            JSONArray vehicleTypeIds = JsonPath.parse(vehicleTypesFeed).read("$.data.vehicle_types[*].vehicle_type_id");
-            vehicleTypesAvailableVehicleTypeIdSchema.put("enum", vehicleTypeIds);
-            vehicleDocksAvailableVehiecleTypeIdSchema.put("enum", vehicleTypeIds);
-        }
+        // If no vehicle_types feed is defined, then any vehicle_type_id would be invalid
+        JSONArray vehicleTypeIds = vehicleTypesFeed != null
+            ? JsonPath.parse(vehicleTypesFeed).read("$.data.vehicle_types[*].vehicle_type_id")
+            : new JSONArray();
+        vehicleTypesAvailableVehicleTypeIdSchema.put("enum", vehicleTypeIds);
+        vehicleDocksAvailableVehiecleTypeIdSchema.put("enum", vehicleTypeIds);
 
         return rawSchemaDocumentContext
                 .set(VEHICLE_TYPES_AVAILABLE_VEHICLE_TYPE_ID_SCHEMA_PATH, vehicleTypesAvailableVehicleTypeIdSchema)
