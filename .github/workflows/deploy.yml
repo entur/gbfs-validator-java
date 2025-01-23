@@ -16,7 +16,7 @@ env:
     NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
 jobs:
   maven-package:
-    if: "!contains(github.event.head_commit.message, 'ci skip')"
+    if: github.repository_owner == 'entur' && !contains(github.event.head_commit.message, 'ci skip')
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4

@@ -5,6 +5,7 @@ on:
       - master
 jobs:
   maven-verify:
+    if: github.event.pull_request.head.repo.fork == true
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
