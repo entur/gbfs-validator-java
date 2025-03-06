@@ -13,6 +13,8 @@
 
     <modules>
         <module>gbfs-validator-java</module>
+        <module>gbfs-validator-java-loader</module>
+        <module>gbfs-validator-java-api</module>
     </modules>
 
         <profiles>
