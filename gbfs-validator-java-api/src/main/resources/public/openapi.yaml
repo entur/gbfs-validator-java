@@ -3,7 +3,7 @@ info:
   title: GBFS Validator API
   version: "0.1"
 paths:
-  /validate_option1:
+  /validate:
     post:
       summary: Validate GBFS feed
       requestBody:
@@ -14,33 +14,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ValidationResultOption1"
-
-  /validate_option2:
-    post:
-      summary: Validate GBFS feed
-      requestBody:
-        $ref: '#/components/requestBodies/ValidateRequestBody'
-      responses:
-        '200':
-          description: Validation result
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationResultOption2"
-
-  /validate_option3:
-    post:
-      summary: Validate GBFS feed
-      requestBody:
-        $ref: '#/components/requestBodies/ValidateRequestBody'
-      responses:
-        '200':
-          description: Validation result
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationResultOption3"
+                $ref: "#/components/schemas/ValidationResult"
 
 components:
   requestBodies:
@@ -152,16 +126,24 @@ components:
           # The structure of the schema depends on the GBFS spec version.
           # We can reference all the version from the original json-schema on each file
           # Q: Do we need a version per file?
+          # A from Tom: I would say no, but I've seen cases where producers mix versions, so on the fence
         version:
           type: string
           example: "3.0"
+        language:
+          type: string
+          required: false
+          example: "en"
+          description: "Only relevant for pre-v3 files"
           # Q: are required and recommended needed? These fields are per spec version.
+          # A from Tom: Let's discuss this further on a call
         required:
           type: boolean
           example: true
         recommended:
           type: boolean
           example: true
+          # Q from Tom: is exists needed?
         exists:
           type: boolean
           example: true
@@ -172,53 +154,7 @@ components:
         schema:
           type: object
 
-    # Option 1
-
-    FileOption1:
-      type: object
-      properties:
-        url:
-          type: string
-          format: uri
-          example: "https://www.example.com/gbfs/v2/gbfs_versions"
-        lang:
-          type: string
-          example: "en"
-        exists:
-          type: boolean
-          example: true
-        fileContent:
-          type: object
-        errors:
-          type: array
-          items:
-            $ref: "#/components/schemas/FileError"
-
-    FileLangOption1:
-      properties:
-        name:
-          type: string
-          example: "gbfs_versions"
-        version:
-          type: string
-          example: "2.3"
-        required:
-          type: boolean
-          example: true
-        recommended:
-          type: boolean
-          example: true
-        exists:
-          type: boolean
-          example: true
-        schema:
-          type: object
-        files:
-          type: array
-          items:
-            $ref: "#/components/schemas/FileOption1"
-
-    ValidationResultOption1:
+    ValidationResult:
       type: object
       properties:
         summary:
@@ -234,170 +170,4 @@ components:
             files:
               type: array
               items:
-                oneOf:
-                  - $ref: "#/components/schemas/GbfsFile"
-                  - $ref: "#/components/schemas/FileLangOption1"
-
-
-    # Option 2
-    FileLangOption2:
-      type: object
-      properties:
-        name:
-          type: string
-          example: "system_information"
-        url:
-          type: string
-          format: uri
-          example: "https://www.example.com/gbfs/v3/gbfs.json"
-        version:
-          type: string
-          example: "3.0"
-        required:
-          type: boolean
-          example: true
-        recommended:
-          type: boolean
-          example: true
-        exists:
-          type: boolean
-          example: true
-        schema: #TODO: Do we need this?
-          type: object
-        fileContent:
-          type: object
-        lang:
-          type: string
-          example: "en"
-        errors:
-          type: array
-          items:
-            $ref: "#/components/schemas/FileError"
-
-    FileOption2:
-      type: object
-      properties:
-        name:
-          type: string
-          example: "gbfs_versions"
-        url:
-          type: string
-          format: uri
-          example: "https://www.example.com/gbfs/v2/gbfs_versions"
-        version:
-          type: string
-          example: "3.0"
-        required:
-          type: boolean
-          example: true
-        recommended:
-          type: boolean
-          example: true
-        exists:
-          type: boolean
-          example: true
-        schema: #TODO: Should we add a single schema or multiple per file?
-          type: object
-        languageFiles:
-          type: array
-          items:
-            $ref: "#/components/schemas/FileLangOption2"
-
-    ValidationResultOption2:
-      type: object
-      properties:
-        summary:
-          type: object
-          properties:
-            validatorVersion:
-              type: string
-              example: "v1.2"
-            # Current we have versionDetected and versionValidated, are these fields needed or a single one?
-            gbfsVersion:
-              type: string
-              example: "3.0"
-            files:
-              type: array
-              items:
-                oneOf:
-                  - $ref: "#/components/schemas/GbfsFile"
-                  - $ref: "#/components/schemas/FileOption2"
-
-    # Option 3
-
-    FileOption3:
-      type: object
-      properties:
-        url:
-          type: string
-          format: uri
-          example: "https://www.example.com/gbfs/v2/gbfs_versions"
-        lang:
-          type: string
-          example: "en"
-        exists:
-          type: boolean
-          example: true
-        fileContent:
-          type: object
-        errors:
-          type: array
-          items:
-            $ref: "#/components/schemas/FileError"
-
-    FileLangOption3:
-      properties:
-        name:
-          type: string
-          example: "gbfs_versions"
-        version:
-          type: string
-          example: "2.3"
-        required:
-          type: boolean
-          example: true
-        recommended:
-          type: boolean
-          example: true
-        exists:
-          type: boolean
-          example: true
-        schema:
-          type: object
-        files:
-          type: object
-          additionalProperties:
-            $ref: "#/components/schemas/FileOption3"
-          example:
-            en:
-              url: "https://www.example.com/gbfs/v2/gbfs_versions"
-              lang: "en"
-              exists: true
-              fileContent: {}
-              errors:
-                - keyword: "string"
-                  instancePath: "string"
-                  schemaPath: "string"
-                  message: "string"
-                  params:
-                    additionalProp1: {}
-
-    ValidationResultOption3:
-      type: object
-      properties:
-        summary:
-          type: object
-          properties:
-            validatorVersion:
-              type: string
-              example: "v1.2"
-            # Current we have versionDetected and versionValidated, are these fields needed or a single one?
-            gbfsVersion:
-              type: string
-              example: "3.0"
-            files:
-              type: array
-              items:
-                oneOf:
-                  - $ref: "#/components/schemas/GbfsFile"
-                  - $ref: "#/components/schemas/FileLangOption3"
+                $ref: "#/components/schemas/GbfsFile"
