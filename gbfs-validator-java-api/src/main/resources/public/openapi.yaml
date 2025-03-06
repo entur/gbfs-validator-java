@@ -132,7 +132,7 @@ components:
           example: "3.0"
         language:
           type: string
-          required: false
+          nullable: true
           example: "en"
           description: "Only relevant for pre-v3 files"
           # Q: are required and recommended needed? These fields are per spec version.
