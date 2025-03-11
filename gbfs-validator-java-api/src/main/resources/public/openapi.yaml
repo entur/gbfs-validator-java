@@ -1,0 +1,153 @@
+openapi: 3.0.0
+info:
+  title: GBFS Validator API
+  version: "0.1"
+paths:
+  /validate:
+    post:
+      summary: Validate GBFS feed
+      requestBody:
+        $ref: '#/components/requestBodies/ValidateRequestBody'
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationResult"
+
+components:
+  requestBodies:
+    ValidateRequestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              feedUrl:
+                type: string
+                example: "https://example.com/gbfs.json"
+              auth:
+                oneOf:
+                  - $ref: '#/components/schemas/BasicAuth'
+                  - $ref: '#/components/schemas/BearerTokenAuth'
+                  - $ref: '#/components/schemas/OAuthClientCredentialsGrantAuth'
+                discriminator:
+                  propertyName: authType
+                  mapping:
+                    basicAuth: '#/components/schemas/BasicAuth'
+                    bearerToken: '#/components/schemas/BearerTokenAuth'
+                    oauthClientCredentialsGrant: '#/components/schemas/OAuthClientCredentialsGrantAuth'
+
+  schemas:
+    BasicAuth:
+      type: object
+      properties:
+        authType:
+          type: string
+          example: "BasicAuth"
+        username:
+          type: string
+          example: username
+        password:
+          type: string
+          example: password
+
+    BearerTokenAuth:
+      type: object
+      properties:
+        authType:
+          type: string
+          example: bearerToken
+        token:
+          type: string
+          example: "THE_TOKEN"
+
+    OAuthClientCredentialsGrantAuth:
+      type: object
+      properties:
+        authType:
+          type: string
+          example: "OAuthClientCredentialsGrantAuth"
+        clientId:
+          type: string
+          example: "CLIENT_ID"
+        clientSecret:
+          type: string
+          example: "THE_SECRET"
+        tokenUrl:
+          type: string
+          example: "https://token.example.com"
+
+    # Q: Is this general enough for all json-schema errors?
+    FileError:
+      type: object
+      properties:
+        keyword:
+          type: string
+          description: |
+            Possible known keywords: type, enum, format, required, minimum, maximum, pattern.
+        instancePath:
+          type: string
+          description: |
+            The JSON Pointer path to the part of the instance that failed validation.
+        schemaPath:
+          type: string
+          description: |
+            The JSON Pointer path to the part of the schema that triggered the error.
+        message:
+          type: string
+          description: |
+            Human-readable message describing the error.
+        params:
+          type: object
+          additionalProperties: true
+          description: |
+            Dynamic properties specific to the validation keyword (e.g., allowedValues for 'enum').
+      required:
+        - keyword
+        - instancePath
+        - schemaPath
+        - message
+
+    GbfsFile:
+      type: object
+      properties:
+        name:
+          type: string
+          description: |
+            Key identifying the type of feed this is. The key MUST be the base file name defined in the spec for the corresponding feed type ( system_information for system_information.json file, station_information for station_information.json file).
+          example: gbfs
+        url:
+          type: string
+          format: url
+          example: https://www.example.com/gbfs/v3/gbfs.json
+        version:
+          type: string
+          example: "3.0"
+        language:
+          type: string
+          nullable: true
+          example: "en"
+          description: "Only relevant for pre-v3 files"
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/FileError"
+        schema:
+          type: object
+
+    ValidationResult:
+      type: object
+      properties:
+        summary:
+          type: object
+          properties:
+            validatorVersion:
+              type: string
+              example: "v1.2"
+            files:
+              type: array
+              items:
+                $ref: "#/components/schemas/GbfsFile"

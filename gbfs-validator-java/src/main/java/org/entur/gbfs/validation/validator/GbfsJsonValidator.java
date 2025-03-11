@@ -24,6 +24,7 @@ import org.entur.gbfs.validation.model.ValidationResult;
 import org.entur.gbfs.validation.model.ValidationSummary;
 import org.entur.gbfs.validation.validator.versions.Version;
 import org.entur.gbfs.validation.validator.versions.VersionFactory;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.slf4j.Logger;
@@ -150,13 +151,27 @@ public class GbfsJsonValidator implements GbfsValidator {
 
     private Map<String, JSONObject> parseFeeds(Map<String, InputStream> rawFeeds) {
         Map<String, JSONObject> feedMap = new HashMap<>();
-        rawFeeds.forEach((name, value) -> feedMap.put(name, parseFeed(value)));
+
+        rawFeeds.forEach((name, value) -> {
+            JSONObject parsed = parseFeed(value);
+            if (parsed == null) {
+                LOG.warn("Unable to parse feed name={}", name);
+            } else {
+                feedMap.put(name, parsed);
+            }
+        });
         return feedMap;
     }
 
     private JSONObject parseFeed(InputStream raw) {
         String asString = getFeedAsString(raw);
-        return new JSONObject(asString);
+        try {
+            return new JSONObject(asString);
+        } catch (JSONException e) {
+            LOG.warn("Failed to parse json={}", asString, e);
+            return null;
+        }
+
     }
 
     private String getFeedAsString(InputStream rawFeed) {
