@@ -123,10 +123,6 @@ components:
           type: string
           format: url
           example: https://www.example.com/gbfs/v3/gbfs.json
-          # The structure of the schema depends on the GBFS spec version.
-          # We can reference all the version from the original json-schema on each file
-          # Q: Do we need a version per file?
-          # A from Tom: I would say no, but I've seen cases where producers mix versions, so on the fence
         version:
           type: string
           example: "3.0"
@@ -135,18 +131,6 @@ components:
           nullable: true
           example: "en"
           description: "Only relevant for pre-v3 files"
-          # Q: are required and recommended needed? These fields are per spec version.
-          # A from Tom: Let's discuss this further on a call
-        required:
-          type: boolean
-          example: true
-        recommended:
-          type: boolean
-          example: true
-          # Q from Tom: is exists needed?
-        exists:
-          type: boolean
-          example: true
         errors:
           type: array
           items:
@@ -163,10 +147,6 @@ components:
             validatorVersion:
               type: string
               example: "v1.2"
-            # Current we have versionDetected and versionValidated, are these fields needed or a single one?
-            gbfsVersion:
-              type: string
-              example: "3.0"
             files:
               type: array
               items:
