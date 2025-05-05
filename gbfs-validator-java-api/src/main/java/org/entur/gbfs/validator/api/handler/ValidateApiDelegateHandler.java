@@ -20,85 +20,109 @@
 
 package org.entur.gbfs.validator.api.handler;
 
+import com.google.common.collect.Multimap;
+import com.google.common.collect.MultimapBuilder;
 import org.entur.gbfs.validation.GbfsValidator;
 import org.entur.gbfs.validation.GbfsValidatorFactory;
 import org.entur.gbfs.validation.model.FileValidationError;
 import org.entur.gbfs.validation.model.FileValidationResult;
 import org.entur.gbfs.validation.model.ValidationResult;
-import org.entur.gbfs.validator.api.gen.ValidateOption1ApiDelegate;
+import org.entur.gbfs.validator.api.gen.ValidateApiDelegate;
+
 import org.entur.gbfs.validator.api.model.FileError;
-import org.entur.gbfs.validator.api.model.FileLangOption1;
-import org.entur.gbfs.validator.api.model.FileOption1;
-import org.entur.gbfs.validator.api.model.ValidateOption1PostRequest;
-import org.entur.gbfs.validator.api.model.ValidationResultOption1;
-import org.entur.gbfs.validator.api.model.ValidationResultOption1Summary;
-import org.entur.gbfs.validator.api.model.ValidationResultOption1SummaryFilesInner;
+import org.entur.gbfs.validator.api.model.GbfsFile;
+import org.entur.gbfs.validator.api.model.ValidatePostRequest;
+import org.entur.gbfs.validator.api.model.ValidationResultSummary;
+import org.entur.gbfs.validator.loader.LoadedFile;
 import org.entur.gbfs.validator.loader.Loader;
+import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
-public class ValidateApiDelegateHandler implements ValidateOption1ApiDelegate {
+public class ValidateApiDelegateHandler implements ValidateApiDelegate {
 
     @Override
-    public ResponseEntity<ValidationResultOption1> validateOption1Post(ValidateOption1PostRequest validateOption1PostRequest) {
+    public ResponseEntity<org.entur.gbfs.validator.api.model.ValidationResult> validatePost(ValidatePostRequest validatePostRequest) {
         Loader loader = new Loader();
-        Map<String, InputStream> fileMap = null;
         try {
-            fileMap = loader.load(validateOption1PostRequest.getFeedUrl());
+            List<LoadedFile> loadedFiles = loader.load(validatePostRequest.getFeedUrl());
+
+            Multimap<String, LoadedFile> fileMap = MultimapBuilder.hashKeys().arrayListValues().build();
+            for (LoadedFile loadedFile : loadedFiles) {
+                fileMap.put(loadedFile.language(), loadedFile);
+            }
+
+            GbfsValidator validator = GbfsValidatorFactory.getGbfsJsonValidator();
+
+                List<org.entur.gbfs.validator.api.model.ValidationResult> results = new ArrayList<>();
+
+                fileMap.keySet().forEach(language -> {
+                    Map<String, InputStream> validatorInputMap = new HashMap<>();
+                    fileMap.get(language).forEach(file -> validatorInputMap.put(file.fileName(), file.fileContents()));
+                    results.add(
+                            mapValidationResult(
+                                    validator.validate(
+                                            validatorInputMap
+                                    ),
+                                    language
+                            )
+                    );
+                });
+
+
+                // merge the list of ValidationResult into a single validation result
+                return ResponseEntity.ok(
+                        mergeValidationResults(results)
+                );
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        GbfsValidator validator = GbfsValidatorFactory.getGbfsJsonValidator();
-        return ResponseEntity.ok(
-                mapValidationResult(validator.validate(fileMap))
-        );
     }
 
-    private ValidationResultOption1 mapValidationResult(ValidationResult validationResult) {
-        ValidationResultOption1Summary validationResultOption1Summary = new ValidationResultOption1Summary();
-        validationResultOption1Summary.setValidatorVersion("2.0.30-SNAPSHOT"); // TODO inject this value
-        validationResultOption1Summary.setGbfsVersion(validationResult.summary().version());
-        validationResultOption1Summary.setFiles(mapFiles(validationResult.files()));
-        ValidationResultOption1 validationResultOption1 = new ValidationResultOption1();
-        validationResultOption1.setSummary(validationResultOption1Summary);
+    private org.entur.gbfs.validator.api.model.ValidationResult mergeValidationResults(List<org.entur.gbfs.validator.api.model.ValidationResult> results) {
+        org.entur.gbfs.validator.api.model.ValidationResult mergedResult = new org.entur.gbfs.validator.api.model.ValidationResult();
+        ValidationResultSummary summary = new ValidationResultSummary();
+        summary.setValidatorVersion(results.get(0).getSummary().getValidatorVersion());
+        summary.setFiles(new ArrayList<>());
+        results.forEach(result -> summary.getFiles().addAll(result.getSummary().getFiles()));
+        mergedResult.setSummary(summary);
+        return mergedResult;
+    }
+
+    private org.entur.gbfs.validator.api.model.ValidationResult mapValidationResult(ValidationResult validationResult, @Nullable String language) {
+        ValidationResultSummary validationResultSummary = new ValidationResultSummary();
+        validationResultSummary.setValidatorVersion("2.0.30-SNAPSHOT"); // TODO inject this value
+        validationResultSummary.setFiles(mapFiles(validationResult.files(), language));
+        org.entur.gbfs.validator.api.model.ValidationResult validationResultOption1 = new org.entur.gbfs.validator.api.model.ValidationResult();
+        validationResultOption1.setSummary(validationResultSummary);
         return validationResultOption1;
     }
 
-    private List<ValidationResultOption1SummaryFilesInner> mapFiles(Map<String, FileValidationResult> files) {
-        List<ValidationResultOption1SummaryFilesInner> summaryFiles = new ArrayList<>();
-        files.entrySet().stream().forEach(entry -> {
+    private List<GbfsFile> mapFiles(Map<String, FileValidationResult> files, @Nullable String language) {
+        return files.entrySet().stream().map(entry -> {
             String fileName = entry.getKey();
             FileValidationResult fileValidationResult = entry.getValue();
 
-            FileLangOption1 filesInner = new FileLangOption1();
-            filesInner.setName(fileName);
-            filesInner.setExists(fileValidationResult.exists());
-            filesInner.setRequired(fileValidationResult.required());
-            //filesInner.setRecommended(); // TODO not available
-            filesInner.setSchema(fileValidationResult.schema());
-            filesInner.setVersion(fileValidationResult.version());
+            GbfsFile file = new GbfsFile();
+            file.setName(fileName);
+            //file.setUrl(); // TODO must be carried from loader
+            file.setSchema(fileValidationResult.schema());
+            file.setVersion(fileValidationResult.version());
+            file.setLanguage(JsonNullable.of(language));
+            file.setErrors(mapFileErrors(fileValidationResult.errors()));
+            return file;
+        }).toList();
 
-            FileOption1 file  = new FileOption1();
-            file.exists(fileValidationResult.exists());
-            file.errors(
-                    mapFileErrors(fileValidationResult.errors())
-            );
-            file.fileContent(fileValidationResult.fileContents());
-
-
-            filesInner.setFiles(
-                    List.of(file)
-            );
-            summaryFiles.add(filesInner);
-        });
-        return summaryFiles;
     }
 
     private List<FileError> mapFileErrors(List<FileValidationError> errors) {
@@ -108,7 +132,7 @@ public class ValidateApiDelegateHandler implements ValidateOption1ApiDelegate {
             mapped.setInstancePath(error.violationPath());
             mapped.setSchemaPath(error.schemaPath());
             //mapped.setParams(error.); // TODO no source?
-            //mapped.setKeyword(error.); // TODO no source?
+            //mapped.setKeyword(error.); // TODO get from source
             return mapped;
         }).toList();
     }

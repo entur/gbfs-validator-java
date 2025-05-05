@@ -20,7 +20,6 @@
 
 package org.entur.gbfs.validator.loader;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
@@ -36,51 +35,83 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 public class Loader {
 
-    public Map<String, InputStream> load(String discoveryURI) throws IOException {
-        Map<String, InputStream> result = new HashMap<>();
+    public List<LoadedFile> load(String discoveryURI) throws IOException {
         InputStream discoveryFileStream = loadFile(URI.create(discoveryURI));
 
         ByteArrayOutputStream discoveryFileCopy = new ByteArrayOutputStream();
         org.apache.commons.io.IOUtils.copy(discoveryFileStream, discoveryFileCopy);
         byte[] discoveryFileBytes = discoveryFileCopy.toByteArray();
 
-        result.put("gbfs", new ByteArrayInputStream(discoveryFileBytes));
-
         JSONObject discoveryFile = new JSONObject(new JSONTokener(new ByteArrayInputStream(discoveryFileBytes)));
 
         String version = (String) discoveryFile.get("version");
 
-        JSONArray files;
+        List<LoadedFile> loadedFiles = new ArrayList<>();
+
+
 
         if (version.matches("^3\\.\\d")) {
-            files = getV3Files(discoveryFile);
+            loadedFiles.addAll(getV3Files(discoveryFile, discoveryFileBytes));
         } else {
-            files = getPreV3Files(discoveryFile);
+            loadedFiles.addAll(getPreV3Files(discoveryFile, discoveryFileBytes));
         }
 
-        files.forEach(file -> {
-            JSONObject fileObj = (JSONObject) file;
-            String fileName = (String) fileObj.get("name");
-            String fileURL = (String) fileObj.get("url");
-            InputStream fileStream = loadFile(URI.create(fileURL));
-            result.put(fileName, fileStream);
-        });
+        return loadedFiles;
+    }
+
+    private List<LoadedFile> getV3Files(JSONObject discoveryFile, byte[] discoveryFileBytes) {
+        List<LoadedFile> loadedFiles = new ArrayList<>();
+        loadedFiles.add(
+                new LoadedFile(
+                        "discovery",
+                        new ByteArrayInputStream(discoveryFileBytes)
+                ));
+
+        loadedFiles.addAll(
+                discoveryFile.getJSONObject("data").getJSONArray("feeds").toList().stream().map(feed -> {
+            var feedObj = (HashMap) feed;
+            var file = loadFile(URI.create((String) feedObj.get("url")));
+            return new LoadedFile(
+                    (String) feedObj.get("name"),
+                    file
+            );
+        }).toList());
+
+        return loadedFiles;
+    }
+
+    private List<LoadedFile> getPreV3Files(JSONObject discoveryFile, byte[] discoveryFileBytes) {
+        List<LoadedFile> result = new ArrayList<>();
+        discoveryFile.getJSONObject("data")
+                .keys()
+                .forEachRemaining(key -> {
+                    result.add(
+                            new LoadedFile(
+                                    "discovery",
+                                    new ByteArrayInputStream(discoveryFileBytes),
+                                    key
+                            )
+                    );
+                    discoveryFile.getJSONObject("data").getJSONObject(key).getJSONArray("feeds").toList().forEach(feed -> {
+                        var feedObj = (HashMap) feed;
+                        var file = loadFile(URI.create((String) feedObj.get("url")));
+                        result.add(
+                                new LoadedFile(
+                                        (String) feedObj.get("name"),
+                                        file,
+                                        key
+                                )
+                        );
+                    });
+                });
 
         return result;
-    }
-
-    private JSONArray getV3Files(JSONObject discoveryFile) {
-        return discoveryFile.getJSONObject("data").getJSONArray("feeds");
-    }
-
-    private JSONArray getPreV3Files(JSONObject discoveryFile) {
-        String firstLanguageKey = discoveryFile.getJSONObject("data").keys().next();
-        return discoveryFile.getJSONObject("data").getJSONObject(firstLanguageKey).getJSONArray("feeds");
     }
 
     private InputStream loadFile(URI fileURI) {
