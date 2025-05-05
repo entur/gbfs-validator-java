@@ -120,7 +120,9 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
             //file.setUrl(); // TODO must be carried from loader
             file.setSchema(fileValidationResult.schema());
             file.setVersion(fileValidationResult.version());
-            file.setLanguage(JsonNullable.of(language));
+
+            // The discovery file itself has no language, and is listed once per system
+            file.setLanguage(!fileName.equals("gbfs") ? JsonNullable.of(language) : null);
             file.setErrors(mapFileErrors(fileValidationResult.errors()));
             return file;
         }).toList();
