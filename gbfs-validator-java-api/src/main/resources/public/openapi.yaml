@@ -24,6 +24,8 @@ components:
         application/json:
           schema:
             type: object
+            required:
+              - feedUrl
             properties:
               feedUrl:
                 type: string
