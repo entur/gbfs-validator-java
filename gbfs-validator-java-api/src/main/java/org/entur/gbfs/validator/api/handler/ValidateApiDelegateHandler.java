@@ -63,26 +63,27 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
 
             GbfsValidator validator = GbfsValidatorFactory.getGbfsJsonValidator();
 
-                List<org.entur.gbfs.validator.api.model.ValidationResult> results = new ArrayList<>();
-
-                fileMap.keySet().forEach(language -> {
-                    Map<String, InputStream> validatorInputMap = new HashMap<>();
-                    fileMap.get(language).forEach(file -> validatorInputMap.put(file.fileName(), file.fileContents()));
-                    results.add(
-                            mapValidationResult(
-                                    validator.validate(
-                                            validatorInputMap
-                                    ),
-                                    language
-                            )
-                    );
-                });
-
-
-                // merge the list of ValidationResult into a single validation result
-                return ResponseEntity.ok(
-                        mergeValidationResults(results)
+            // In order to support multiple languages (prior to GBFS 3.0), we need to validate each language separately
+            // and then merge the results
+            List<org.entur.gbfs.validator.api.model.ValidationResult> results = new ArrayList<>();
+            fileMap.keySet().forEach(language -> {
+                Map<String, InputStream> validatorInputMap = new HashMap<>();
+                fileMap.get(language).forEach(file -> validatorInputMap.put(file.fileName(), file.fileContents()));
+                results.add(
+                        mapValidationResult(
+                                validator.validate(
+                                        validatorInputMap
+                                ),
+                                language
+                        )
                 );
+            });
+
+
+            // merge the list of ValidationResult into a single validation result
+            return ResponseEntity.ok(
+                    mergeValidationResults(results)
+            );
 
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -94,7 +95,8 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
         ValidationResultSummary summary = new ValidationResultSummary();
         summary.setValidatorVersion(results.get(0).getSummary().getValidatorVersion());
         summary.setFiles(new ArrayList<>());
-        results.forEach(result -> summary.getFiles().addAll(result.getSummary().getFiles()));
+        summary.getFiles().add(results.get(0).getSummary().getFiles().stream().filter(file -> file.getName().equals("gbfs")).findFirst().orElse(null));
+        results.forEach(result -> summary.getFiles().addAll(result.getSummary().getFiles().stream().filter(file -> !file.getName().equals("gbfs")).toList()));
         mergedResult.setSummary(summary);
         return mergedResult;
     }
