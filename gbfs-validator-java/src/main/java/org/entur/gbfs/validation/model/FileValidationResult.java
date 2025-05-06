@@ -34,7 +34,7 @@ import java.util.stream.IntStream;
  * @param errors A list of errors encountered while validating the file
  */
 public record FileValidationResult(
-        String file,
+         String file,
          boolean required,
          boolean exists,
          int errorsCount,

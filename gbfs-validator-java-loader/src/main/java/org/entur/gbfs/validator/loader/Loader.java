@@ -57,28 +57,31 @@ public class Loader {
 
 
         if (version.matches("^3\\.\\d")) {
-            loadedFiles.addAll(getV3Files(discoveryFile, discoveryFileBytes));
+            loadedFiles.addAll(getV3Files(discoveryFile, discoveryURI, discoveryFileBytes));
         } else {
-            loadedFiles.addAll(getPreV3Files(discoveryFile, discoveryFileBytes));
+            loadedFiles.addAll(getPreV3Files(discoveryFile, discoveryURI, discoveryFileBytes));
         }
 
         return loadedFiles;
     }
 
-    private List<LoadedFile> getV3Files(JSONObject discoveryFile, byte[] discoveryFileBytes) {
+    private List<LoadedFile> getV3Files(JSONObject discoveryFile, String discoveryFileUrl, byte[] discoveryFileBytes) {
         List<LoadedFile> loadedFiles = new ArrayList<>();
         loadedFiles.add(
                 new LoadedFile(
                         "discovery",
+                        discoveryFileUrl,
                         new ByteArrayInputStream(discoveryFileBytes)
                 ));
 
         loadedFiles.addAll(
                 discoveryFile.getJSONObject("data").getJSONArray("feeds").toList().stream().map(feed -> {
             var feedObj = (HashMap) feed;
-            var file = loadFile(URI.create((String) feedObj.get("url")));
+            var url = (String) feedObj.get("url");
+            var file = loadFile(URI.create(url));
             return new LoadedFile(
                     (String) feedObj.get("name"),
+                    url,
                     file
             );
         }).toList());
@@ -86,7 +89,7 @@ public class Loader {
         return loadedFiles;
     }
 
-    private List<LoadedFile> getPreV3Files(JSONObject discoveryFile, byte[] discoveryFileBytes) {
+    private List<LoadedFile> getPreV3Files(JSONObject discoveryFile, String discoveryFileUrl, byte[] discoveryFileBytes) {
         List<LoadedFile> result = new ArrayList<>();
         discoveryFile.getJSONObject("data")
                 .keys()
@@ -94,16 +97,19 @@ public class Loader {
                     result.add(
                             new LoadedFile(
                                     "discovery",
+                                    discoveryFileUrl,
                                     new ByteArrayInputStream(discoveryFileBytes),
                                     key
                             )
                     );
                     discoveryFile.getJSONObject("data").getJSONObject(key).getJSONArray("feeds").toList().forEach(feed -> {
                         var feedObj = (HashMap) feed;
-                        var file = loadFile(URI.create((String) feedObj.get("url")));
+                        var url = (String) feedObj.get("url");
+                        var file = loadFile(URI.create(url));
                         result.add(
                                 new LoadedFile(
                                         (String) feedObj.get("name"),
+                                        url,
                                         file,
                                         key
                                 )

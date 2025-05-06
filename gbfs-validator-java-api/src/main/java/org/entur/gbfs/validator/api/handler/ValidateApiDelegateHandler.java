@@ -68,17 +68,21 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
             List<org.entur.gbfs.validator.api.model.ValidationResult> results = new ArrayList<>();
             fileMap.keySet().forEach(language -> {
                 Map<String, InputStream> validatorInputMap = new HashMap<>();
-                fileMap.get(language).forEach(file -> validatorInputMap.put(file.fileName(), file.fileContents()));
+                Map<String, String> urlMap = new HashMap<>();
+                fileMap.get(language).forEach(file -> {
+                    validatorInputMap.put(file.fileName(), file.fileContents());
+                    urlMap.put(file.fileName(), file.url());
+                });
                 results.add(
                         mapValidationResult(
                                 validator.validate(
                                         validatorInputMap
                                 ),
+                                urlMap,
                                 language
                         )
                 );
             });
-
 
             // merge the list of ValidationResult into a single validation result
             return ResponseEntity.ok(
@@ -101,23 +105,23 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
         return mergedResult;
     }
 
-    private org.entur.gbfs.validator.api.model.ValidationResult mapValidationResult(ValidationResult validationResult, @Nullable String language) {
+    private org.entur.gbfs.validator.api.model.ValidationResult mapValidationResult(ValidationResult validationResult, Map<String, String> urlMap, @Nullable String language) {
         ValidationResultSummary validationResultSummary = new ValidationResultSummary();
         validationResultSummary.setValidatorVersion("2.0.30-SNAPSHOT"); // TODO inject this value
-        validationResultSummary.setFiles(mapFiles(validationResult.files(), language));
+        validationResultSummary.setFiles(mapFiles(validationResult.files(), urlMap, language));
         org.entur.gbfs.validator.api.model.ValidationResult validationResultOption1 = new org.entur.gbfs.validator.api.model.ValidationResult();
         validationResultOption1.setSummary(validationResultSummary);
         return validationResultOption1;
     }
 
-    private List<GbfsFile> mapFiles(Map<String, FileValidationResult> files, @Nullable String language) {
+    private List<GbfsFile> mapFiles(Map<String, FileValidationResult> files, Map<String, String> urlMap, @Nullable String language) {
         return files.entrySet().stream().map(entry -> {
             String fileName = entry.getKey();
             FileValidationResult fileValidationResult = entry.getValue();
 
             GbfsFile file = new GbfsFile();
             file.setName(fileName);
-            //file.setUrl(); // TODO must be carried from loader
+            file.setUrl(urlMap.get(fileName));
             file.setSchema(fileValidationResult.schema());
             file.setVersion(fileValidationResult.version());
 

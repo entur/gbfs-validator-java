@@ -25,10 +25,11 @@ import java.io.InputStream;
 
 public record LoadedFile(
         String fileName,
+        String url,
         InputStream fileContents,
         @Nullable String language
 ) {
-    public LoadedFile(String fileName, InputStream fileContents) {
-        this(fileName, fileContents, null);
+    public LoadedFile(String fileName, String url, InputStream fileContents) {
+        this(fileName, url, fileContents, null);
     }
 }
