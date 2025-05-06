@@ -93,7 +93,8 @@ public class FileValidator {
                     new FileValidationError(
                         validationException.getSchemaLocation(),
                         validationException.getPointerToViolation(),
-                        validationException.getMessage()
+                        validationException.getMessage(),
+                        validationException.getKeyword()
                 )
             );
         } else {

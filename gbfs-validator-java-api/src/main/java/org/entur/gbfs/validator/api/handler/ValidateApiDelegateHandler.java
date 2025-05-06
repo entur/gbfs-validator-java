@@ -136,7 +136,7 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
             mapped.setInstancePath(error.violationPath());
             mapped.setSchemaPath(error.schemaPath());
             //mapped.setParams(error.); // TODO no source?
-            //mapped.setKeyword(error.); // TODO get from source
+            mapped.setKeyword(error.keyword());
             return mapped;
         }).toList();
     }

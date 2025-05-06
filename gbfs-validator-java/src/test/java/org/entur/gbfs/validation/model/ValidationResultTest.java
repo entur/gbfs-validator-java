@@ -88,7 +88,8 @@ class ValidationResultTest {
         return new FileValidationError(
                 "schema/path",
                 "violation/path",
-                message
+                message,
+                "keyword"
         );
     }
 }
