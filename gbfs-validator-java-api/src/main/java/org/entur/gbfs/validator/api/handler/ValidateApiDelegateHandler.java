@@ -39,7 +39,6 @@ import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -105,7 +104,7 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
         return mergedResult;
     }
 
-    private org.entur.gbfs.validator.api.model.ValidationResult mapValidationResult(ValidationResult validationResult, Map<String, String> urlMap, @Nullable String language) {
+    private org.entur.gbfs.validator.api.model.ValidationResult mapValidationResult(ValidationResult validationResult, Map<String, String> urlMap, String language) {
         ValidationResultSummary validationResultSummary = new ValidationResultSummary();
         validationResultSummary.setValidatorVersion("2.0.30-SNAPSHOT"); // TODO inject this value
         validationResultSummary.setFiles(mapFiles(validationResult.files(), urlMap, language));
@@ -114,7 +113,7 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
         return validationResultOption1;
     }
 
-    private List<GbfsFile> mapFiles(Map<String, FileValidationResult> files, Map<String, String> urlMap, @Nullable String language) {
+    private List<GbfsFile> mapFiles(Map<String, FileValidationResult> files, Map<String, String> urlMap, String language) {
         return files.entrySet().stream().map(entry -> {
             String fileName = entry.getKey();
             FileValidationResult fileValidationResult = entry.getValue();
@@ -122,7 +121,7 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
             GbfsFile file = new GbfsFile();
             file.setName(fileName);
             file.setUrl(urlMap.get(fileName));
-            file.setSchema(fileValidationResult.schema());
+            //file.setSchema(fileValidationResult.schema());
             file.setVersion(fileValidationResult.version());
 
             // The discovery file itself has no language, and is listed once per system
