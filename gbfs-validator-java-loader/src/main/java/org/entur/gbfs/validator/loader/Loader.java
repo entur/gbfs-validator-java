@@ -41,8 +41,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -117,9 +117,10 @@ public class Loader {
         // Load files in parallel using CompletableFuture
         List<CompletableFuture<LoadedFile>> futures = discoveryFile.getJSONObject("data").getJSONArray("feeds").toList().stream()
                 .map(feed -> {
-                    var feedObj = (HashMap) feed;
-                    var url = (String) feedObj.get("url");
-                    var name = (String) feedObj.get("name");
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> feedMap = (Map<String, Object>) feed;
+                    String url = (String) feedMap.get("url");
+                    String name = (String) feedMap.get("name");
 
                     // Create a CompletableFuture for each file to load
                     return CompletableFuture.supplyAsync(() -> {
@@ -155,9 +156,10 @@ public class Loader {
 
                     // Create CompletableFutures for each feed file
                     discoveryFile.getJSONObject("data").getJSONObject(key).getJSONArray("feeds").toList().forEach(feed -> {
-                        var feedObj = (HashMap) feed;
-                        var url = (String) feedObj.get("url");
-                        var name = (String) feedObj.get("name");
+                        @SuppressWarnings("unchecked")
+                        Map<String, Object> feedMap = (Map<String, Object>) feed;
+                        String url = (String) feedMap.get("url");
+                        String name = (String) feedMap.get("name");
 
                         // Create a CompletableFuture for each file to load
                         futures.add(CompletableFuture.supplyAsync(() -> {
