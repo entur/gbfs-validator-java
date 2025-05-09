@@ -22,6 +22,7 @@ package org.entur.gbfs.validator.api.handler;
 
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
+import jakarta.annotation.PreDestroy;
 import org.entur.gbfs.validation.GbfsValidator;
 import org.entur.gbfs.validation.GbfsValidatorFactory;
 import org.entur.gbfs.validation.model.FileValidationError;
@@ -36,6 +37,8 @@ import org.entur.gbfs.validator.api.model.ValidationResultSummary;
 import org.entur.gbfs.validator.loader.LoadedFile;
 import org.entur.gbfs.validator.loader.Loader;
 import org.openapitools.jackson.nullable.JsonNullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -48,12 +51,35 @@ import java.util.Map;
 
 @Service
 public class ValidateApiDelegateHandler implements ValidateApiDelegate {
+    private static final Logger logger = LoggerFactory.getLogger(ValidateApiDelegateHandler.class);
+
+    // Single shared instance of Loader
+    private final Loader loader;
+
+    // Initialize in constructor
+    public ValidateApiDelegateHandler() {
+        this.loader = new Loader();
+    }
+
+    // Clean up resources when the service is destroyed
+    @PreDestroy
+    public void destroy() {
+        try {
+            if (loader != null) {
+                loader.close();
+            }
+        } catch (IOException e) {
+            logger.error("Error closing Loader", e);
+        }
+    }
 
     @Override
     public ResponseEntity<org.entur.gbfs.validator.api.model.ValidationResult> validatePost(ValidatePostRequest validatePostRequest) {
-        Loader loader = new Loader();
+        logger.debug("Received request for url: {}", validatePostRequest.getFeedUrl());
         try {
             List<LoadedFile> loadedFiles = loader.load(validatePostRequest.getFeedUrl());
+
+            logger.debug("Loaded files: {}", loadedFiles.size());
 
             Multimap<String, LoadedFile> fileMap = MultimapBuilder.hashKeys().arrayListValues().build();
             for (LoadedFile loadedFile : loadedFiles) {
@@ -66,12 +92,14 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
             // and then merge the results
             List<org.entur.gbfs.validator.api.model.ValidationResult> results = new ArrayList<>();
             fileMap.keySet().forEach(language -> {
+                logger.debug("Validating language: {}", language);
                 Map<String, InputStream> validatorInputMap = new HashMap<>();
                 Map<String, String> urlMap = new HashMap<>();
                 fileMap.get(language).forEach(file -> {
                     validatorInputMap.put(file.fileName(), file.fileContents());
                     urlMap.put(file.fileName(), file.url());
                 });
+
                 results.add(
                         mapValidationResult(
                                 validator.validate(
@@ -81,6 +109,8 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
                                 language
                         )
                 );
+
+                logger.debug("Validated {} files for language: {}", validatorInputMap.size(), language);
             });
 
             // merge the list of ValidationResult into a single validation result

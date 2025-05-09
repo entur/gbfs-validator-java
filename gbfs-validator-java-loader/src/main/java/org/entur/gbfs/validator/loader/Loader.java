@@ -20,10 +20,18 @@
 
 package org.entur.gbfs.validator.loader;
 
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.util.Timeout;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -31,18 +39,50 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class Loader {
+    private final CloseableHttpClient httpClient;
+    private final ExecutorService executorService;
+
+    public Loader() {
+        // Create connection pool manager
+        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+        // Set the maximum number of total connections
+        // TODO configurable max total
+        connectionManager.setMaxTotal(50);
+        // Set the maximum number of connections per route
+        // TODO configurable max per route
+        connectionManager.setDefaultMaxPerRoute(20);
+
+        // Configure request timeouts
+        RequestConfig requestConfig = RequestConfig.custom()
+                // TODO configurable timeouts
+                .setConnectTimeout(Timeout.of(5, TimeUnit.SECONDS))
+                .setResponseTimeout(Timeout.of(5, TimeUnit.SECONDS))
+                .build();
+
+        // Build the HttpClient with connection pooling
+        httpClient = HttpClients.custom()
+                .setConnectionManager(connectionManager)
+                .setDefaultRequestConfig(requestConfig)
+                .build();
+
+        // Create a thread pool for parallel execution
+        // TODO configurable pool size
+        executorService = Executors.newFixedThreadPool(20);
+    }
 
     public List<LoadedFile> load(String discoveryURI) throws IOException {
         InputStream discoveryFileStream = loadFile(URI.create(discoveryURI));
+
 
         ByteArrayOutputStream discoveryFileCopy = new ByteArrayOutputStream();
         org.apache.commons.io.IOUtils.copy(discoveryFileStream, discoveryFileCopy);
@@ -74,23 +114,33 @@ public class Loader {
                         new ByteArrayInputStream(discoveryFileBytes)
                 ));
 
-        loadedFiles.addAll(
-                discoveryFile.getJSONObject("data").getJSONArray("feeds").toList().stream().map(feed -> {
-            var feedObj = (HashMap) feed;
-            var url = (String) feedObj.get("url");
-            var file = loadFile(URI.create(url));
-            return new LoadedFile(
-                    (String) feedObj.get("name"),
-                    url,
-                    file
-            );
-        }).toList());
+        // Load files in parallel using CompletableFuture
+        List<CompletableFuture<LoadedFile>> futures = discoveryFile.getJSONObject("data").getJSONArray("feeds").toList().stream()
+                .map(feed -> {
+                    var feedObj = (HashMap) feed;
+                    var url = (String) feedObj.get("url");
+                    var name = (String) feedObj.get("name");
+
+                    // Create a CompletableFuture for each file to load
+                    return CompletableFuture.supplyAsync(() -> {
+                        var file = loadFile(URI.create(url));
+                        return new LoadedFile(name, url, file);
+                    }, executorService);
+                })
+                .toList();
+
+        // Wait for all futures to complete and collect results
+        loadedFiles.addAll(futures.stream()
+                .map(CompletableFuture::join)
+                .toList());
 
         return loadedFiles;
     }
 
     private List<LoadedFile> getPreV3Files(JSONObject discoveryFile, String discoveryFileUrl, byte[] discoveryFileBytes) {
         List<LoadedFile> result = new ArrayList<>();
+        List<CompletableFuture<LoadedFile>> futures = new ArrayList<>();
+
         discoveryFile.getJSONObject("data")
                 .keys()
                 .forEachRemaining(key -> {
@@ -102,20 +152,25 @@ public class Loader {
                                     key
                             )
                     );
+
+                    // Create CompletableFutures for each feed file
                     discoveryFile.getJSONObject("data").getJSONObject(key).getJSONArray("feeds").toList().forEach(feed -> {
                         var feedObj = (HashMap) feed;
                         var url = (String) feedObj.get("url");
-                        var file = loadFile(URI.create(url));
-                        result.add(
-                                new LoadedFile(
-                                        (String) feedObj.get("name"),
-                                        url,
-                                        file,
-                                        key
-                                )
-                        );
+                        var name = (String) feedObj.get("name");
+
+                        // Create a CompletableFuture for each file to load
+                        futures.add(CompletableFuture.supplyAsync(() -> {
+                            var file = loadFile(URI.create(url));
+                            return new LoadedFile(name, url, file, key);
+                        }, executorService));
                     });
                 });
+
+        // Wait for all futures to complete and collect results
+        result.addAll(futures.stream()
+                .map(CompletableFuture::join)
+                .toList());
 
         return result;
     }
@@ -143,23 +198,39 @@ public class Loader {
     }
 
     private InputStream getHTTPInputStream(URI fileURI) throws IOException {
-        URL url = fileURI.toURL();
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("GET");
-        con.setConnectTimeout(5000);
-        con.setReadTimeout(5000);
-        con.setRequestProperty("Et-Client-Name", "entur-gbfs-validator");
-        con.connect();
-        BufferedReader in = new BufferedReader(
-                new InputStreamReader(con.getInputStream()));
+        HttpGet httpGet = new HttpGet(fileURI);
 
-        String inputLine;
-        StringBuffer content = new StringBuffer();
-        while ((inputLine = in.readLine()) != null) {
-            content.append(inputLine);
+        // TODO configurable headers
+        httpGet.setHeader("Et-Client-Name", "entur-gbfs-validator");
+
+        try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
+            String content = EntityUtils.toString(response.getEntity());
+            return new ByteArrayInputStream(content.getBytes());
+        } catch (ParseException e) {
+
+            // Todo handle parse exception
+            throw new RuntimeException(e);
         }
-        in.close();
-        con.disconnect();
-        return new ByteArrayInputStream(content.toString().getBytes());
+    }
+
+    // Close the connection pool when the application shuts down
+    public void close() throws IOException {
+        if (httpClient != null) {
+            httpClient.close();
+        }
+
+        // Shutdown the executor service
+        if (executorService != null && !executorService.isShutdown()) {
+            executorService.shutdown();
+            try {
+                // Wait for tasks to complete
+                if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+                    executorService.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                executorService.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 }
