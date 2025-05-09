@@ -69,7 +69,7 @@ public class Loader {
         List<LoadedFile> loadedFiles = new ArrayList<>();
         loadedFiles.add(
                 new LoadedFile(
-                        "discovery",
+                        "gbfs",
                         discoveryFileUrl,
                         new ByteArrayInputStream(discoveryFileBytes)
                 ));
@@ -96,7 +96,7 @@ public class Loader {
                 .forEachRemaining(key -> {
                     result.add(
                             new LoadedFile(
-                                    "discovery",
+                                    "gbfs",
                                     discoveryFileUrl,
                                     new ByteArrayInputStream(discoveryFileBytes),
                                     key
