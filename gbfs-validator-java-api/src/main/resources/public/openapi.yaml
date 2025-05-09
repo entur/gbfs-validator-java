@@ -82,7 +82,6 @@ components:
           type: string
           example: "https://token.example.com"
 
-    # Q: Is this general enough for all json-schema errors?
     FileError:
       type: object
       properties:
@@ -102,11 +101,6 @@ components:
           type: string
           description: |
             Human-readable message describing the error.
-        params:
-          type: object
-          additionalProperties: true
-          description: |
-            Dynamic properties specific to the validation keyword (e.g., allowedValues for 'enum').
       required:
         - keyword
         - instancePath

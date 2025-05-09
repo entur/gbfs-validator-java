@@ -121,7 +121,7 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
             GbfsFile file = new GbfsFile();
             file.setName(fileName);
             file.setUrl(urlMap.get(fileName));
-            //file.setSchema(fileValidationResult.schema());
+            file.setSchema(fileValidationResult.schema());
             file.setVersion(fileValidationResult.version());
 
             // The discovery file itself has no language, and is listed once per system
@@ -138,7 +138,6 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
             mapped.setMessage(error.message());
             mapped.setInstancePath(error.violationPath());
             mapped.setSchemaPath(error.schemaPath());
-            //mapped.setParams(error.); // TODO no source?
             mapped.setKeyword(error.keyword());
             return mapped;
         }).toList();
