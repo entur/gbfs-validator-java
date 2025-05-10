@@ -139,6 +139,9 @@
                             <apiPackage>org.entur.gbfs.validator.api.gen</apiPackage>
                             <modelPackage>org.entur.gbfs.validator.api.model</modelPackage>
                             <invokerPackage>org.entur.gbfs.validator.api.handler</invokerPackage>
+                            <generateApiTests>false</generateApiTests>
+                            <generateModelTests>false</generateModelTests>
+                            <ignoreFileOverride>${project.basedir}/.openapi-generator-ignore</ignoreFileOverride>
                             <configOptions>
                                 <delegatePattern>true</delegatePattern>
                                 <interfaceOnly>false</interfaceOnly>
