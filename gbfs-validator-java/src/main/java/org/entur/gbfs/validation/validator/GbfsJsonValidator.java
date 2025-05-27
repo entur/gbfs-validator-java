@@ -105,7 +105,7 @@ public class GbfsJsonValidator implements GbfsValidator {
                         version.isFileRequired(feedName), // Requires version to be known
                         true, // Exists, but couldn't be parsed
                         0,    // No validation errors
-                        version.getSchema(feedName), // Schema for this file type
+                        version.getSchema(feedName).toString(), // Schema for this file type
                         parsedContainer.originalContent(),
                         null, // Version of this specific file is unknown/irrelevant due to parse fail
                         Collections.emptyList(), // No validation errors
@@ -181,7 +181,7 @@ public class GbfsJsonValidator implements GbfsValidator {
                     tempVersion.isFileRequired(fileName),
                     true, // File was provided
                     0,
-                    tempVersion.getSchema(fileName),
+                    tempVersion.getSchema(fileName).toString(),
                     parsedContainer.originalContent(),
                     null, // File specific version unknown
                     Collections.emptyList(),
@@ -270,7 +270,7 @@ public class GbfsJsonValidator implements GbfsValidator {
         FileValidator fileValidator = FileValidator.getFileValidator(detectedVersion);
         // GbfsFileValidator.validate returns a FileValidationResult.
         // We need to ensure its systemErrors list is empty, as parsing errors are handled before this.
-        FileValidationResult result = fileValidator.validate(feedName, feedMap, originalContent);
+        FileValidationResult result = fileValidator.validate(feedName, feedMap); // Removed originalContent
 
         // The FileValidationResult's compact constructor initializes systemErrors to new ArrayList<>()
         // if the provided list is null or empty. So, if FileValidator.validate passes

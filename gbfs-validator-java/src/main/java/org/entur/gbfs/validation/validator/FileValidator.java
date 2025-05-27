@@ -79,7 +79,8 @@ public class FileValidator {
                     version.getSchema(feedName, feedMap).toString(),
                     Optional.ofNullable(feed).map(JSONObject::toString).orElse(null),
                     version.getVersionString(),
-                    validationErrors
+                    validationErrors,
+                    java.util.Collections.emptyList() // Added for systemErrors
             );
         }
 
@@ -120,7 +121,8 @@ public class FileValidator {
                 version.getSchema(file).toString(),
                 null,
                 version.getVersionString(),
-                List.of()
+                List.of(), // validationErrors
+                java.util.Collections.emptyList() // Added for systemErrors
         );
     }
 }
