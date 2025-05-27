@@ -107,6 +107,19 @@ components:
         - schemaPath
         - message
 
+    SystemError:
+      type: object
+      properties:
+        error:
+          type: string
+          description: "Error code or identifier for the system error. Examples: HTTP_ERROR_404, PARSE_ERROR, CONNECTION_ERROR, FILE_NOT_FOUND."
+        message:
+          type: string
+          description: "Human-readable message describing the system error."
+      required:
+        - error
+        - message
+
     GbfsFile:
       type: object
       properties:
@@ -133,6 +146,11 @@ components:
             $ref: "#/components/schemas/FileError"
         schema:
           type: object
+        systemErrors:
+          type: array
+          items:
+            $ref: "#/components/schemas/SystemError"
+          description: "System errors that occurred while processing this file, such as fetch failures or parsing errors. These are not validation errors but rather issues that prevented proper validation."
 
     ValidationResult:
       type: object

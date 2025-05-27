@@ -52,6 +52,15 @@ public class Loader {
     private final CloseableHttpClient httpClient;
     private final ExecutorService executorService;
 
+    // Helper method to extract filename from URI
+    private String getFileName(URI uri) {
+        String path = uri.getPath();
+        if (path == null || path.isEmpty()) {
+            return "unknown_file"; // Or handle as an error/default
+        }
+        return new File(path).getName();
+    }
+
     public Loader() {
         // Create connection pool manager
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
@@ -80,139 +89,163 @@ public class Loader {
         executorService = Executors.newFixedThreadPool(20);
     }
 
-    public List<LoadedFile> load(String discoveryURI) throws IOException {
-        InputStream discoveryFileStream = loadFile(URI.create(discoveryURI));
+    public List<LoadedFile> load(String discoveryURIString) throws IOException {
+        URI discoveryURI = URI.create(discoveryURIString);
+        LoadedFile discoveryLoadedFile = loadFile(discoveryURI);
 
+        if (discoveryLoadedFile.fileContents() == null) {
+            // If discovery file itself failed to load, return it with its system errors
+            List<LoadedFile> loadedFiles = new ArrayList<>();
+            loadedFiles.add(discoveryLoadedFile);
+            return loadedFiles;
+        }
 
+        // Read the content of the discovery file for further processing
         ByteArrayOutputStream discoveryFileCopy = new ByteArrayOutputStream();
-        org.apache.commons.io.IOUtils.copy(discoveryFileStream, discoveryFileCopy);
+        org.apache.commons.io.IOUtils.copy(discoveryLoadedFile.fileContents(), discoveryFileCopy);
         byte[] discoveryFileBytes = discoveryFileCopy.toByteArray();
+        // Close the original stream now that we have a copy
+        discoveryLoadedFile.fileContents().close();
 
-        JSONObject discoveryFile = new JSONObject(new JSONTokener(new ByteArrayInputStream(discoveryFileBytes)));
 
-        String version = (String) discoveryFile.get("version");
+        JSONObject discoveryFileJson = new JSONObject(new JSONTokener(new ByteArrayInputStream(discoveryFileBytes)));
+        String version = discoveryFileJson.getString("version"); // Use getString for mandatory fields
 
         List<LoadedFile> loadedFiles = new ArrayList<>();
-
+        // Add the successfully loaded discovery file (with its original byte array)
+        loadedFiles.add(new LoadedFile(
+                discoveryLoadedFile.fileName(),
+                discoveryLoadedFile.url(),
+                new ByteArrayInputStream(discoveryFileBytes), // use the copied bytes
+                discoveryLoadedFile.language(), // language might be null
+                discoveryLoadedFile.systemErrors() // should be empty here
+        ));
 
 
         if (version.matches("^3\\.\\d")) {
-            loadedFiles.addAll(getV3Files(discoveryFile, discoveryURI, discoveryFileBytes));
+            loadedFiles.addAll(getV3Files(discoveryFileJson, loadedFiles.get(0)));
         } else {
-            loadedFiles.addAll(getPreV3Files(discoveryFile, discoveryURI, discoveryFileBytes));
+            loadedFiles.addAll(getPreV3Files(discoveryFileJson, loadedFiles.get(0)));
         }
 
         return loadedFiles;
     }
 
-    private List<LoadedFile> getV3Files(JSONObject discoveryFile, String discoveryFileUrl, byte[] discoveryFileBytes) {
-        List<LoadedFile> loadedFiles = new ArrayList<>();
-        loadedFiles.add(
-                new LoadedFile(
-                        "gbfs",
-                        discoveryFileUrl,
-                        new ByteArrayInputStream(discoveryFileBytes)
-                ));
+    private List<LoadedFile> getV3Files(JSONObject discoveryFileJson, LoadedFile gbfsLoadedFile) {
+        List<LoadedFile> loadedFeedFiles = new ArrayList<>();
 
-        // Load files in parallel using CompletableFuture
-        List<CompletableFuture<LoadedFile>> futures = discoveryFile.getJSONObject("data").getJSONArray("feeds").toList().stream()
+        // Load feed files in parallel using CompletableFuture
+        List<CompletableFuture<LoadedFile>> futures = discoveryFileJson.getJSONObject("data").getJSONArray("feeds").toList().stream()
                 .map(feed -> {
                     @SuppressWarnings("unchecked")
                     Map<String, Object> feedMap = (Map<String, Object>) feed;
                     String url = (String) feedMap.get("url");
                     String name = (String) feedMap.get("name");
 
-                    // Create a CompletableFuture for each file to load
                     return CompletableFuture.supplyAsync(() -> {
-                        var file = loadFile(URI.create(url));
-                        return new LoadedFile(name, url, file);
+                        LoadedFile loadedFile = loadFile(URI.create(url));
+                        // Ensure name and original url are from the discovery file, not overridden by potential redirects in loadFile
+                        return new LoadedFile(name, url, loadedFile.fileContents(), loadedFile.language(), loadedFile.systemErrors());
                     }, executorService);
                 })
                 .toList();
 
         // Wait for all futures to complete and collect results
-        loadedFiles.addAll(futures.stream()
+        loadedFeedFiles.addAll(futures.stream()
                 .map(CompletableFuture::join)
                 .toList());
 
-        return loadedFiles;
+        return loadedFeedFiles;
     }
 
-    private List<LoadedFile> getPreV3Files(JSONObject discoveryFile, String discoveryFileUrl, byte[] discoveryFileBytes) {
-        List<LoadedFile> result = new ArrayList<>();
+    private List<LoadedFile> getPreV3Files(JSONObject discoveryFileJson, LoadedFile gbfsLoadedFile) {
+        List<LoadedFile> loadedFeedFiles = new ArrayList<>();
         List<CompletableFuture<LoadedFile>> futures = new ArrayList<>();
 
-        discoveryFile.getJSONObject("data")
-                .keys()
-                .forEachRemaining(key -> {
-                    result.add(
-                            new LoadedFile(
-                                    "gbfs",
-                                    discoveryFileUrl,
-                                    new ByteArrayInputStream(discoveryFileBytes),
-                                    key
-                            )
-                    );
+        String discoveryFileUrl = gbfsLoadedFile.url();
+        // Add the discovery file itself for each language specified (pre-v3)
+        // This part is tricky as the original structure added multiple copies of gbfs.json for each language.
+        // For now, we've already added the main gbfsLoadedFile.
+        // The feeds listed per language will be loaded below.
 
-                    // Create CompletableFutures for each feed file
-                    discoveryFile.getJSONObject("data").getJSONObject(key).getJSONArray("feeds").toList().forEach(feed -> {
+        discoveryFileJson.getJSONObject("data")
+                .keys()
+                .forEachRemaining(languageKey -> {
+                    // Create CompletableFutures for each feed file within this language
+                    discoveryFileJson.getJSONObject("data").getJSONObject(languageKey).getJSONArray("feeds").toList().forEach(feed -> {
                         @SuppressWarnings("unchecked")
                         Map<String, Object> feedMap = (Map<String, Object>) feed;
                         String url = (String) feedMap.get("url");
                         String name = (String) feedMap.get("name");
 
-                        // Create a CompletableFuture for each file to load
                         futures.add(CompletableFuture.supplyAsync(() -> {
-                            var file = loadFile(URI.create(url));
-                            return new LoadedFile(name, url, file, key);
+                            LoadedFile loadedFile = loadFile(URI.create(url));
+                            // Ensure name, original url, and language are from the discovery file
+                            return new LoadedFile(name, url, loadedFile.fileContents(), languageKey, loadedFile.systemErrors());
                         }, executorService));
                     });
                 });
 
         // Wait for all futures to complete and collect results
-        result.addAll(futures.stream()
+        loadedFeedFiles.addAll(futures.stream()
                 .map(CompletableFuture::join)
                 .toList());
 
-        return result;
+        return loadedFeedFiles;
     }
 
-    private InputStream loadFile(URI fileURI) {
-        if (fileURI.getScheme().equals("file")) {
+    private LoadedFile loadFile(URI fileURI) {
+        String fileName = getFileName(fileURI);
+        String url = fileURI.toString();
+
+        if ("file".equals(fileURI.getScheme())) {
             try {
-                return getFileInputStream(fileURI);
+                InputStream stream = getFileInputStream(fileURI);
+                return new LoadedFile(fileName, url, stream, null, new ArrayList<>());
             } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
+                List<SystemError> errors = new ArrayList<>();
+                errors.add(new SystemError("FILE_NOT_FOUND", e.getMessage()));
+                return new LoadedFile(fileName, url, null, null, errors);
             }
-        } else if (fileURI.getScheme().equals("https") || fileURI.getScheme().equals("http")) {
+        } else if ("https".equals(fileURI.getScheme()) || "http".equals(fileURI.getScheme())) {
             try {
-                return getHTTPInputStream(fileURI);
+                InputStream stream = getHTTPInputStream(fileURI);
+                return new LoadedFile(fileName, url, stream, null, new ArrayList<>());
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                List<SystemError> errors = new ArrayList<>();
+                errors.add(new SystemError("CONNECTION_ERROR", e.getMessage()));
+                return new LoadedFile(fileName, url, null, null, errors);
+            } catch (ParseException e) { // Catch ParseException from getHTTPInputStream
+                List<SystemError> errors = new ArrayList<>();
+                errors.add(new SystemError("PARSE_ERROR", e.getMessage()));
+                return new LoadedFile(fileName, url, null, null, errors);
             }
         }
 
-        throw new RuntimeException("Scheme not supported");
+        List<SystemError> errors = new ArrayList<>();
+        errors.add(new SystemError("UNSUPPORTED_SCHEME", "Scheme not supported: " + fileURI.getScheme()));
+        return new LoadedFile(fileName, url, null, null, errors);
     }
 
     private static FileInputStream getFileInputStream(URI fileURI) throws FileNotFoundException {
         return new FileInputStream(new File(fileURI));
     }
 
-    private InputStream getHTTPInputStream(URI fileURI) throws IOException {
+    private InputStream getHTTPInputStream(URI fileURI) throws IOException, ParseException { // Added ParseException to signature
         HttpGet httpGet = new HttpGet(fileURI);
-
-        // TODO configurable headers
         httpGet.setHeader("Et-Client-Name", "entur-gbfs-validator");
 
         try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
+            // Check if the response code indicates an error (e.g., 4xx or 5xx)
+            if (response.getCode() >= 300) {
+                // Consume the entity to allow connection reuse, then throw an exception
+                EntityUtils.consumeQuietly(response.getEntity());
+                throw new IOException("HTTP error fetching file: " + response.getCode() + " " + response.getReasonPhrase());
+            }
             String content = EntityUtils.toString(response.getEntity());
             return new ByteArrayInputStream(content.getBytes());
-        } catch (ParseException e) {
-
-            // Todo handle parse exception
-            throw new RuntimeException(e);
         }
+        // Removed the catch for ParseException here, as it will be caught by loadFile
     }
 
     // Close the connection pool when the application shuts down
