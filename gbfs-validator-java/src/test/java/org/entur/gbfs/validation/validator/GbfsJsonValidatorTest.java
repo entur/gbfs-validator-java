@@ -22,10 +22,20 @@ import org.entur.gbfs.validation.model.FileValidationResult;
 import org.entur.gbfs.validation.model.ValidationResult;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class GbfsJsonValidatorTest {
     @Test
@@ -276,5 +286,61 @@ class GbfsJsonValidatorTest {
                     System.out.println("Version " + version + " - File: " + entry.getKey());
                     entry.getValue().errors().forEach(System.out::println);
                 });
+    }
+
+    @Test
+    void testParseError() {
+        GbfsJsonValidator validator = new GbfsJsonValidator();
+        String invalidJson = "{ \"name\": \"test_feed_parse_error.json\", \"data\": {"; // Unterminated object
+        InputStream inputStream = new ByteArrayInputStream(invalidJson.getBytes(StandardCharsets.UTF_8));
+
+        FileValidationResult result = validator.validateFile("test_feed_parse_error.json", inputStream);
+
+        assertNotNull(result, "FileValidationResult should not be null.");
+        assertTrue(result.errors().isEmpty(), "Validation errors should be empty for a parse error.");
+        assertFalse(result.systemErrors().isEmpty(), "System errors should be present for a parse error.");
+
+        assertEquals(1, result.systemErrors().size(), "There should be one system error.");
+        // Changed to use org.entur.gbfs.validation.model.SystemError
+        org.entur.gbfs.validation.model.SystemError systemError = result.systemErrors().get(0);
+        assertEquals("PARSE_ERROR", systemError.error(), "System error code should be PARSE_ERROR.");
+        assertTrue(systemError.message().contains("Unterminated object"), "System error message should indicate unterminated object.");
+        assertEquals(invalidJson, result.fileContents());
+    }
+
+    @Test
+    void testReadError() throws IOException {
+        GbfsJsonValidator validator = new GbfsJsonValidator();
+        InputStream mockInputStream = mock(InputStream.class);
+        when(mockInputStream.read(Mockito.any(byte[].class), Mockito.anyInt(), Mockito.anyInt())).thenThrow(new IOException("Simulated read error"));
+        // For GbfsJsonValidator's getFeedAsString which uses BufferedReader.readLine()
+        // It might be more accurate to mock the behavior that causes readLine to fail.
+        // However, a general IOException from read should also be caught by the outer try-catch in parseFeed.
+        // Let's refine this if it doesn't work. The GbfsJsonValidator's getFeedAsString catches IOException from reader.readLine()
+        // So we need to make sure the BufferedReader wrapping our mockInputStream encounters this.
+        // Simpler: make read() itself throw, which should be caught by the getFeedAsString's broader catch.
+
+        // Re-checking GbfsJsonValidator.getFeedAsString:
+        // It uses `new BufferedReader(new InputStreamReader(rawFeed))`, then `reader.lines().collect(...)`
+        // The `lines()` method or terminal operation `collect()` will trigger read operations.
+        // If `rawFeed.read()` throws an IOException, it should be caught by `parseFeed`'s try-catch around `getFeedAsString`.
+
+        when(mockInputStream.read()).thenThrow(new IOException("Simulated read error")); // For single byte reads
+        when(mockInputStream.read(Mockito.any(byte[].class))).thenThrow(new IOException("Simulated read error")); // For block reads
+
+
+        FileValidationResult result = validator.validateFile("test_feed_read_error.json", mockInputStream);
+
+        assertNotNull(result, "FileValidationResult should not be null.");
+        assertTrue(result.errors().isEmpty(), "Validation errors should be empty for a read error.");
+        assertFalse(result.systemErrors().isEmpty(), "System errors should be present for a read error.");
+
+        assertEquals(1, result.systemErrors().size(), "There should be one system error.");
+        // Changed to use org.entur.gbfs.validation.model.SystemError
+        org.entur.gbfs.validation.model.SystemError systemError = result.systemErrors().get(0);
+        assertEquals("READ_ERROR", systemError.error(), "System error code should be READ_ERROR.");
+        assertTrue(systemError.message().contains("IOException reading stream") || systemError.message().contains("Simulated read error"),
+                "System error message ("+ systemError.message() +") should indicate a read error.");
+        assertNull(result.fileContents(), "File contents should be null if reading failed.");
     }
 }

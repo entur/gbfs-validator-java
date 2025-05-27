@@ -21,14 +21,21 @@
 package org.entur.gbfs.validator.loader;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public record LoadedFile(
         String fileName,
         String url,
         InputStream fileContents,
-        String language
+        String language,
+        List<SystemError> systemErrors
 ) {
+    public LoadedFile(String fileName, String url, InputStream fileContents, String language) {
+        this(fileName, url, fileContents, language, new ArrayList<>());
+    }
+
     public LoadedFile(String fileName, String url, InputStream fileContents) {
-        this(fileName, url, fileContents, null);
+        this(fileName, url, fileContents, null, new ArrayList<>());
     }
 }

@@ -19,9 +19,11 @@
 package org.entur.gbfs.validation.validator;
 
 import org.entur.gbfs.validation.GbfsValidator;
+import org.entur.gbfs.validation.model.FileValidationError;
 import org.entur.gbfs.validation.model.FileValidationResult;
 import org.entur.gbfs.validation.model.ValidationResult;
 import org.entur.gbfs.validation.model.ValidationSummary;
+import org.entur.gbfs.validation.model.SystemError; // Changed to use model.SystemError
 import org.entur.gbfs.validation.validator.versions.Version;
 import org.entur.gbfs.validation.validator.versions.VersionFactory;
 import org.json.JSONException;
@@ -34,7 +36,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +51,18 @@ public class GbfsJsonValidator implements GbfsValidator {
     private static final Logger LOG = LoggerFactory.getLogger(GbfsJsonValidator.class);
 
     private static final String DEFAULT_VERSION = "2.3";
+
+    // Private record to hold parsing results
+    private record ParsedFeedContainer(
+            String feedName,
+            JSONObject jsonObject, // Null if parsing failed
+            List<SystemError> parsingErrors, // Non-null, empty if success
+            String originalContent // Null if stream read failed
+    ) {
+        ParsedFeedContainer(String feedName, JSONObject jsonObject, String originalContent) {
+            this(feedName, jsonObject, new ArrayList<>(), originalContent);
+        }
+    }
 
     private static final List<String> FEEDS = Arrays.asList(
             "gbfs",
@@ -68,35 +84,85 @@ public class GbfsJsonValidator implements GbfsValidator {
 
     @Override
     public ValidationResult validate(Map<String, InputStream> rawFeeds) {
-        Map<String, JSONObject> feedMap = parseFeeds(rawFeeds);
+        Map<String, ParsedFeedContainer> parsedFeedsMap = parseFeeds(rawFeeds);
         Map<String, FileValidationResult> fileValidations = new HashMap<>();
 
-        FEEDS.stream()
-                .map(feed -> validateFile(feed, feedMap))
-                .filter(Objects::nonNull)
-                .forEach(fileValidationResult -> fileValidations.put(fileValidationResult.file(), fileValidationResult));
+        // Tentatively determine version from gbfs.json if available and parsed
+        Version version = detectVersionFromParsedFeeds(parsedFeedsMap, DEFAULT_VERSION);
 
+        for (String feedName : FEEDS) {
+            ParsedFeedContainer parsedContainer = parsedFeedsMap.get(feedName);
 
-        Version version = findVersion(fileValidations);
+            if (parsedContainer == null) {
+                // Feed not provided, will be handled by handleMissingFiles later
+                continue;
+            }
+
+            if (parsedContainer.jsonObject() == null) {
+                // Parsing failed or stream read error
+                FileValidationResult result = new FileValidationResult(
+                        feedName,
+                        version.isFileRequired(feedName), // Requires version to be known
+                        true, // Exists, but couldn't be parsed
+                        0,    // No validation errors
+                        version.getSchema(feedName).toString(), // Schema for this file type
+                        parsedContainer.originalContent(),
+                        null, // Version of this specific file is unknown/irrelevant due to parse fail
+                        Collections.emptyList(), // No validation errors
+                        parsedContainer.parsingErrors()
+                );
+                fileValidations.put(feedName, result);
+            } else {
+                // Parsing succeeded, proceed with validation
+                // The private validateFile now takes Map<String, JSONObject>
+                // We need to ensure the version used by FileValidator is consistent.
+                // The FileValidator itself extracts the version from the JSONObject.
+                FileValidationResult validationResult = validateFile(
+                        feedName,
+                        Map.of(feedName, parsedContainer.jsonObject()),
+                        parsedContainer.originalContent() // Pass original content for FileValidationResult
+                );
+                if (validationResult != null) {
+                    fileValidations.put(feedName, validationResult);
+                }
+            }
+        }
+
+        // Re-evaluate version based on all successfully validated files, if necessary, or stick to initial.
+        // For now, the initial version detection is used for missing file checks.
+        version = findVersion(fileValidations); // This uses validated files' versions
 
         List<String> missingFiles = findMissingFiles(version, fileValidations);
-
-        handleMissingFiles(fileValidations, missingFiles, version);
+        handleMissingFiles(fileValidations, missingFiles, version); // This creates FVRs for missing files
 
         ValidationSummary summary = new ValidationSummary(
                 version.getVersionString(),
                 System.currentTimeMillis(),
                 fileValidations.values().stream()
                         .filter(Objects::nonNull)
-                        .map(FileValidationResult::errorsCount)
+                        .map(FileValidationResult::errorsCount) // This counts only validation errors
                         .reduce(Integer::sum).orElse(0)
         );
 
-        return new ValidationResult(
-                summary,
-                fileValidations
-        );
+        return new ValidationResult(summary, fileValidations);
     }
+
+
+    private Version detectVersionFromParsedFeeds(Map<String, ParsedFeedContainer> parsedFeeds, String defaultVersion) {
+        ParsedFeedContainer gbfsContainer = parsedFeeds.get("gbfs");
+        if (gbfsContainer != null && gbfsContainer.jsonObject() != null) {
+            try {
+                String versionStr = gbfsContainer.jsonObject().getString("version");
+                if (versionStr != null) {
+                    return VersionFactory.createVersion(versionStr);
+                }
+            } catch (JSONException e) {
+                LOG.warn("Could not extract version from gbfs.json, using default.", e);
+            }
+        }
+        return VersionFactory.createVersion(defaultVersion);
+    }
+
 
     private List<String> findMissingFiles(Version version, Map<String, FileValidationResult> fileValidations) {
         return version.getFileNames().stream().filter(Predicate.not(fileValidations::containsKey)).toList();
@@ -104,87 +170,153 @@ public class GbfsJsonValidator implements GbfsValidator {
 
     @Override
     public FileValidationResult validateFile(String fileName, InputStream file) {
-        return validateFile(fileName, Map.of(fileName, new JSONObject(new JSONTokener(file))));
+        ParsedFeedContainer parsedContainer = parseFeed(fileName, file);
+
+        if (parsedContainer.jsonObject() == null) {
+            // Determine version for schema and requirement - this is tricky for a single file
+            // For now, using default version. A more robust approach might require context.
+            Version tempVersion = VersionFactory.createVersion(DEFAULT_VERSION);
+            return new FileValidationResult(
+                    fileName,
+                    tempVersion.isFileRequired(fileName),
+                    true, // File was provided
+                    0,
+                    tempVersion.getSchema(fileName).toString(),
+                    parsedContainer.originalContent(),
+                    null, // File specific version unknown
+                    Collections.emptyList(),
+                    parsedContainer.parsingErrors()
+            );
+        } else {
+            // Parsing succeeded, proceed with actual validation
+            // The private validateFile method needs the JSONObject map
+            return validateFile(
+                    fileName,
+                    Map.of(fileName, parsedContainer.jsonObject()),
+                    parsedContainer.originalContent()
+            );
+        }
     }
 
     private void handleMissingFiles(Map<String, FileValidationResult> fileValidations, List<String> missingFiles, Version version) {
         FileValidator fileValidator = FileValidator.getFileValidator(version.getVersionString());
         missingFiles
-                        .forEach(file ->
-                                fileValidations.put(file, fileValidator.validateMissingFile(file))
-                                );
+                .forEach(file -> {
+                            // For missing files, systemErrors should be empty.
+                            // The validateMissingFile method in FileValidator should ensure this.
+                            // If it doesn't, it needs to be updated, or we wrap its result here.
+                            FileValidationResult missingResult = fileValidator.validateMissingFile(file);
+                            // Ensure systemErrors is empty for truly missing files
+                            FileValidationResult resultWithEmptySystemErrors = new FileValidationResult(
+                                    missingResult.file(), missingResult.required(), missingResult.exists(),
+                                    missingResult.errorsCount(), missingResult.schema(), missingResult.fileContents(),
+                                    missingResult.version(), missingResult.errors(),
+                                    new ArrayList<>() // Ensure empty system errors
+                            );
+                            fileValidations.put(file, resultWithEmptySystemErrors);
+                        }
+                );
     }
 
     private Version findVersion(Map<String, FileValidationResult> fileValidations) {
         Set<String> versions = fileValidations.values().stream()
-            .filter(Objects::nonNull)
-            .map(FileValidationResult::version)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet());
+                .filter(Objects::nonNull)
+                .map(FileValidationResult::version) // Version from the file's content itself
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
 
-        if (versions.size() > 1) {
-            LOG.warn("Found multiple versions in files while during validation: {}", versions);
+        if (versions.isEmpty()) {
+            // If no file provided a version (e.g. all failed parsing or were missing), check gbfs.json specifically
+            FileValidationResult gbfsFileResult = fileValidations.get("gbfs");
+            if (gbfsFileResult != null && gbfsFileResult.fileContents() != null && gbfsFileResult.systemErrors().isEmpty() && gbfsFileResult.errors().isEmpty()) {
+                // Attempt to parse gbfs.json again if it was valid but its version wasn't captured by FileValidationResult.version
+                // This is a bit convoluted; ideally, FileValidationResult.version would be reliably populated.
+                try {
+                    JSONObject gbfsJson = new JSONObject(gbfsFileResult.fileContents());
+                    if (gbfsJson.has("version")) {
+                        return VersionFactory.createVersion(gbfsJson.getString("version"));
+                    }
+                } catch (JSONException e) {
+                    LOG.warn("Could not re-parse gbfs.json for version during findVersion, using default.", e);
+                }
+            }
         }
 
-        return  VersionFactory.createVersion(
+
+        if (versions.size() > 1) {
+            LOG.warn("Found multiple versions in files during validation: {}", versions);
+            // Prioritize gbfs.json version if present among multiple versions
+            FileValidationResult gbfsFile = fileValidations.get("gbfs");
+            if (gbfsFile != null && gbfsFile.version() != null && versions.contains(gbfsFile.version())) {
+                return VersionFactory.createVersion(gbfsFile.version());
+            }
+        }
+
+
+        return VersionFactory.createVersion(
                 versions.stream().findFirst().orElse(DEFAULT_VERSION)
         );
     }
 
-    private FileValidationResult validateFile(String feedName, Map<String, JSONObject> feedMap) {
+    // Modified to accept originalContent for FileValidationResult construction
+    private FileValidationResult validateFile(String feedName, Map<String, JSONObject> feedMap, String originalContent) {
         JSONObject feed = feedMap.get(feedName);
-        if (feed == null) {
+        if (feed == null) { // Should not happen if called after successful parsing check
             return null;
         }
 
-        // Assume no version means version 1.0
-        String detectedVersion = "1.0";
+        String detectedVersion = feed.has("version") ? feed.getString("version") : "1.0"; // Default if no version in file
 
-        if (feed.has("version")) {
-            detectedVersion = feed.getString("version");
-        }
-
-        // find correct file validator
         FileValidator fileValidator = FileValidator.getFileValidator(detectedVersion);
-        return fileValidator.validate(feedName, feedMap);
+        // GbfsFileValidator.validate returns a FileValidationResult.
+        // We need to ensure its systemErrors list is empty, as parsing errors are handled before this.
+        FileValidationResult result = fileValidator.validate(feedName, feedMap); // Removed originalContent
+
+        // The FileValidationResult's compact constructor initializes systemErrors to new ArrayList<>()
+        // if the provided list is null or empty. So, if FileValidator.validate passes
+        // null or Collections.emptyList() for systemErrors, it will be correctly initialized.
+        // We assume FileValidator.validate is updated or already behaves this way.
+        // If it might pass non-empty system errors for other reasons, we'd need to override here:
+        // return new FileValidationResult(result.file(), result.required(), result.exists(), ..., result.errors(), new ArrayList<>());
+        return result;
     }
 
-    private Map<String, JSONObject> parseFeeds(Map<String, InputStream> rawFeeds) {
-        Map<String, JSONObject> feedMap = new HashMap<>();
 
-        rawFeeds.forEach((name, value) -> {
-            JSONObject parsed = parseFeed(value);
-            if (parsed == null) {
-                LOG.warn("Unable to parse feed name={}", name);
-            } else {
-                feedMap.put(name, parsed);
-            }
-        });
+    private Map<String, ParsedFeedContainer> parseFeeds(Map<String, InputStream> rawFeeds) {
+        Map<String, ParsedFeedContainer> feedMap = new HashMap<>();
+        rawFeeds.forEach((name, value) -> feedMap.put(name, parseFeed(name, value)));
         return feedMap;
     }
 
-    private JSONObject parseFeed(InputStream raw) {
-        String asString = getFeedAsString(raw);
+    // Modified to return ParsedFeedContainer
+    private ParsedFeedContainer parseFeed(String name, InputStream raw) {
+        String asString;
         try {
-            return new JSONObject(asString);
-        } catch (JSONException e) {
-            LOG.warn("Failed to parse json={}", asString, e);
-            return null;
-        }
-
-    }
-
-    private String getFeedAsString(InputStream rawFeed) {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(rawFeed))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                stringBuilder.append(line);
+            asString = getFeedAsString(raw);
+            if (asString == null) {
+                return new ParsedFeedContainer(name, null, List.of(new SystemError("READ_ERROR", "Failed to read input stream for " + name)), null);
             }
         } catch (IOException e) {
-            return null;
+            LOG.warn("IOException while reading feed name={}: {}", name, e.getMessage(), e);
+            return new ParsedFeedContainer(name, null, List.of(new SystemError("READ_ERROR", "IOException reading stream for " + name + ": " + e.getMessage())), null);
         }
-        return stringBuilder.toString();
+
+        try {
+            return new ParsedFeedContainer(name, new JSONObject(asString), asString);
+        } catch (JSONException e) {
+            LOG.warn("Failed to parse json for feed name={} content={}: {}", name, asString, e.getMessage(), e);
+            return new ParsedFeedContainer(name, null, List.of(new SystemError("PARSE_ERROR", e.getMessage())), asString);
+        }
+    }
+
+    private String getFeedAsString(InputStream rawFeed) throws IOException { // Added throws IOException
+        // Consuming the stream fully here.
+        // If GbfsFileValidator needs the stream again, this approach needs reconsideration.
+        // However, GbfsFileValidator.validate currently takes Map<String, JSONObject> or (feedName, JSONObject).
+        // The original content string is now passed to it for inclusion in FileValidationResult.
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(rawFeed))) {
+            return reader.lines().collect(Collectors.joining(System.lineSeparator()));
+        }
+        // IOException will be caught by the caller (parseFeed)
     }
 }
