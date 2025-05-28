@@ -37,9 +37,19 @@ import org.entur.gbfs.validator.api.model.ValidatePostRequest;
 import org.entur.gbfs.validator.api.model.ValidationResultSummary;
 import org.entur.gbfs.validator.loader.LoadedFile;
 import org.entur.gbfs.validator.loader.Loader;
+import org.entur.gbfs.validator.loader.Authentication;
+import org.entur.gbfs.validator.loader.BasicAuth as LoaderBasicAuth;
+import org.entur.gbfs.validator.loader.BearerTokenAuth as LoaderBearerTokenAuth;
+import org.entur.gbfs.validator.loader.OAuthClientCredentialsGrantAuth as LoaderOAuthClientCredentialsGrantAuth;
 import org.entur.gbfs.validator.loader.SystemError as LoaderSystemError; // Explicitly for loader
 import org.entur.gbfs.validation.model.SystemError as ValidatorSystemError; // Explicitly for validator model
 import org.openapitools.jackson.nullable.JsonNullable;
+// OpenAPI generated auth models
+import org.entur.gbfs.validator.api.model.ValidatePostRequestAuth;
+import org.entur.gbfs.validator.api.model.BasicAuth;
+import org.entur.gbfs.validator.api.model.BearerTokenAuth;
+import org.entur.gbfs.validator.api.model.OAuthClientCredentialsGrantAuth;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -80,7 +90,33 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
     public ResponseEntity<org.entur.gbfs.validator.api.model.ValidationResult> validatePost(ValidatePostRequest validatePostRequest) {
         logger.debug("Received request for url: {}", validatePostRequest.getFeedUrl());
         try {
-            List<LoadedFile> allLoadedFiles = loader.load(validatePostRequest.getFeedUrl());
+            Authentication loaderAuth = null;
+            ValidatePostRequestAuth apiAuth = validatePostRequest.getAuth();
+
+            if (apiAuth != null) {
+                // The OpenAPI generator for 'oneOf' with discriminator typically creates a common wrapper
+                // that holds the actual instance. We need to get that instance.
+                Object actualAuth = apiAuth.getActualInstance(); // This is a common pattern
+
+                if (actualAuth instanceof BasicAuth) {
+                    BasicAuth basic = (BasicAuth) actualAuth;
+                    if (basic.getUsername() != null && basic.getPassword() != null) {
+                        loaderAuth = new LoaderBasicAuth(basic.getUsername(), basic.getPassword());
+                    }
+                } else if (actualAuth instanceof BearerTokenAuth) {
+                    BearerTokenAuth bearer = (BearerTokenAuth) actualAuth;
+                    if (bearer.getToken() != null) {
+                        loaderAuth = new LoaderBearerTokenAuth(bearer.getToken());
+                    }
+                } else if (actualAuth instanceof OAuthClientCredentialsGrantAuth) {
+                    OAuthClientCredentialsGrantAuth oauth = (OAuthClientCredentialsGrantAuth) actualAuth;
+                    if (oauth.getClientId() != null && oauth.getClientSecret() != null && oauth.getTokenUrl() != null) {
+                        loaderAuth = new LoaderOAuthClientCredentialsGrantAuth(oauth.getClientId(), oauth.getClientSecret(), oauth.getTokenUrl().toString());
+                    }
+                }
+            }
+
+            List<LoadedFile> allLoadedFiles = loader.load(validatePostRequest.getFeedUrl(), loaderAuth);
 
             logger.debug("Loaded files: {}", allLoadedFiles.size());
 

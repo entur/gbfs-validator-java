@@ -26,9 +26,17 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.util.Timeout;
+import org.entur.gbfs.validator.loader.AuthType;
+import org.entur.gbfs.validator.loader.Authentication;
+import org.entur.gbfs.validator.loader.BasicAuth;
+import org.entur.gbfs.validator.loader.BearerTokenAuth;
+import org.entur.gbfs.validator.loader.OAuthClientCredentialsGrantAuth;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
@@ -41,6 +49,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -90,8 +99,12 @@ public class Loader {
     }
 
     public List<LoadedFile> load(String discoveryURIString) throws IOException {
+        return load(discoveryURIString, null);
+    }
+
+    public List<LoadedFile> load(String discoveryURIString, Authentication auth) throws IOException {
         URI discoveryURI = URI.create(discoveryURIString);
-        LoadedFile discoveryLoadedFile = loadFile(discoveryURI);
+        LoadedFile discoveryLoadedFile = loadFile(discoveryURI, auth);
 
         if (discoveryLoadedFile.fileContents() == null) {
             // If discovery file itself failed to load, return it with its system errors
@@ -123,15 +136,15 @@ public class Loader {
 
 
         if (version.matches("^3\\.\\d")) {
-            loadedFiles.addAll(getV3Files(discoveryFileJson, loadedFiles.get(0)));
+            loadedFiles.addAll(getV3Files(discoveryFileJson, loadedFiles.get(0), auth));
         } else {
-            loadedFiles.addAll(getPreV3Files(discoveryFileJson, loadedFiles.get(0)));
+            loadedFiles.addAll(getPreV3Files(discoveryFileJson, loadedFiles.get(0), auth));
         }
 
         return loadedFiles;
     }
 
-    private List<LoadedFile> getV3Files(JSONObject discoveryFileJson, LoadedFile gbfsLoadedFile) {
+    private List<LoadedFile> getV3Files(JSONObject discoveryFileJson, LoadedFile gbfsLoadedFile, Authentication auth) {
         List<LoadedFile> loadedFeedFiles = new ArrayList<>();
 
         // Load feed files in parallel using CompletableFuture
@@ -143,7 +156,7 @@ public class Loader {
                     String name = (String) feedMap.get("name");
 
                     return CompletableFuture.supplyAsync(() -> {
-                        LoadedFile loadedFile = loadFile(URI.create(url));
+                        LoadedFile loadedFile = loadFile(URI.create(url), auth);
                         // Ensure name and original url are from the discovery file, not overridden by potential redirects in loadFile
                         return new LoadedFile(name, url, loadedFile.fileContents(), loadedFile.language(), loadedFile.systemErrors());
                     }, executorService);
@@ -158,7 +171,7 @@ public class Loader {
         return loadedFeedFiles;
     }
 
-    private List<LoadedFile> getPreV3Files(JSONObject discoveryFileJson, LoadedFile gbfsLoadedFile) {
+    private List<LoadedFile> getPreV3Files(JSONObject discoveryFileJson, LoadedFile gbfsLoadedFile, Authentication auth) {
         List<LoadedFile> loadedFeedFiles = new ArrayList<>();
         List<CompletableFuture<LoadedFile>> futures = new ArrayList<>();
 
@@ -179,7 +192,7 @@ public class Loader {
                         String name = (String) feedMap.get("name");
 
                         futures.add(CompletableFuture.supplyAsync(() -> {
-                            LoadedFile loadedFile = loadFile(URI.create(url));
+                            LoadedFile loadedFile = loadFile(URI.create(url), auth);
                             // Ensure name, original url, and language are from the discovery file
                             return new LoadedFile(name, url, loadedFile.fileContents(), languageKey, loadedFile.systemErrors());
                         }, executorService));
@@ -194,7 +207,7 @@ public class Loader {
         return loadedFeedFiles;
     }
 
-    private LoadedFile loadFile(URI fileURI) {
+    private LoadedFile loadFile(URI fileURI, Authentication auth) {
         String fileName = getFileName(fileURI);
         String url = fileURI.toString();
 
@@ -209,7 +222,7 @@ public class Loader {
             }
         } else if ("https".equals(fileURI.getScheme()) || "http".equals(fileURI.getScheme())) {
             try {
-                InputStream stream = getHTTPInputStream(fileURI);
+                InputStream stream = getHTTPInputStream(fileURI, auth);
                 return new LoadedFile(fileName, url, stream, null, new ArrayList<>());
             } catch (IOException e) {
                 List<SystemError> errors = new ArrayList<>();
@@ -231,9 +244,29 @@ public class Loader {
         return new FileInputStream(new File(fileURI));
     }
 
-    private InputStream getHTTPInputStream(URI fileURI) throws IOException, ParseException { // Added ParseException to signature
+    private InputStream getHTTPInputStream(URI fileURI, Authentication auth) throws IOException, ParseException { // Added ParseException to signature
         HttpGet httpGet = new HttpGet(fileURI);
         httpGet.setHeader("Et-Client-Name", "entur-gbfs-validator");
+
+        if (auth != null) {
+            if (auth.getAuthType() == AuthType.BASIC) {
+                BasicAuth basicAuth = (BasicAuth) auth;
+                String authHeader = "Basic " + Base64.getEncoder().encodeToString((basicAuth.getUsername() + ":" + basicAuth.getPassword()).getBytes());
+                httpGet.setHeader(HttpHeaders.AUTHORIZATION, authHeader);
+            } else if (auth.getAuthType() == AuthType.BEARER_TOKEN) {
+                BearerTokenAuth bearerAuth = (BearerTokenAuth) auth;
+                httpGet.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + bearerAuth.getToken());
+            } else if (auth.getAuthType() == AuthType.OAUTH_CLIENT_CREDENTIALS) {
+                OAuthClientCredentialsGrantAuth oauth = (OAuthClientCredentialsGrantAuth) auth;
+                try {
+                    String token = fetchOAuthToken(oauth.getTokenUrl(), oauth.getClientId(), oauth.getClientSecret());
+                    httpGet.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+                } catch (Exception e) { // Catch specific exceptions if possible
+                    // Propagate as IOException or a custom auth exception, or add to SystemError list for the file
+                    throw new IOException("OAuth token fetch failed: " + e.getMessage(), e);
+                }
+            }
+        }
 
         try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
             // Check if the response code indicates an error (e.g., 4xx or 5xx)
@@ -246,6 +279,26 @@ public class Loader {
             return new ByteArrayInputStream(content.getBytes());
         }
         // Removed the catch for ParseException here, as it will be caught by loadFile
+    }
+
+    private String fetchOAuthToken(String tokenUrl, String clientId, String clientSecret) throws IOException, ParseException {
+        HttpPost tokenRequest = new HttpPost(tokenUrl);
+        tokenRequest.setHeader("Content-Type", "application/x-www-form-urlencoded");
+        String body = "grant_type=client_credentials&client_id=" + clientId + "&client_secret=" + clientSecret;
+        tokenRequest.setEntity(new StringEntity(body));
+
+        try (CloseableHttpResponse response = httpClient.execute(tokenRequest)) {
+            if (response.getCode() >= 300) {
+                EntityUtils.consumeQuietly(response.getEntity());
+                throw new IOException("OAuth token request failed: " + response.getCode() + " " + response.getReasonPhrase());
+            }
+            String responseString = EntityUtils.toString(response.getEntity());
+            JSONObject jsonResponse = new JSONObject(responseString);
+            if (!jsonResponse.has("access_token")) {
+                throw new IOException("OAuth token response did not contain access_token");
+            }
+            return jsonResponse.getString("access_token");
+        }
     }
 
     // Close the connection pool when the application shuts down
