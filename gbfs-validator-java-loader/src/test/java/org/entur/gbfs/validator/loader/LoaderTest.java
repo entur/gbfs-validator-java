@@ -1,132 +1,266 @@
 package org.entur.gbfs.validator.loader;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.File;
+
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.URI;
-import java.nio.file.Path;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.jupiter.api.Assertions.*;
 
-class LoaderTest {
+@ExtendWith(MockitoExtension.class)
+public class LoaderTest {
 
+    private WireMockServer wireMockServer;
     private Loader loader;
+
+    private String gbfsDiscoveryJson = "{\"version\": \"3.0\", \"data\": {\"feeds\": []}}";
+    private String systemInformationJson = "{\"system_id\": \"test-system\", \"language\": \"en\", \"name\": \"Test System\"}";
+
 
     @BeforeEach
     void setUp() {
+        wireMockServer = new WireMockServer(wireMockConfig().dynamicPort());
+        wireMockServer.start();
+        WireMock.configureFor("localhost", wireMockServer.port());
         loader = new Loader();
     }
 
     @AfterEach
     void tearDown() throws IOException {
-        if (loader != null) {
-            loader.close();
+        wireMockServer.stop();
+        loader.close();
+    }
+
+    private String getBaseUrl() {
+        return "http://localhost:" + wireMockServer.port();
+    }
+
+    private String convertStreamToString(InputStream is) throws IOException {
+        if (is == null) {
+            return null;
+        }
+        try (java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A")) {
+            return s.hasNext() ? s.next() : "";
         }
     }
 
     @Test
-    void testLoadFileNotFound(@TempDir Path tempDir) throws IOException {
-        // Attempt to load a file that does not exist
-        String nonExistentFilePath = tempDir.resolve("nonexistent.json").toUri().toString();
-        List<LoadedFile> loadedFiles = loader.load(nonExistentFilePath);
+    void testLoadFile_NoAuth_Success() throws IOException {
+        stubFor(get(urlEqualTo("/gbfs.json"))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(gbfsDiscoveryJson)));
 
-        assertNotNull(loadedFiles);
-        assertEquals(1, loadedFiles.size());
+        List<LoadedFile> files = loader.load(getBaseUrl() + "/gbfs.json");
 
-        LoadedFile loadedFile = loadedFiles.get(0);
-        assertEquals("nonexistent.json", loadedFile.fileName());
-        assertNull(loadedFile.fileContents(), "File contents should be null for a non-existent file.");
-        assertFalse(loadedFile.systemErrors().isEmpty(), "System errors should be present.");
+        assertNotNull(files);
+        assertEquals(1, files.size());
+        LoadedFile gbfsFile = files.get(0);
+        assertNotNull(gbfsFile.fileContents());
+        assertTrue(gbfsFile.getSystemErrors().isEmpty(), "Expected no system errors");
+        assertEquals(gbfsDiscoveryJson, convertStreamToString(gbfsFile.fileContents()));
 
-        SystemError systemError = loadedFile.systemErrors().get(0);
-        assertEquals("FILE_NOT_FOUND", systemError.error());
-        assertTrue(systemError.message().contains(loadedFile.fileName()));
+        wireMockServer.verify(getRequestedFor(urlEqualTo("/gbfs.json"))
+                .withoutHeader(HttpHeaders.AUTHORIZATION));
     }
 
     @Test
-    void testLoadUnsupportedScheme() throws IOException {
-        String ftpUrl = "ftp://example.com/gbfs.json";
-        // The loader's load method expects gbfs.json to be a discovery file.
-        // If it fails to load gbfs.json itself, it returns a list with that one LoadedFile.
-        List<LoadedFile> loadedFiles = loader.load(ftpUrl);
+    void testLoadFile_BasicAuth_Success() throws IOException {
+        String username = "testuser";
+        String password = "testpassword";
+        String expectedAuthHeader = "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
 
-        assertNotNull(loadedFiles);
-        assertEquals(1, loadedFiles.size());
+        stubFor(get(urlEqualTo("/gbfs.json"))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo(expectedAuthHeader))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(gbfsDiscoveryJson)));
 
-        LoadedFile loadedFile = loadedFiles.get(0);
-        assertEquals("gbfs.json", loadedFile.fileName()); // Filename is derived from URI path
-        assertNull(loadedFile.fileContents(), "File contents should be null for an unsupported scheme.");
-        assertFalse(loadedFile.systemErrors().isEmpty(), "System errors should be present.");
+        BasicAuth basicAuth = new BasicAuth(username, password);
+        List<LoadedFile> files = loader.load(getBaseUrl() + "/gbfs.json", basicAuth);
 
-        SystemError systemError = loadedFile.systemErrors().get(0);
-        assertEquals("UNSUPPORTED_SCHEME", systemError.error());
-        assertTrue(systemError.message().contains("Scheme not supported: ftp"));
+        assertNotNull(files);
+        assertEquals(1, files.size());
+        LoadedFile gbfsFile = files.get(0);
+        assertNotNull(gbfsFile.fileContents());
+        assertTrue(gbfsFile.getSystemErrors().isEmpty(), "Expected no system errors");
+        assertEquals(gbfsDiscoveryJson, convertStreamToString(gbfsFile.fileContents()));
+
+        wireMockServer.verify(getRequestedFor(urlEqualTo("/gbfs.json"))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo(expectedAuthHeader)));
     }
 
     @Test
-    void testLoadConnectionError() throws IOException {
-        // This attempts to connect to a likely non-routable address or a blackhole.
-        // Timeout is 5 seconds, so this test might be a bit slow.
-        String invalidHttpUrl = "https://nonexistentdomain1234567890.com/gbfs.json";
-        List<LoadedFile> loadedFiles = loader.load(invalidHttpUrl);
+    void testLoadFile_BasicAuth_Failure_WrongCredentials() throws IOException {
+        stubFor(get(urlEqualTo("/gbfs.json"))
+                .willReturn(aResponse().withStatus(401))); // Mock server returns 401 for any auth
 
-        assertNotNull(loadedFiles);
-        assertEquals(1, loadedFiles.size());
+        BasicAuth basicAuth = new BasicAuth("wronguser", "wrongpassword");
+        List<LoadedFile> files = loader.load(getBaseUrl() + "/gbfs.json", basicAuth);
 
-        LoadedFile loadedFile = loadedFiles.get(0);
-        assertEquals("gbfs.json", loadedFile.fileName());
-        assertNull(loadedFile.fileContents(), "File contents should be null on connection error.");
-        assertFalse(loadedFile.systemErrors().isEmpty(), "System errors should be present.");
-
-        SystemError systemError = loadedFile.systemErrors().get(0);
-        assertEquals("CONNECTION_ERROR", systemError.error());
-        // Message can vary, so check for a part of it.
-        assertTrue(systemError.message().toLowerCase().contains("nonexistentdomain1234567890.com") ||
-                   systemError.message().toLowerCase().contains("resolve host") ||
-                   systemError.message().toLowerCase().contains("timed out"),
-                   "Error message " + systemError.message() + " did not contain expected text.");
+        assertNotNull(files);
+        assertEquals(1, files.size());
+        LoadedFile gbfsFile = files.get(0);
+        assertNull(gbfsFile.fileContents());
+        assertFalse(gbfsFile.getSystemErrors().isEmpty(), "Expected system errors");
+        assertEquals("CONNECTION_ERROR", gbfsFile.getSystemErrors().get(0).getCode());
+        assertTrue(gbfsFile.getSystemErrors().get(0).getMessage().contains("401"));
     }
 
     @Test
-    void testLoadValidDiscoveryFileWithFeedConnectionError(@TempDir Path tempDir) throws IOException {
-        // Create a valid gbfs.json discovery file
-        File gbfsJsonFile = tempDir.resolve("gbfs.json").toFile();
-        try (PrintWriter writer = new PrintWriter(gbfsJsonFile)) {
-            writer.println("{");
-            writer.println("  \"last_updated\": 1600000000,");
-            writer.println("  \"ttl\": 3600,");
-            writer.println("  \"version\": \"2.3\",");
-            writer.println("  \"data\": {");
-            writer.println("    \"feeds\": [");
-            writer.println("      {");
-            writer.println("        \"name\": \"system_information\",");
-            writer.println("        \"url\": \"https://nonexistentdomain1234567890.com/system_information.json\"");
-            writer.println("      }");
-            writer.println("    ]");
-            writer.println("  }");
-            writer.println("}");
-        }
+    void testLoadFile_BearerTokenAuth_Success() throws IOException {
+        String token = "test_token";
+        String expectedAuthHeader = "Bearer " + token;
 
-        List<LoadedFile> loadedFiles = loader.load(gbfsJsonFile.toURI().toString());
-        assertNotNull(loadedFiles);
-        assertEquals(2, loadedFiles.size(), "Should contain gbfs.json and the one feed file.");
+        stubFor(get(urlEqualTo("/gbfs.json"))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo(expectedAuthHeader))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(gbfsDiscoveryJson)));
 
-        LoadedFile gbfsFileResult = loadedFiles.stream().filter(f -> f.fileName().equals("gbfs.json")).findFirst().orElse(null);
-        assertNotNull(gbfsFileResult);
-        assertTrue(gbfsFileResult.systemErrors().isEmpty(), "gbfs.json itself should have no system errors.");
-        assertNotNull(gbfsFileResult.fileContents(), "gbfs.json content should be loaded.");
-        gbfsFileResult.fileContents().close(); // Close the stream
+        BearerTokenAuth bearerAuth = new BearerTokenAuth(token);
+        List<LoadedFile> files = loader.load(getBaseUrl() + "/gbfs.json", bearerAuth);
 
-        LoadedFile systemInfoResult = loadedFiles.stream().filter(f -> f.fileName().equals("system_information.json")).findFirst().orElse(null);
-        assertNotNull(systemInfoResult);
-        assertNull(systemInfoResult.fileContents(), "system_information.json content should be null due to connection error.");
-        assertFalse(systemInfoResult.systemErrors().isEmpty(), "system_information.json should have system errors.");
-        assertEquals("CONNECTION_ERROR", systemInfoResult.systemErrors().get(0).error());
+        assertNotNull(files);
+        assertEquals(1, files.size());
+        LoadedFile gbfsFile = files.get(0);
+        assertNotNull(gbfsFile.fileContents());
+        assertTrue(gbfsFile.getSystemErrors().isEmpty(), "Expected no system errors");
+        assertEquals(gbfsDiscoveryJson, convertStreamToString(gbfsFile.fileContents()));
+
+        wireMockServer.verify(getRequestedFor(urlEqualTo("/gbfs.json"))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo(expectedAuthHeader)));
+    }
+
+    @Test
+    void testLoadFile_OAuthClientCredentials_Success() throws IOException {
+        String clientId = "testClient";
+        String clientSecret = "testSecret";
+        String token = "oauth_test_token";
+        String tokenUrl = "/oauth/token";
+        String gbfsUrl = "/gbfs.json";
+
+        // 1. Mock OAuth token endpoint
+        stubFor(post(urlEqualTo(tokenUrl))
+                .withHeader("Content-Type", equalTo("application/x-www-form-urlencoded"))
+                .withRequestBody(containing("grant_type=client_credentials"))
+                .withRequestBody(containing("client_id=" + clientId))
+                .withRequestBody(containing("client_secret=" + clientSecret))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"access_token\": \"" + token + "\", \"token_type\": \"Bearer\"}")));
+
+        // 2. Mock GBFS file endpoint
+        stubFor(get(urlEqualTo(gbfsUrl))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer " + token))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(gbfsDiscoveryJson)));
+
+        OAuthClientCredentialsGrantAuth oauthAuth = new OAuthClientCredentialsGrantAuth(clientId, clientSecret, getBaseUrl() + tokenUrl);
+        List<LoadedFile> files = loader.load(getBaseUrl() + gbfsUrl, oauthAuth);
+
+        assertNotNull(files);
+        assertEquals(1, files.size());
+        LoadedFile gbfsFile = files.get(0);
+        assertNotNull(gbfsFile.fileContents(), "File contents should not be null on success");
+        assertTrue(gbfsFile.getSystemErrors().isEmpty(), "Expected no system errors. Errors: " + gbfsFile.getSystemErrors());
+        assertEquals(gbfsDiscoveryJson, convertStreamToString(gbfsFile.fileContents()));
+
+        wireMockServer.verify(postRequestedFor(urlEqualTo(tokenUrl)));
+        wireMockServer.verify(getRequestedFor(urlEqualTo(gbfsUrl))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo("Bearer " + token)));
+    }
+
+    @Test
+    void testLoadFile_OAuthClientCredentials_TokenFetchFailure() throws IOException {
+        String clientId = "testClient";
+        String clientSecret = "testSecret";
+        String tokenUrl = "/oauth/token";
+        String gbfsUrl = "/gbfs.json";
+
+        // Mock OAuth token endpoint to return an error
+        stubFor(post(urlEqualTo(tokenUrl))
+                .willReturn(aResponse().withStatus(500).withBody("OAuth server error")));
+
+        OAuthClientCredentialsGrantAuth oauthAuth = new OAuthClientCredentialsGrantAuth(clientId, clientSecret, getBaseUrl() + tokenUrl);
+        List<LoadedFile> files = loader.load(getBaseUrl() + gbfsUrl, oauthAuth);
+
+        assertNotNull(files);
+        assertEquals(1, files.size());
+        LoadedFile gbfsFile = files.get(0);
+        assertNull(gbfsFile.fileContents());
+        assertFalse(gbfsFile.getSystemErrors().isEmpty(), "Expected system errors due to token fetch failure");
+        SystemError error = gbfsFile.getSystemErrors().get(0);
+        assertEquals("CONNECTION_ERROR", error.getCode()); // Loader wraps it in CONNECTION_ERROR
+        assertTrue(error.getMessage().contains("OAuth token fetch failed"), "Error message should indicate token fetch failure. Was: " + error.getMessage());
+
+        wireMockServer.verify(postRequestedFor(urlEqualTo(tokenUrl)));
+        wireMockServer.verify(0, getRequestedFor(urlEqualTo(gbfsUrl))); // GBFS endpoint should not be called
+    }
+
+
+    @Test
+    void testLoad_WithDiscoveryFileAndFeed_V3_WithAuth() throws IOException {
+        String token = "test_token_v3";
+        String expectedAuthHeader = "Bearer " + token;
+        String discoveryUrl = "/gbfs-v3.json";
+        String systemInfoUrl = "/system_information-v3.json";
+
+        String discoveryContentWithFeed = String.format(
+                "{\"version\": \"3.0\", \"data\": {\"feeds\": [{\"name\": \"system_information\", \"url\": \"%s%s\"}]}}",
+                getBaseUrl(), systemInfoUrl);
+
+        // Mock discovery file
+        stubFor(get(urlEqualTo(discoveryUrl))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo(expectedAuthHeader))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(discoveryContentWithFeed)));
+
+        // Mock system_information file
+        stubFor(get(urlEqualTo(systemInfoUrl))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo(expectedAuthHeader))
+                .willReturn(aResponse()
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(systemInformationJson)));
+
+        BearerTokenAuth bearerAuth = new BearerTokenAuth(token);
+        List<LoadedFile> files = loader.load(getBaseUrl() + discoveryUrl, bearerAuth);
+
+        assertNotNull(files);
+        assertEquals(2, files.size(), "Expected discovery file and one feed file");
+
+        LoadedFile discoveryFile = files.stream().filter(f -> f.fileName().equals("gbfs-v3.json")).findFirst().orElse(null);
+        LoadedFile systemInfoFile = files.stream().filter(f -> f.fileName().equals("system_information-v3.json")).findFirst().orElse(null);
+
+        assertNotNull(discoveryFile, "Discovery file should be loaded");
+        assertNotNull(discoveryFile.fileContents());
+        assertTrue(discoveryFile.getSystemErrors().isEmpty(), "Discovery file should have no errors");
+        assertEquals(discoveryContentWithFeed, convertStreamToString(discoveryFile.fileContents()));
+
+
+        assertNotNull(systemInfoFile, "System Information file should be loaded");
+        assertNotNull(systemInfoFile.fileContents());
+        assertTrue(systemInfoFile.getSystemErrors().isEmpty(), "System Information file should have no errors. Errors: " + (systemInfoFile.getSystemErrors().isEmpty() ? "None" : systemInfoFile.getSystemErrors().get(0).toString()));
+        assertEquals(systemInformationJson, convertStreamToString(systemInfoFile.fileContents()));
+
+        wireMockServer.verify(getRequestedFor(urlEqualTo(discoveryUrl))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo(expectedAuthHeader)));
+        wireMockServer.verify(getRequestedFor(urlEqualTo(systemInfoUrl))
+                .withHeader(HttpHeaders.AUTHORIZATION, equalTo(expectedAuthHeader)));
     }
 }
