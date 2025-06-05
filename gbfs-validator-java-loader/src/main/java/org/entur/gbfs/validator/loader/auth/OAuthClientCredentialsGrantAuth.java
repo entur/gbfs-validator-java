@@ -18,24 +18,28 @@
  *
  */
 
-package org.entur.gbfs.validator.loader;
+package org.entur.gbfs.validator.loader.auth;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+public class OAuthClientCredentialsGrantAuth implements Authentication {
+    private final String clientId;
+    private final String clientSecret;
+    private final String tokenUrl;
 
-public record LoadedFile(
-        String fileName,
-        String url,
-        InputStream fileContents,
-        String language,
-        List<LoaderError> loaderErrors
-) {
-    public LoadedFile(String fileName, String url, InputStream fileContents, String language) {
-        this(fileName, url, fileContents, language, new ArrayList<>());
+    public OAuthClientCredentialsGrantAuth(String clientId, String clientSecret, String tokenUrl) {
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
+        this.tokenUrl = tokenUrl;
     }
 
-    public LoadedFile(String fileName, String url, InputStream fileContents) {
-        this(fileName, url, fileContents, null, new ArrayList<>());
+    public String getClientId() {
+        return clientId;
+    }
+
+    public String getClientSecret() {
+        return clientSecret;
+    }
+
+    public String getTokenUrl() {
+        return tokenUrl;
     }
 }

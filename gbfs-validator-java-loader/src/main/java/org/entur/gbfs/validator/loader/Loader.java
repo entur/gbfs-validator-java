@@ -32,11 +32,10 @@ import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.util.Timeout;
-import org.entur.gbfs.validator.loader.AuthType;
-import org.entur.gbfs.validator.loader.Authentication;
-import org.entur.gbfs.validator.loader.BasicAuth;
-import org.entur.gbfs.validator.loader.BearerTokenAuth;
-import org.entur.gbfs.validator.loader.OAuthClientCredentialsGrantAuth;
+import org.entur.gbfs.validator.loader.auth.Authentication;
+import org.entur.gbfs.validator.loader.auth.BasicAuth;
+import org.entur.gbfs.validator.loader.auth.BearerTokenAuth;
+import org.entur.gbfs.validator.loader.auth.OAuthClientCredentialsGrantAuth;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
@@ -131,7 +130,7 @@ public class Loader {
                 discoveryLoadedFile.url(),
                 new ByteArrayInputStream(discoveryFileBytes), // use the copied bytes
                 discoveryLoadedFile.language(), // language might be null
-                discoveryLoadedFile.systemErrors() // should be empty here
+                discoveryLoadedFile.loaderErrors() // should be empty here
         ));
 
 
@@ -158,7 +157,7 @@ public class Loader {
                     return CompletableFuture.supplyAsync(() -> {
                         LoadedFile loadedFile = loadFile(URI.create(url), auth);
                         // Ensure name and original url are from the discovery file, not overridden by potential redirects in loadFile
-                        return new LoadedFile(name, url, loadedFile.fileContents(), loadedFile.language(), loadedFile.systemErrors());
+                        return new LoadedFile(name, url, loadedFile.fileContents(), loadedFile.language(), loadedFile.loaderErrors());
                     }, executorService);
                 })
                 .toList();
@@ -194,7 +193,7 @@ public class Loader {
                         futures.add(CompletableFuture.supplyAsync(() -> {
                             LoadedFile loadedFile = loadFile(URI.create(url), auth);
                             // Ensure name, original url, and language are from the discovery file
-                            return new LoadedFile(name, url, loadedFile.fileContents(), languageKey, loadedFile.systemErrors());
+                            return new LoadedFile(name, url, loadedFile.fileContents(), languageKey, loadedFile.loaderErrors());
                         }, executorService));
                     });
                 });
@@ -216,8 +215,8 @@ public class Loader {
                 InputStream stream = getFileInputStream(fileURI);
                 return new LoadedFile(fileName, url, stream, null, new ArrayList<>());
             } catch (FileNotFoundException e) {
-                List<SystemError> errors = new ArrayList<>();
-                errors.add(new SystemError("FILE_NOT_FOUND", e.getMessage()));
+                List<LoaderError> errors = new ArrayList<>();
+                errors.add(new LoaderError("FILE_NOT_FOUND", e.getMessage()));
                 return new LoadedFile(fileName, url, null, null, errors);
             }
         } else if ("https".equals(fileURI.getScheme()) || "http".equals(fileURI.getScheme())) {
@@ -225,18 +224,18 @@ public class Loader {
                 InputStream stream = getHTTPInputStream(fileURI, auth);
                 return new LoadedFile(fileName, url, stream, null, new ArrayList<>());
             } catch (IOException e) {
-                List<SystemError> errors = new ArrayList<>();
-                errors.add(new SystemError("CONNECTION_ERROR", e.getMessage()));
+                List<LoaderError> errors = new ArrayList<>();
+                errors.add(new LoaderError("CONNECTION_ERROR", e.getMessage()));
                 return new LoadedFile(fileName, url, null, null, errors);
             } catch (ParseException e) { // Catch ParseException from getHTTPInputStream
-                List<SystemError> errors = new ArrayList<>();
-                errors.add(new SystemError("PARSE_ERROR", e.getMessage()));
+                List<LoaderError> errors = new ArrayList<>();
+                errors.add(new LoaderError("PARSE_ERROR", e.getMessage()));
                 return new LoadedFile(fileName, url, null, null, errors);
             }
         }
 
-        List<SystemError> errors = new ArrayList<>();
-        errors.add(new SystemError("UNSUPPORTED_SCHEME", "Scheme not supported: " + fileURI.getScheme()));
+        List<LoaderError> errors = new ArrayList<>();
+        errors.add(new LoaderError("UNSUPPORTED_SCHEME", "Scheme not supported: " + fileURI.getScheme()));
         return new LoadedFile(fileName, url, null, null, errors);
     }
 
@@ -249,15 +248,12 @@ public class Loader {
         httpGet.setHeader("Et-Client-Name", "entur-gbfs-validator");
 
         if (auth != null) {
-            if (auth.getAuthType() == AuthType.BASIC) {
-                BasicAuth basicAuth = (BasicAuth) auth;
+            if (auth instanceof BasicAuth basicAuth) {
                 String authHeader = "Basic " + Base64.getEncoder().encodeToString((basicAuth.getUsername() + ":" + basicAuth.getPassword()).getBytes());
                 httpGet.setHeader(HttpHeaders.AUTHORIZATION, authHeader);
-            } else if (auth.getAuthType() == AuthType.BEARER_TOKEN) {
-                BearerTokenAuth bearerAuth = (BearerTokenAuth) auth;
+            } else if (auth instanceof BearerTokenAuth bearerAuth) {
                 httpGet.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + bearerAuth.getToken());
-            } else if (auth.getAuthType() == AuthType.OAUTH_CLIENT_CREDENTIALS) {
-                OAuthClientCredentialsGrantAuth oauth = (OAuthClientCredentialsGrantAuth) auth;
+            } else if (auth instanceof OAuthClientCredentialsGrantAuth oauth) {
                 try {
                     String token = fetchOAuthToken(oauth.getTokenUrl(), oauth.getClientId(), oauth.getClientSecret());
                     httpGet.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);

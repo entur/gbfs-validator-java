@@ -18,8 +18,6 @@
 
 package org.entur.gbfs.validation.model;
 
-import org.entur.gbfs.validation.model.SystemError; // Changed to use model.SystemError
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -35,7 +33,7 @@ import java.util.stream.IntStream;
  * @param fileContents The contents of the file
  * @param version The version of the file
  * @param errors A list of errors encountered while validating the file
- * @param systemErrors A list of system errors encountered while trying to load or process the file
+ * @param validatorErrors A list of system errors encountered while trying to load or process the file
  */
 public record FileValidationResult(
          String file,
@@ -46,7 +44,7 @@ public record FileValidationResult(
          String fileContents,
          String version,
          List<FileValidationError> errors,
-         List<SystemError> systemErrors
+         List<ValidatorError> validatorErrors
 ) implements ValidationResultComponentIdentity<FileValidationResult> {
 
     // Canonical constructor provided by record will be used.
@@ -54,7 +52,7 @@ public record FileValidationResult(
     public FileValidationResult {
         // Make defensive copies if lists are mutable and external
         errors = new ArrayList<>(errors);
-        systemErrors = new ArrayList<>(systemErrors);
+        validatorErrors = new ArrayList<>(validatorErrors);
     }
 
 
@@ -69,7 +67,7 @@ public record FileValidationResult(
                 ", fileContents='" + fileContents + '\'' +
                 ", version='" + version + '\'' +
                 ", errors=" + errors +
-                ", systemErrors=" + systemErrors +
+                ", systemErrors=" + validatorErrors +
                 '}';
     }
 
@@ -91,6 +89,6 @@ public record FileValidationResult(
         }
 
         // Compare system errors (SystemError is a record, so its equals method is suitable)
-        return Objects.equals(systemErrors, other.systemErrors);
+        return Objects.equals(validatorErrors, other.validatorErrors);
     }
 }

@@ -18,24 +18,16 @@
  *
  */
 
-package org.entur.gbfs.validator.loader;
+package org.entur.gbfs.validator.loader.auth;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+public class BearerTokenAuth implements Authentication {
+    private final String token;
 
-public record LoadedFile(
-        String fileName,
-        String url,
-        InputStream fileContents,
-        String language,
-        List<LoaderError> loaderErrors
-) {
-    public LoadedFile(String fileName, String url, InputStream fileContents, String language) {
-        this(fileName, url, fileContents, language, new ArrayList<>());
+    public BearerTokenAuth(String token) {
+        this.token = token;
     }
 
-    public LoadedFile(String fileName, String url, InputStream fileContents) {
-        this(fileName, url, fileContents, null, new ArrayList<>());
+    public String getToken() {
+        return token;
     }
 }

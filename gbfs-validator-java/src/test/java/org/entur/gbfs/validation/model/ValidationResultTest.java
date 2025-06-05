@@ -80,7 +80,8 @@ class ValidationResultTest {
                 List.of(
                         generateFileValidationError(message1),
                         generateFileValidationError(message2)
-                )
+                ),
+                List.of()
         );
     }
 

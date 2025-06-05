@@ -18,24 +18,22 @@
  *
  */
 
-package org.entur.gbfs.validator.loader;
+package org.entur.gbfs.validator.loader.auth;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+public class BasicAuth implements Authentication {
+    private final String username;
+    private final String password;
 
-public record LoadedFile(
-        String fileName,
-        String url,
-        InputStream fileContents,
-        String language,
-        List<LoaderError> loaderErrors
-) {
-    public LoadedFile(String fileName, String url, InputStream fileContents, String language) {
-        this(fileName, url, fileContents, language, new ArrayList<>());
+    public BasicAuth(String username, String password) {
+        this.username = username;
+        this.password = password;
     }
 
-    public LoadedFile(String fileName, String url, InputStream fileContents) {
-        this(fileName, url, fileContents, null, new ArrayList<>());
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
     }
 }

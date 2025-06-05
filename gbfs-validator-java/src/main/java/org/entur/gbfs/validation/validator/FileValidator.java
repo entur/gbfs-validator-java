@@ -121,8 +121,8 @@ public class FileValidator {
                 version.getSchema(file).toString(),
                 null,
                 version.getVersionString(),
-                List.of(), // validationErrors
-                java.util.Collections.emptyList() // Added for systemErrors
+                List.of(),
+                java.util.Collections.emptyList()
         );
     }
 }

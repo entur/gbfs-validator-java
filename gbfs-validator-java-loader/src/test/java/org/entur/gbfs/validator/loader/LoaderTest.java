@@ -3,12 +3,14 @@ package org.entur.gbfs.validator.loader;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import org.apache.hc.core5.http.HttpHeaders;
+import org.entur.gbfs.validator.loader.auth.BasicAuth;
+import org.entur.gbfs.validator.loader.auth.BearerTokenAuth;
+import org.entur.gbfs.validator.loader.auth.OAuthClientCredentialsGrantAuth;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,7 +72,7 @@ public class LoaderTest {
         assertEquals(1, files.size());
         LoadedFile gbfsFile = files.get(0);
         assertNotNull(gbfsFile.fileContents());
-        assertTrue(gbfsFile.getSystemErrors().isEmpty(), "Expected no system errors");
+        assertTrue(gbfsFile.loaderErrors().isEmpty(), "Expected no system errors");
         assertEquals(gbfsDiscoveryJson, convertStreamToString(gbfsFile.fileContents()));
 
         wireMockServer.verify(getRequestedFor(urlEqualTo("/gbfs.json"))
@@ -96,7 +98,7 @@ public class LoaderTest {
         assertEquals(1, files.size());
         LoadedFile gbfsFile = files.get(0);
         assertNotNull(gbfsFile.fileContents());
-        assertTrue(gbfsFile.getSystemErrors().isEmpty(), "Expected no system errors");
+        assertTrue(gbfsFile.loaderErrors().isEmpty(), "Expected no system errors");
         assertEquals(gbfsDiscoveryJson, convertStreamToString(gbfsFile.fileContents()));
 
         wireMockServer.verify(getRequestedFor(urlEqualTo("/gbfs.json"))
@@ -115,9 +117,9 @@ public class LoaderTest {
         assertEquals(1, files.size());
         LoadedFile gbfsFile = files.get(0);
         assertNull(gbfsFile.fileContents());
-        assertFalse(gbfsFile.getSystemErrors().isEmpty(), "Expected system errors");
-        assertEquals("CONNECTION_ERROR", gbfsFile.getSystemErrors().get(0).getCode());
-        assertTrue(gbfsFile.getSystemErrors().get(0).getMessage().contains("401"));
+        assertFalse(gbfsFile.loaderErrors().isEmpty(), "Expected system errors");
+        assertEquals("CONNECTION_ERROR", gbfsFile.loaderErrors().get(0).error());
+        assertTrue(gbfsFile.loaderErrors().get(0).message().contains("401"));
     }
 
     @Test
@@ -138,7 +140,7 @@ public class LoaderTest {
         assertEquals(1, files.size());
         LoadedFile gbfsFile = files.get(0);
         assertNotNull(gbfsFile.fileContents());
-        assertTrue(gbfsFile.getSystemErrors().isEmpty(), "Expected no system errors");
+        assertTrue(gbfsFile.loaderErrors().isEmpty(), "Expected no system errors");
         assertEquals(gbfsDiscoveryJson, convertStreamToString(gbfsFile.fileContents()));
 
         wireMockServer.verify(getRequestedFor(urlEqualTo("/gbfs.json"))
@@ -177,7 +179,7 @@ public class LoaderTest {
         assertEquals(1, files.size());
         LoadedFile gbfsFile = files.get(0);
         assertNotNull(gbfsFile.fileContents(), "File contents should not be null on success");
-        assertTrue(gbfsFile.getSystemErrors().isEmpty(), "Expected no system errors. Errors: " + gbfsFile.getSystemErrors());
+        assertTrue(gbfsFile.loaderErrors().isEmpty(), "Expected no system errors. Errors: " + gbfsFile.loaderErrors());
         assertEquals(gbfsDiscoveryJson, convertStreamToString(gbfsFile.fileContents()));
 
         wireMockServer.verify(postRequestedFor(urlEqualTo(tokenUrl)));
@@ -203,10 +205,10 @@ public class LoaderTest {
         assertEquals(1, files.size());
         LoadedFile gbfsFile = files.get(0);
         assertNull(gbfsFile.fileContents());
-        assertFalse(gbfsFile.getSystemErrors().isEmpty(), "Expected system errors due to token fetch failure");
-        SystemError error = gbfsFile.getSystemErrors().get(0);
-        assertEquals("CONNECTION_ERROR", error.getCode()); // Loader wraps it in CONNECTION_ERROR
-        assertTrue(error.getMessage().contains("OAuth token fetch failed"), "Error message should indicate token fetch failure. Was: " + error.getMessage());
+        assertFalse(gbfsFile.loaderErrors().isEmpty(), "Expected system errors due to token fetch failure");
+        LoaderError error = gbfsFile.loaderErrors().get(0);
+        assertEquals("CONNECTION_ERROR", error.error()); // Loader wraps it in CONNECTION_ERROR
+        assertTrue(error.message().contains("OAuth token fetch failed"), "Error message should indicate token fetch failure. Was: " + error.message());
 
         wireMockServer.verify(postRequestedFor(urlEqualTo(tokenUrl)));
         wireMockServer.verify(0, getRequestedFor(urlEqualTo(gbfsUrl))); // GBFS endpoint should not be called
@@ -245,17 +247,17 @@ public class LoaderTest {
         assertEquals(2, files.size(), "Expected discovery file and one feed file");
 
         LoadedFile discoveryFile = files.stream().filter(f -> f.fileName().equals("gbfs-v3.json")).findFirst().orElse(null);
-        LoadedFile systemInfoFile = files.stream().filter(f -> f.fileName().equals("system_information-v3.json")).findFirst().orElse(null);
+        LoadedFile systemInfoFile = files.stream().filter(f -> f.fileName().equals("system_information")).findFirst().orElse(null);
 
         assertNotNull(discoveryFile, "Discovery file should be loaded");
         assertNotNull(discoveryFile.fileContents());
-        assertTrue(discoveryFile.getSystemErrors().isEmpty(), "Discovery file should have no errors");
+        assertTrue(discoveryFile.loaderErrors().isEmpty(), "Discovery file should have no errors");
         assertEquals(discoveryContentWithFeed, convertStreamToString(discoveryFile.fileContents()));
 
 
         assertNotNull(systemInfoFile, "System Information file should be loaded");
         assertNotNull(systemInfoFile.fileContents());
-        assertTrue(systemInfoFile.getSystemErrors().isEmpty(), "System Information file should have no errors. Errors: " + (systemInfoFile.getSystemErrors().isEmpty() ? "None" : systemInfoFile.getSystemErrors().get(0).toString()));
+        assertTrue(systemInfoFile.loaderErrors().isEmpty(), "System Information file should have no errors. Errors: " + (systemInfoFile.loaderErrors().isEmpty() ? "None" : systemInfoFile.loaderErrors().get(0).toString()));
         assertEquals(systemInformationJson, convertStreamToString(systemInfoFile.fileContents()));
 
         wireMockServer.verify(getRequestedFor(urlEqualTo(discoveryUrl))

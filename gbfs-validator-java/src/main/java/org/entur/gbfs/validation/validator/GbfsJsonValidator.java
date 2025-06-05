@@ -19,16 +19,14 @@
 package org.entur.gbfs.validation.validator;
 
 import org.entur.gbfs.validation.GbfsValidator;
-import org.entur.gbfs.validation.model.FileValidationError;
 import org.entur.gbfs.validation.model.FileValidationResult;
 import org.entur.gbfs.validation.model.ValidationResult;
 import org.entur.gbfs.validation.model.ValidationSummary;
-import org.entur.gbfs.validation.model.SystemError; // Changed to use model.SystemError
+import org.entur.gbfs.validation.model.ValidatorError; // Changed to use model.SystemError
 import org.entur.gbfs.validation.validator.versions.Version;
 import org.entur.gbfs.validation.validator.versions.VersionFactory;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +34,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -52,12 +51,11 @@ public class GbfsJsonValidator implements GbfsValidator {
 
     private static final String DEFAULT_VERSION = "2.3";
 
-    // Private record to hold parsing results
     private record ParsedFeedContainer(
             String feedName,
-            JSONObject jsonObject, // Null if parsing failed
-            List<SystemError> parsingErrors, // Non-null, empty if success
-            String originalContent // Null if stream read failed
+            JSONObject jsonObject,
+            List<ValidatorError> parsingErrors,
+            String originalContent
     ) {
         ParsedFeedContainer(String feedName, JSONObject jsonObject, String originalContent) {
             this(feedName, jsonObject, new ArrayList<>(), originalContent);
@@ -85,16 +83,15 @@ public class GbfsJsonValidator implements GbfsValidator {
     @Override
     public ValidationResult validate(Map<String, InputStream> rawFeeds) {
         Map<String, ParsedFeedContainer> parsedFeedsMap = parseFeeds(rawFeeds);
+        Map<String, JSONObject> feedMap = parsedFeedsMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().jsonObject()));
         Map<String, FileValidationResult> fileValidations = new HashMap<>();
 
-        // Tentatively determine version from gbfs.json if available and parsed
-        Version version = detectVersionFromParsedFeeds(parsedFeedsMap, DEFAULT_VERSION);
+        Version version = detectVersionFromParsedFeeds(parsedFeedsMap);
 
         for (String feedName : FEEDS) {
             ParsedFeedContainer parsedContainer = parsedFeedsMap.get(feedName);
 
             if (parsedContainer == null) {
-                // Feed not provided, will be handled by handleMissingFiles later
                 continue;
             }
 
@@ -102,25 +99,20 @@ public class GbfsJsonValidator implements GbfsValidator {
                 // Parsing failed or stream read error
                 FileValidationResult result = new FileValidationResult(
                         feedName,
-                        version.isFileRequired(feedName), // Requires version to be known
-                        true, // Exists, but couldn't be parsed
-                        0,    // No validation errors
-                        version.getSchema(feedName).toString(), // Schema for this file type
+                        version.isFileRequired(feedName),
+                        true,
+                        0,
+                        version.getSchema(feedName).toString(),
                         parsedContainer.originalContent(),
-                        null, // Version of this specific file is unknown/irrelevant due to parse fail
-                        Collections.emptyList(), // No validation errors
+                        null,
+                        Collections.emptyList(),
                         parsedContainer.parsingErrors()
                 );
                 fileValidations.put(feedName, result);
             } else {
-                // Parsing succeeded, proceed with validation
-                // The private validateFile now takes Map<String, JSONObject>
-                // We need to ensure the version used by FileValidator is consistent.
-                // The FileValidator itself extracts the version from the JSONObject.
                 FileValidationResult validationResult = validateFile(
                         feedName,
-                        Map.of(feedName, parsedContainer.jsonObject()),
-                        parsedContainer.originalContent() // Pass original content for FileValidationResult
+                        feedMap
                 );
                 if (validationResult != null) {
                     fileValidations.put(feedName, validationResult);
@@ -148,7 +140,7 @@ public class GbfsJsonValidator implements GbfsValidator {
     }
 
 
-    private Version detectVersionFromParsedFeeds(Map<String, ParsedFeedContainer> parsedFeeds, String defaultVersion) {
+    private Version detectVersionFromParsedFeeds(Map<String, ParsedFeedContainer> parsedFeeds) {
         ParsedFeedContainer gbfsContainer = parsedFeeds.get("gbfs");
         if (gbfsContainer != null && gbfsContainer.jsonObject() != null) {
             try {
@@ -160,7 +152,7 @@ public class GbfsJsonValidator implements GbfsValidator {
                 LOG.warn("Could not extract version from gbfs.json, using default.", e);
             }
         }
-        return VersionFactory.createVersion(defaultVersion);
+        return VersionFactory.createVersion(GbfsJsonValidator.DEFAULT_VERSION);
     }
 
 
@@ -188,12 +180,9 @@ public class GbfsJsonValidator implements GbfsValidator {
                     parsedContainer.parsingErrors()
             );
         } else {
-            // Parsing succeeded, proceed with actual validation
-            // The private validateFile method needs the JSONObject map
             return validateFile(
                     fileName,
-                    Map.of(fileName, parsedContainer.jsonObject()),
-                    parsedContainer.originalContent()
+                    Map.of(fileName, parsedContainer.jsonObject())
             );
         }
     }
@@ -202,18 +191,8 @@ public class GbfsJsonValidator implements GbfsValidator {
         FileValidator fileValidator = FileValidator.getFileValidator(version.getVersionString());
         missingFiles
                 .forEach(file -> {
-                            // For missing files, systemErrors should be empty.
-                            // The validateMissingFile method in FileValidator should ensure this.
-                            // If it doesn't, it needs to be updated, or we wrap its result here.
                             FileValidationResult missingResult = fileValidator.validateMissingFile(file);
-                            // Ensure systemErrors is empty for truly missing files
-                            FileValidationResult resultWithEmptySystemErrors = new FileValidationResult(
-                                    missingResult.file(), missingResult.required(), missingResult.exists(),
-                                    missingResult.errorsCount(), missingResult.schema(), missingResult.fileContents(),
-                                    missingResult.version(), missingResult.errors(),
-                                    new ArrayList<>() // Ensure empty system errors
-                            );
-                            fileValidations.put(file, resultWithEmptySystemErrors);
+                            fileValidations.put(file, missingResult);
                         }
                 );
     }
@@ -228,7 +207,7 @@ public class GbfsJsonValidator implements GbfsValidator {
         if (versions.isEmpty()) {
             // If no file provided a version (e.g. all failed parsing or were missing), check gbfs.json specifically
             FileValidationResult gbfsFileResult = fileValidations.get("gbfs");
-            if (gbfsFileResult != null && gbfsFileResult.fileContents() != null && gbfsFileResult.systemErrors().isEmpty() && gbfsFileResult.errors().isEmpty()) {
+            if (gbfsFileResult != null && gbfsFileResult.fileContents() != null && gbfsFileResult.validatorErrors().isEmpty() && gbfsFileResult.errors().isEmpty()) {
                 // Attempt to parse gbfs.json again if it was valid but its version wasn't captured by FileValidationResult.version
                 // This is a bit convoluted; ideally, FileValidationResult.version would be reliably populated.
                 try {
@@ -258,27 +237,15 @@ public class GbfsJsonValidator implements GbfsValidator {
         );
     }
 
-    // Modified to accept originalContent for FileValidationResult construction
-    private FileValidationResult validateFile(String feedName, Map<String, JSONObject> feedMap, String originalContent) {
+    private FileValidationResult validateFile(String feedName, Map<String, JSONObject> feedMap) {
         JSONObject feed = feedMap.get(feedName);
-        if (feed == null) { // Should not happen if called after successful parsing check
+        if (feed == null) {
             return null;
         }
 
-        String detectedVersion = feed.has("version") ? feed.getString("version") : "1.0"; // Default if no version in file
-
+        String detectedVersion = feed.has("version") ? feed.getString("version") : "1.0";
         FileValidator fileValidator = FileValidator.getFileValidator(detectedVersion);
-        // GbfsFileValidator.validate returns a FileValidationResult.
-        // We need to ensure its systemErrors list is empty, as parsing errors are handled before this.
-        FileValidationResult result = fileValidator.validate(feedName, feedMap); // Removed originalContent
-
-        // The FileValidationResult's compact constructor initializes systemErrors to new ArrayList<>()
-        // if the provided list is null or empty. So, if FileValidator.validate passes
-        // null or Collections.emptyList() for systemErrors, it will be correctly initialized.
-        // We assume FileValidator.validate is updated or already behaves this way.
-        // If it might pass non-empty system errors for other reasons, we'd need to override here:
-        // return new FileValidationResult(result.file(), result.required(), result.exists(), ..., result.errors(), new ArrayList<>());
-        return result;
+        return fileValidator.validate(feedName, feedMap);
     }
 
 
@@ -288,35 +255,20 @@ public class GbfsJsonValidator implements GbfsValidator {
         return feedMap;
     }
 
-    // Modified to return ParsedFeedContainer
     private ParsedFeedContainer parseFeed(String name, InputStream raw) {
         String asString;
-        try {
-            asString = getFeedAsString(raw);
-            if (asString == null) {
-                return new ParsedFeedContainer(name, null, List.of(new SystemError("READ_ERROR", "Failed to read input stream for " + name)), null);
-            }
-        } catch (IOException e) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(raw))) {
+            asString = reader.lines().collect(Collectors.joining(System.lineSeparator()));
+        } catch (IOException | UncheckedIOException e) {
             LOG.warn("IOException while reading feed name={}: {}", name, e.getMessage(), e);
-            return new ParsedFeedContainer(name, null, List.of(new SystemError("READ_ERROR", "IOException reading stream for " + name + ": " + e.getMessage())), null);
+            return new ParsedFeedContainer(name, null, List.of(new ValidatorError("READ_ERROR", "IOException reading stream for " + name + ": " + e.getMessage())), null);
         }
 
         try {
             return new ParsedFeedContainer(name, new JSONObject(asString), asString);
         } catch (JSONException e) {
             LOG.warn("Failed to parse json for feed name={} content={}: {}", name, asString, e.getMessage(), e);
-            return new ParsedFeedContainer(name, null, List.of(new SystemError("PARSE_ERROR", e.getMessage())), asString);
+            return new ParsedFeedContainer(name, null, List.of(new ValidatorError("PARSE_ERROR", e.getMessage())), asString);
         }
-    }
-
-    private String getFeedAsString(InputStream rawFeed) throws IOException { // Added throws IOException
-        // Consuming the stream fully here.
-        // If GbfsFileValidator needs the stream again, this approach needs reconsideration.
-        // However, GbfsFileValidator.validate currently takes Map<String, JSONObject> or (feedName, JSONObject).
-        // The original content string is now passed to it for inclusion in FileValidationResult.
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(rawFeed))) {
-            return reader.lines().collect(Collectors.joining(System.lineSeparator()));
-        }
-        // IOException will be caught by the caller (parseFeed)
     }
 }

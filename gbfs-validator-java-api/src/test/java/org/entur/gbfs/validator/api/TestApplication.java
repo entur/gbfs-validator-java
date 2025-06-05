@@ -18,24 +18,14 @@
  *
  */
 
-package org.entur.gbfs.validator.loader;
+package org.entur.gbfs.validator.api;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-public record LoadedFile(
-        String fileName,
-        String url,
-        InputStream fileContents,
-        String language,
-        List<LoaderError> loaderErrors
-) {
-    public LoadedFile(String fileName, String url, InputStream fileContents, String language) {
-        this(fileName, url, fileContents, language, new ArrayList<>());
-    }
-
-    public LoadedFile(String fileName, String url, InputStream fileContents) {
-        this(fileName, url, fileContents, null, new ArrayList<>());
+@SpringBootApplication
+public class TestApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(TestApplication.class, args);
     }
 }

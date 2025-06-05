@@ -29,26 +29,21 @@ import org.entur.gbfs.validation.model.FileValidationError;
 import org.entur.gbfs.validation.model.FileValidationResult;
 import org.entur.gbfs.validation.model.ValidationResult;
 import org.entur.gbfs.validator.api.gen.ValidateApiDelegate;
+import org.entur.gbfs.validator.api.model.BasicAuth;
+import org.entur.gbfs.validator.api.model.BearerTokenAuth;
 import org.entur.gbfs.validator.api.model.FileError;
 import org.entur.gbfs.validator.api.model.GbfsFile;
-// Import for API SystemError
-import org.entur.gbfs.validator.api.model.SystemError as ApiSystemError;
+import org.entur.gbfs.validator.api.model.OAuthClientCredentialsGrantAuth;
+import org.entur.gbfs.validator.api.model.SystemError;
 import org.entur.gbfs.validator.api.model.ValidatePostRequest;
 import org.entur.gbfs.validator.api.model.ValidationResultSummary;
 import org.entur.gbfs.validator.loader.LoadedFile;
 import org.entur.gbfs.validator.loader.Loader;
-import org.entur.gbfs.validator.loader.Authentication;
-import org.entur.gbfs.validator.loader.BasicAuth as LoaderBasicAuth;
-import org.entur.gbfs.validator.loader.BearerTokenAuth as LoaderBearerTokenAuth;
-import org.entur.gbfs.validator.loader.OAuthClientCredentialsGrantAuth as LoaderOAuthClientCredentialsGrantAuth;
-import org.entur.gbfs.validator.loader.SystemError as LoaderSystemError; // Explicitly for loader
-import org.entur.gbfs.validation.model.SystemError as ValidatorSystemError; // Explicitly for validator model
+import org.entur.gbfs.validator.loader.auth.Authentication;
+import org.entur.gbfs.validator.loader.LoaderError;
+import org.entur.gbfs.validation.model.ValidatorError;
 import org.openapitools.jackson.nullable.JsonNullable;
-// OpenAPI generated auth models
 import org.entur.gbfs.validator.api.model.ValidatePostRequestAuth;
-import org.entur.gbfs.validator.api.model.BasicAuth;
-import org.entur.gbfs.validator.api.model.BearerTokenAuth;
-import org.entur.gbfs.validator.api.model.OAuthClientCredentialsGrantAuth;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,24 +89,17 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
             ValidatePostRequestAuth apiAuth = validatePostRequest.getAuth();
 
             if (apiAuth != null) {
-                // The OpenAPI generator for 'oneOf' with discriminator typically creates a common wrapper
-                // that holds the actual instance. We need to get that instance.
-                Object actualAuth = apiAuth.getActualInstance(); // This is a common pattern
-
-                if (actualAuth instanceof BasicAuth) {
-                    BasicAuth basic = (BasicAuth) actualAuth;
+                if (apiAuth instanceof BasicAuth basic) {
                     if (basic.getUsername() != null && basic.getPassword() != null) {
-                        loaderAuth = new LoaderBasicAuth(basic.getUsername(), basic.getPassword());
+                        loaderAuth = new org.entur.gbfs.validator.loader.auth.BasicAuth(basic.getUsername(), basic.getPassword());
                     }
-                } else if (actualAuth instanceof BearerTokenAuth) {
-                    BearerTokenAuth bearer = (BearerTokenAuth) actualAuth;
+                } else if (apiAuth instanceof BearerTokenAuth bearer) {
                     if (bearer.getToken() != null) {
-                        loaderAuth = new LoaderBearerTokenAuth(bearer.getToken());
+                        loaderAuth = new org.entur.gbfs.validator.loader.auth.BearerTokenAuth(bearer.getToken());
                     }
-                } else if (actualAuth instanceof OAuthClientCredentialsGrantAuth) {
-                    OAuthClientCredentialsGrantAuth oauth = (OAuthClientCredentialsGrantAuth) actualAuth;
+                } else if (apiAuth instanceof OAuthClientCredentialsGrantAuth oauth) {
                     if (oauth.getClientId() != null && oauth.getClientSecret() != null && oauth.getTokenUrl() != null) {
-                        loaderAuth = new LoaderOAuthClientCredentialsGrantAuth(oauth.getClientId(), oauth.getClientSecret(), oauth.getTokenUrl().toString());
+                        loaderAuth = new org.entur.gbfs.validator.loader.auth.OAuthClientCredentialsGrantAuth(oauth.getClientId(), oauth.getClientSecret(), oauth.getTokenUrl().toString());
                     }
                 }
             }
@@ -245,10 +233,10 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
             apiFile.setName(loadedFile.fileName());
             apiFile.setUrl(loadedFile.url());
 
-            List<ApiSystemError> combinedApiSystemErrors = new ArrayList<>();
+            List<SystemError> combinedApiSystemErrors = new ArrayList<>();
 
             // System errors from loader
-            List<LoaderSystemError> loaderSystemErrors = loadedFile.systemErrors();
+            List<LoaderError> loaderSystemErrors = loadedFile.loaderErrors();
             if (loaderSystemErrors != null && !loaderSystemErrors.isEmpty()) {
                 combinedApiSystemErrors.addAll(mapLoaderSystemErrorsToApi(loaderSystemErrors));
             }
@@ -262,7 +250,7 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
                 apiFile.setErrors(mapFileValidationErrors(validationResult.errors()));
 
                 // Add system errors from validator (parsing errors)
-                List<ValidatorSystemError> validatorSystemErrors = validationResult.systemErrors();
+                List<ValidatorError> validatorSystemErrors = validationResult.validatorErrors();
                 if (validatorSystemErrors != null && !validatorSystemErrors.isEmpty()) {
                     combinedApiSystemErrors.addAll(mapValidatorSystemErrorsToApi(validatorSystemErrors));
                 }
@@ -287,24 +275,24 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
         return apiGbfsFiles;
     }
 
-    private List<ApiSystemError> mapLoaderSystemErrorsToApi(List<LoaderSystemError> loaderSystemErrors) {
+    private List<SystemError> mapLoaderSystemErrorsToApi(List<LoaderError> loaderSystemErrors) {
         if (loaderSystemErrors == null) {
             return new ArrayList<>();
         }
         return loaderSystemErrors.stream().map(loaderError -> {
-            ApiSystemError apiError = new ApiSystemError();
+            SystemError apiError = new SystemError();
             apiError.setError(loaderError.error());
             apiError.setMessage(loaderError.message());
             return apiError;
         }).toList();
     }
 
-    private List<ApiSystemError> mapValidatorSystemErrorsToApi(List<ValidatorSystemError> validatorSystemErrors) {
+    private List<SystemError> mapValidatorSystemErrorsToApi(List<ValidatorError> validatorSystemErrors) {
         if (validatorSystemErrors == null) {
             return new ArrayList<>();
         }
         return validatorSystemErrors.stream().map(validatorError -> {
-            ApiSystemError apiError = new ApiSystemError();
+            SystemError apiError = new SystemError();
             apiError.setError(validatorError.error());
             apiError.setMessage(validatorError.message());
             return apiError;
