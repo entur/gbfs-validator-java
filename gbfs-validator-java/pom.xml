@@ -57,7 +57,7 @@
         <gbfsGithubUrl>https://github.com/entur/gbfs-json-schema/archive/refs/tags/v3.0.zip</gbfsGithubUrl>
         <schemaVersion>3.0</schemaVersion>
 
-        <everit-json-schema.version>1.14.5</everit-json-schema.version>
+        <everit-json-schema.version>1.14.6</everit-json-schema.version>
         <slf4j.version>1.7.36</slf4j.version>
 
         <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
@@ -70,7 +70,7 @@
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
         <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
-        <maven-clean-plugin.version>3.4.1</maven-clean-plugin.version>
+        <maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
         <maven-install-plugin.version>2.5.2</maven-install-plugin.version>
         <maven-site-plugin.version>3.21.0</maven-site-plugin.version>
         <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
@@ -86,7 +86,7 @@
 
         <!-- Unit test frameworks versions -->
         <assertj.core.version>3.27.3</assertj.core.version>
-        <junit.version>5.12.2</junit.version>
+        <junit.version>5.13.0</junit.version>
     </properties>
 
     <dependencyManagement>
