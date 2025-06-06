@@ -3,14 +3,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.3</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <groupId>org.entur.gbfs</groupId>
+        <artifactId>gbfs-validator-java-parent</artifactId>
+        <version>2.0.34-SNAPSHOT</version>
     </parent>
-    <groupId>org.entur.gbfs</groupId>
+
     <artifactId>gbfs-validator-java-api</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>2.0.34-SNAPSHOT</version>
     <name>gbfs-validator-java-api</name>
     <description>gbfs-validator-java-api</description>
     <url/>
@@ -33,6 +32,19 @@
         <junit-platform.version>1.10.2</junit-platform.version>
         <openapi-generator-maven-plugin>6.0.0</openapi-generator-maven-plugin>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>3.4.3</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
