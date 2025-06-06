@@ -98,7 +98,7 @@
         <dependency>
             <groupId>org.entur.gbfs</groupId>
             <artifactId>gbfs-validator-java-loader</artifactId>
-            <version>0-SNAPSHOT</version>
+            <version>2.0.34-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -117,7 +117,7 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        
+
         <!-- JUnit dependencies with aligned versions -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -125,42 +125,42 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-launcher</artifactId>
             <version>${junit-platform.version}</version>
             <scope>test</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-engine</artifactId>
             <version>${junit-platform.version}</version>
             <scope>test</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-commons</artifactId>
             <version>${junit-platform.version}</version>
             <scope>test</scope>
         </dependency>
-                
+
         <!-- Spring Boot Test dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        
+
         <!-- JUnit dependencies with aligned versions -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -168,13 +168,13 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
             <scope>test</scope>
         </dependency>
-        
+
         <!-- Jetty servlet dependency required by Spring Boot Test -->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
@@ -182,7 +182,7 @@
             <version>9.4.53.v20231009</version>
             <scope>test</scope>
         </dependency>
-        
+
         <!-- Jetty util dependency required by Spring Boot Test -->
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
@@ -198,7 +198,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-            
+
             <!-- Configure Surefire plugin for JUnit 5 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -223,7 +223,7 @@
                     </dependency>
                 </dependencies>
             </plugin>
-            
+
             <plugin>
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
