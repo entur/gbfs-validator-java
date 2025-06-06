@@ -20,12 +20,22 @@ package org.entur.gbfs.validation.validator;
 
 import org.entur.gbfs.validation.model.FileValidationResult;
 import org.entur.gbfs.validation.model.ValidationResult;
+import org.entur.gbfs.validation.model.ValidatorError;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class GbfsJsonValidatorTest {
     @Test
@@ -276,5 +286,52 @@ class GbfsJsonValidatorTest {
                     System.out.println("Version " + version + " - File: " + entry.getKey());
                     entry.getValue().errors().forEach(System.out::println);
                 });
+    }
+
+    @Test
+    void testParseError() {
+        GbfsJsonValidator validator = new GbfsJsonValidator();
+        String invalidJson = "{ \"name\": \"test_feed_parse_error.json\", \"data\": {";
+        InputStream inputStream = new ByteArrayInputStream(invalidJson.getBytes(StandardCharsets.UTF_8));
+
+        FileValidationResult result = validator.validateFile("gbfs", inputStream);
+
+        assertNotNull(result, "FileValidationResult should not be null.");
+        assertTrue(result.errors().isEmpty(), "Validation errors should be empty for a parse error.");
+        assertFalse(result.validatorErrors().isEmpty(), "System errors should be present for a parse error.");
+
+        assertEquals(1, result.validatorErrors().size(), "There should be one system error.");
+        ValidatorError validatorError = result.validatorErrors().get(0);
+        assertEquals("PARSE_ERROR", validatorError.error(), "System error code should be PARSE_ERROR.");
+        assertTrue(validatorError.message().contains("A JSONObject text must end with '}' at 49 [character 50 line 1]"), "System error message should indicate unterminated object.");
+        assertEquals(invalidJson, result.fileContents());
+    }
+
+    @Test
+    void testReadError() throws IOException {
+        GbfsJsonValidator validator = new GbfsJsonValidator();
+        
+        // Create a throwing input stream that will cause a read error
+        InputStream throwingInputStream = new ThrowingInputStream();
+
+        FileValidationResult result = validator.validateFile("gbfs", throwingInputStream);
+
+        assertNotNull(result, "FileValidationResult should not be null.");
+        assertTrue(result.errors().isEmpty(), "Validation errors should be empty for a read error.");
+        assertNull(result.fileContents(), "File contents should be null for a read error.");
+
+        assertEquals(1, result.validatorErrors().size(), "There should be one system error.");
+        ValidatorError validatorError = result.validatorErrors().get(0);
+        assertEquals("READ_ERROR", validatorError.error(), "System error code should be READ_ERROR.");
+        assertTrue(validatorError.message().contains("IOException reading stream"), 
+                "System error message should indicate read error: " + validatorError.message());
+    }
+    
+    // Helper class for testing IOException during read
+    private static class ThrowingInputStream extends InputStream {
+        @Override
+        public int read() throws IOException {
+            throw new IOException("Simulated read error");
+        }
     }
 }
