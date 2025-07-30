@@ -24,6 +24,7 @@
 
             <properties>
                 <sonar-maven-plugin.version>3.7.0.1746</sonar-maven-plugin.version>
+                <jreleaser-maven-plugin.version>1.18.0</jreleaser-maven-plugin.version>
             </properties>
 
             <build>
@@ -36,5 +37,46 @@
                 </plugins>
             </build>
         </profile>
+            <profile>
+                <id>publication</id>
+                <properties>
+                    <altDeploymentRepository>local::default::file:./target/staging-deploy</altDeploymentRepository>
+                </properties>
+                <build>
+                    <defaultGoal>deploy</defaultGoal>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-javadoc-plugin</artifactId>
+                            <executions>
+                                <execution>
+                                    <id>attach-javadocs</id>
+                                    <goals>
+                                        <goal>jar</goal>
+                                    </goals>
+                                    <configuration>
+                                        <attach>true</attach>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                        </plugin>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-source-plugin</artifactId>
+                            <executions>
+                                <execution>
+                                    <id>attach-sources</id>
+                                    <goals>
+                                        <goal>jar</goal>
+                                    </goals>
+                                    <configuration>
+                                        <attach>true</attach>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                        </plugin>
+                    </plugins>
+                </build>
+            </profile>
     </profiles>
 </project>
