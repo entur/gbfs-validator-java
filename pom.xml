@@ -10,7 +10,7 @@
 
     <name>GBFS Validator Parent</name>
     <description>Aggregator POM for GBFS Validator modules</description>
-
+    <url>https://github.com/entur/gbfs-validator-java</url>
     <modules>
         <module>gbfs-validator-java</module>
     </modules>
