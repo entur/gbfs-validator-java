@@ -22,83 +22,109 @@ package org.entur.gbfs.validation.validator.rules;
 
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.util.Map;
 
 /**
  * It is required to provide ios and android store uris in system_information if vehicle_status
  * or station_information has ios and android rental uris respectively
  */
-public class NoMissingStoreUriInSystemInformation implements CustomRuleSchemaPatcher {
+public class NoMissingStoreUriInSystemInformation
+  implements CustomRuleSchemaPatcher {
 
-    private static final String DATA_REQUIRED_SCHEMA_PATH = "$.properties.data.required";
-    private static final String RENTAL_APPS_SCHEMA_PATH = "$.properties.data.properties.rental_apps";
+  private static final String DATA_REQUIRED_SCHEMA_PATH =
+    "$.properties.data.required";
+  private static final String RENTAL_APPS_SCHEMA_PATH =
+    "$.properties.data.properties.rental_apps";
 
+  private final String vehicleStatusFileName;
 
-    private final String vehicleStatusFileName;
+  public NoMissingStoreUriInSystemInformation(String vehicleStatusFileName) {
+    this.vehicleStatusFileName = vehicleStatusFileName;
+  }
 
+  @Override
+  public DocumentContext addRule(
+    DocumentContext rawSchemaDocumentContext,
+    Map<String, JSONObject> feeds
+  ) {
+    boolean hasIosRentalUris = false;
+    boolean hasAndroidRentalUris = false;
 
-    public NoMissingStoreUriInSystemInformation(String vehicleStatusFileName) {
-        this.vehicleStatusFileName = vehicleStatusFileName;
+    JSONObject vehicleStatusFeed = feeds.get(vehicleStatusFileName);
+
+    if (vehicleStatusFeed != null) {
+      String vehiclesKey = vehicleStatusFileName.equals("vehicle_status")
+        ? "vehicles"
+        : "bikes";
+
+      if (
+        !(
+          (JSONArray) JsonPath
+            .parse(vehicleStatusFeed)
+            .read("$.data." + vehiclesKey + "[:1].rental_uris.ios")
+        ).isEmpty()
+      ) {
+        hasIosRentalUris = true;
+      }
+
+      if (
+        !(
+          (JSONArray) JsonPath
+            .parse(vehicleStatusFeed)
+            .read("$.data." + vehiclesKey + "[:1].rental_uris.android")
+        ).isEmpty()
+      ) {
+        hasAndroidRentalUris = true;
+      }
     }
 
-    @Override
-    public DocumentContext addRule(DocumentContext rawSchemaDocumentContext, Map<String, JSONObject> feeds) {
-        boolean hasIosRentalUris = false;
-        boolean hasAndroidRentalUris = false;
+    JSONObject stationInformationFeed = feeds.get("station_information");
 
-        JSONObject vehicleStatusFeed = feeds.get(vehicleStatusFileName);
+    if (stationInformationFeed != null) {
+      if (
+        !(
+          (JSONArray) JsonPath
+            .parse(stationInformationFeed)
+            .read("$.data.stations[:1].rental_uris.ios")
+        ).isEmpty()
+      ) {
+        hasIosRentalUris = true;
+      }
 
-        if (vehicleStatusFeed != null) {
-            String vehiclesKey = vehicleStatusFileName.equals("vehicle_status") ? "vehicles" : "bikes";
-
-             if (!((JSONArray) JsonPath.parse(vehicleStatusFeed)
-                    .read("$.data." + vehiclesKey + "[:1].rental_uris.ios")).isEmpty()) {
-                 hasIosRentalUris = true;
-             }
-
-             if (!((JSONArray) JsonPath.parse(vehicleStatusFeed)
-                    .read("$.data." + vehiclesKey + "[:1].rental_uris.android")).isEmpty()) {
-                 hasAndroidRentalUris = true;
-             }
-        }
-
-        JSONObject stationInformationFeed = feeds.get("station_information");
-
-        if (stationInformationFeed != null) {
-            if (!((JSONArray) JsonPath.parse(stationInformationFeed)
-                    .read("$.data.stations[:1].rental_uris.ios")).isEmpty()) {
-                hasIosRentalUris = true;
-            }
-
-            if (!((JSONArray) JsonPath.parse(stationInformationFeed)
-                    .read("$.data.stations[:1].rental_uris.android")).isEmpty()) {
-                hasAndroidRentalUris = true;
-            }
-        }
-
-        if (hasIosRentalUris || hasAndroidRentalUris) {
-
-            JSONArray systemInformationDataRequiredSchema = rawSchemaDocumentContext.read(DATA_REQUIRED_SCHEMA_PATH);
-            systemInformationDataRequiredSchema.put("rental_apps");
-
-            JSONObject rentalAppsSchema = rawSchemaDocumentContext.read(RENTAL_APPS_SCHEMA_PATH);
-            JSONArray rentalAppRequired = new JSONArray();
-
-
-            if (hasIosRentalUris) {
-                rentalAppRequired.put("ios");
-            }
-
-            if (hasAndroidRentalUris) {
-                rentalAppRequired.put("android");
-            }
-
-            rentalAppsSchema.put("required", rentalAppRequired);
-        }
-
-        return rawSchemaDocumentContext;
+      if (
+        !(
+          (JSONArray) JsonPath
+            .parse(stationInformationFeed)
+            .read("$.data.stations[:1].rental_uris.android")
+        ).isEmpty()
+      ) {
+        hasAndroidRentalUris = true;
+      }
     }
+
+    if (hasIosRentalUris || hasAndroidRentalUris) {
+      JSONArray systemInformationDataRequiredSchema =
+        rawSchemaDocumentContext.read(DATA_REQUIRED_SCHEMA_PATH);
+      systemInformationDataRequiredSchema.put("rental_apps");
+
+      JSONObject rentalAppsSchema = rawSchemaDocumentContext.read(
+        RENTAL_APPS_SCHEMA_PATH
+      );
+      JSONArray rentalAppRequired = new JSONArray();
+
+      if (hasIosRentalUris) {
+        rentalAppRequired.put("ios");
+      }
+
+      if (hasAndroidRentalUris) {
+        rentalAppRequired.put("android");
+      }
+
+      rentalAppsSchema.put("required", rentalAppRequired);
+    }
+
+    return rawSchemaDocumentContext;
+  }
 }

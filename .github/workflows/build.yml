@@ -25,4 +25,4 @@ jobs:
             ${{ runner.os }}-maven-
             ${{ runner.os }}-
       - name: Run maven build
-        run: mvn install
+        run: mvn install -PprettierCheck -Dprettier.nodePath=node -Dprettier.npmPath=npm

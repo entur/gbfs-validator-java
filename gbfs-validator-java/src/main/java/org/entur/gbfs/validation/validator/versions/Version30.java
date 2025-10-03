@@ -18,65 +18,69 @@
 
 package org.entur.gbfs.validation.validator.versions;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import org.entur.gbfs.validation.validator.rules.CustomRuleSchemaPatcher;
 import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToPricingPlansInVehicleStatus;
 import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToPricingPlansInVehicleTypes;
 import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToRegionInStationInformation;
 import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToVehicleTypesInStationStatus;
 import org.entur.gbfs.validation.validator.rules.NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles;
-import org.entur.gbfs.validation.validator.rules.NoMissingStoreUriInSystemInformation;
 import org.entur.gbfs.validation.validator.rules.NoMissingOrInvalidVehicleTypeIdInVehicleStatusWhenVehicleTypesExist;
+import org.entur.gbfs.validation.validator.rules.NoMissingStoreUriInSystemInformation;
 import org.entur.gbfs.validation.validator.rules.NoMissingVehicleTypesAvailableWhenVehicleTypesExists;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
 public class Version30 extends AbstractVersion {
-    public static final String VERSION = "3.0";
 
-    private static final List<String> feeds = Arrays.asList(
-            "gbfs",
-            "gbfs_versions",
-            "system_information",
-            "vehicle_types",
-            "station_information",
-            "station_status",
-            "vehicle_status",
-            "manifest",
-            "system_regions",
-            "system_pricing_plans",
-            "system_alerts",
-            "geofencing_zones"
+  public static final String VERSION = "3.0";
+
+  private static final List<String> feeds = Arrays.asList(
+    "gbfs",
+    "gbfs_versions",
+    "system_information",
+    "vehicle_types",
+    "station_information",
+    "station_status",
+    "vehicle_status",
+    "manifest",
+    "system_regions",
+    "system_pricing_plans",
+    "system_alerts",
+    "geofencing_zones"
+  );
+
+  private static final Map<String, List<CustomRuleSchemaPatcher>> customRules =
+    Map.of(
+      "vehicle_types",
+      List.of(new NoInvalidReferenceToPricingPlansInVehicleTypes()),
+      "station_status",
+      List.of(
+        new NoInvalidReferenceToVehicleTypesInStationStatus(),
+        new NoMissingVehicleTypesAvailableWhenVehicleTypesExists()
+      ),
+      "vehicle_status",
+      List.of(
+        new NoMissingOrInvalidVehicleTypeIdInVehicleStatusWhenVehicleTypesExist(
+          "vehicle_status"
+        ),
+        new NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles(
+          "vehicle_status"
+        ),
+        new NoInvalidReferenceToPricingPlansInVehicleStatus("vehicle_status")
+      ),
+      "system_information",
+      List.of(new NoMissingStoreUriInSystemInformation("vehicle_status")),
+      "station_information",
+      List.of(new NoInvalidReferenceToRegionInStationInformation())
     );
 
-    private static final Map<String, List<CustomRuleSchemaPatcher>> customRules = Map.of(
-            "vehicle_types", List.of(
-                    new NoInvalidReferenceToPricingPlansInVehicleTypes()
-            ),
-            "station_status", List.of(
-                    new NoInvalidReferenceToVehicleTypesInStationStatus(),
-                    new NoMissingVehicleTypesAvailableWhenVehicleTypesExists()
-            ),
-            "vehicle_status", List.of(
-                    new NoMissingOrInvalidVehicleTypeIdInVehicleStatusWhenVehicleTypesExist("vehicle_status"),
-                    new NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles("vehicle_status"),
-                    new NoInvalidReferenceToPricingPlansInVehicleStatus("vehicle_status")
-            ),
-            "system_information", List.of(
-                    new NoMissingStoreUriInSystemInformation("vehicle_status")
-            ),
-            "station_information", List.of(
-                    new NoInvalidReferenceToRegionInStationInformation()
-            )
-    );
+  protected Version30() {
+    super(VERSION, feeds, customRules);
+  }
 
-    protected Version30() {
-        super(VERSION, feeds, customRules);
-    }
-
-    @Override
-    public boolean isFileRequired(String file) {
-        return super.isFileRequired(file) || "gbfs".equals(file);
-    }
+  @Override
+  public boolean isFileRequired(String file) {
+    return super.isFileRequired(file) || "gbfs".equals(file);
+  }
 }

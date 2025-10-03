@@ -26,21 +26,26 @@ import java.util.Map;
  * @param files A map of files that were validated
  */
 public record ValidationResult(
-     ValidationSummary summary,
-     Map<String, FileValidationResult> files
-) implements ValidationResultComponentIdentity<ValidationResult> {
-    @Override
-    public String toString() {
-        return "ValidationResult{" +
-                "summary=" + summary +
-                ", files=" + files +
-                '}';
-    }
+  ValidationSummary summary,
+  Map<String, FileValidationResult> files
+)
+  implements ValidationResultComponentIdentity<ValidationResult> {
+  @Override
+  public String toString() {
+    return (
+      "ValidationResult{" + "summary=" + summary + ", files=" + files + '}'
+    );
+  }
 
-    @Override
-    public boolean sameAs(ValidationResult other) {
-        if (other == null) return false;
-        if (!summary.sameAs(other.summary())) return false;
-        return files.entrySet().stream().allMatch(entry -> other.files.get(entry.getKey()).sameAs(entry.getValue()));
-    }
+  @Override
+  public boolean sameAs(ValidationResult other) {
+    if (other == null) return false;
+    if (!summary.sameAs(other.summary())) return false;
+    return files
+      .entrySet()
+      .stream()
+      .allMatch(entry ->
+        other.files.get(entry.getKey()).sameAs(entry.getValue())
+      );
+  }
 }

@@ -20,6 +20,8 @@
 
 package org.entur.gbfs.validator.api.handler;
 
+import java.util.Arrays;
+import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,9 +33,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * Security configuration for the GBFS Validator API.
  * Handles CORS configuration to allow cross-origin requests.
@@ -42,33 +41,34 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain filterChain(
-            HttpSecurity http
-    ) throws Exception {
-        return http
-                .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .build();
-    }
+  @Bean
+  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    return http
+      .csrf(csrf -> csrf.disable())
+      .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+      .build();
+  }
 
-    private CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOriginPattern("*");
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setExposedHeaders(List.of("*"));
-        configuration.setAllowCredentials(false);
-        configuration.setMaxAge(3600L); // Cache preflight response for 1 hour
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+  private CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
+    configuration.addAllowedOriginPattern("*");
+    configuration.setAllowedMethods(
+      Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")
+    );
+    configuration.setAllowedHeaders(List.of("*"));
+    configuration.setExposedHeaders(List.of("*"));
+    configuration.setAllowCredentials(false);
+    configuration.setMaxAge(3600L); // Cache preflight response for 1 hour
+    UrlBasedCorsConfigurationSource source =
+      new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
+  }
 
-    @Bean
-    public AuthenticationManager noopAuthenticationManager() {
-        return authentication -> {
-            throw new AuthenticationServiceException("Authentication is disabled");
-        };
-    }
+  @Bean
+  public AuthenticationManager noopAuthenticationManager() {
+    return authentication -> {
+      throw new AuthenticationServiceException("Authentication is disabled");
+    };
+  }
 }

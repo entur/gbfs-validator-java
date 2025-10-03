@@ -25,17 +25,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public record LoadedFile(
-        String fileName,
-        String url,
-        InputStream fileContents,
-        String language,
-        List<LoaderError> loaderErrors
+  String fileName,
+  String url,
+  InputStream fileContents,
+  String language,
+  List<LoaderError> loaderErrors
 ) {
-    public LoadedFile(String fileName, String url, InputStream fileContents, String language) {
-        this(fileName, url, fileContents, language, new ArrayList<>());
-    }
+  public LoadedFile(
+    String fileName,
+    String url,
+    InputStream fileContents,
+    String language
+  ) {
+    this(fileName, url, fileContents, language, new ArrayList<>());
+  }
 
-    public LoadedFile(String fileName, String url, InputStream fileContents) {
-        this(fileName, url, fileContents, null, new ArrayList<>());
-    }
+  public LoadedFile(String fileName, String url, InputStream fileContents) {
+    this(fileName, url, fileContents, null, new ArrayList<>());
+  }
 }

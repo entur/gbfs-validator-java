@@ -20,92 +20,93 @@
 
 package org.entur.gbfs.validator.api.handler;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 @Component
 @ConfigurationProperties(prefix = "loader")
 public class LoaderProperties {
 
-    private Http http = new Http();
-    private ThreadPool threadPool = new ThreadPool();
+  private Http http = new Http();
+  private ThreadPool threadPool = new ThreadPool();
 
-    public Http getHttp() {
-        return http;
+  public Http getHttp() {
+    return http;
+  }
+
+  public void setHttp(Http http) {
+    this.http = http;
+  }
+
+  public ThreadPool getThreadPool() {
+    return threadPool;
+  }
+
+  public void setThreadPool(ThreadPool threadPool) {
+    this.threadPool = threadPool;
+  }
+
+  public static class Http {
+
+    private int maxTotalConnections = 50;
+    private int maxConnectionsPerRoute = 20;
+    private int connectTimeoutSeconds = 5;
+    private int responseTimeoutSeconds = 5;
+    private Map<String, String> headers = new HashMap<>();
+
+    public int getMaxTotalConnections() {
+      return maxTotalConnections;
     }
 
-    public void setHttp(Http http) {
-        this.http = http;
+    public void setMaxTotalConnections(int maxTotalConnections) {
+      this.maxTotalConnections = maxTotalConnections;
     }
 
-    public ThreadPool getThreadPool() {
-        return threadPool;
+    public int getMaxConnectionsPerRoute() {
+      return maxConnectionsPerRoute;
     }
 
-    public void setThreadPool(ThreadPool threadPool) {
-        this.threadPool = threadPool;
+    public void setMaxConnectionsPerRoute(int maxConnectionsPerRoute) {
+      this.maxConnectionsPerRoute = maxConnectionsPerRoute;
     }
 
-    public static class Http {
-        private int maxTotalConnections = 50;
-        private int maxConnectionsPerRoute = 20;
-        private int connectTimeoutSeconds = 5;
-        private int responseTimeoutSeconds = 5;
-        private Map<String, String> headers = new HashMap<>();
-
-        public int getMaxTotalConnections() {
-            return maxTotalConnections;
-        }
-
-        public void setMaxTotalConnections(int maxTotalConnections) {
-            this.maxTotalConnections = maxTotalConnections;
-        }
-
-        public int getMaxConnectionsPerRoute() {
-            return maxConnectionsPerRoute;
-        }
-
-        public void setMaxConnectionsPerRoute(int maxConnectionsPerRoute) {
-            this.maxConnectionsPerRoute = maxConnectionsPerRoute;
-        }
-
-        public int getConnectTimeoutSeconds() {
-            return connectTimeoutSeconds;
-        }
-
-        public void setConnectTimeoutSeconds(int connectTimeoutSeconds) {
-            this.connectTimeoutSeconds = connectTimeoutSeconds;
-        }
-
-        public int getResponseTimeoutSeconds() {
-            return responseTimeoutSeconds;
-        }
-
-        public void setResponseTimeoutSeconds(int responseTimeoutSeconds) {
-            this.responseTimeoutSeconds = responseTimeoutSeconds;
-        }
-
-        public Map<String, String> getHeaders() {
-            return headers;
-        }
-
-        public void setHeaders(Map<String, String> headers) {
-            this.headers = headers;
-        }
+    public int getConnectTimeoutSeconds() {
+      return connectTimeoutSeconds;
     }
 
-    public static class ThreadPool {
-        private int size = 20;
-
-        public int getSize() {
-            return size;
-        }
-
-        public void setSize(int size) {
-            this.size = size;
-        }
+    public void setConnectTimeoutSeconds(int connectTimeoutSeconds) {
+      this.connectTimeoutSeconds = connectTimeoutSeconds;
     }
+
+    public int getResponseTimeoutSeconds() {
+      return responseTimeoutSeconds;
+    }
+
+    public void setResponseTimeoutSeconds(int responseTimeoutSeconds) {
+      this.responseTimeoutSeconds = responseTimeoutSeconds;
+    }
+
+    public Map<String, String> getHeaders() {
+      return headers;
+    }
+
+    public void setHeaders(Map<String, String> headers) {
+      this.headers = headers;
+    }
+  }
+
+  public static class ThreadPool {
+
+    private int size = 20;
+
+    public int getSize() {
+      return size;
+    }
+
+    public void setSize(int size) {
+      this.size = size;
+    }
+  }
 }

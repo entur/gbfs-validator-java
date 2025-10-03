@@ -24,12 +24,13 @@ import org.entur.gbfs.validation.validator.GbfsJsonValidator;
  * Main library entrypoint
  */
 public class GbfsValidatorFactory {
-    private GbfsValidatorFactory() {}
 
-    /**
-     * Get a GbfsValidator instance
-     */
-    public static GbfsValidator getGbfsJsonValidator() {
-        return new GbfsJsonValidator();
-    }
+  private GbfsValidatorFactory() {}
+
+  /**
+   * Get a GbfsValidator instance
+   */
+  public static GbfsValidator getGbfsJsonValidator() {
+    return new GbfsJsonValidator();
+  }
 }

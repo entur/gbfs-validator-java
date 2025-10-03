@@ -27,19 +27,18 @@ import java.util.Objects;
  * @param message An error message
  */
 public record FileValidationError(
-        String schemaPath,
-        String violationPath,
-        String message,
-        String keyword
-) implements ValidationResultComponentIdentity<FileValidationError>  {
-
-    @Override
-    public boolean sameAs(FileValidationError other) {
-        if (other == null) return false;
-        if (!Objects.equals(schemaPath, other.schemaPath)) return false;
-        if (!Objects.equals(violationPath, other.violationPath))
-            return false;
-        if (!Objects.equals(message, other.message)) return false;
-        return Objects.equals(keyword, other.keyword);
-    }
+  String schemaPath,
+  String violationPath,
+  String message,
+  String keyword
+)
+  implements ValidationResultComponentIdentity<FileValidationError> {
+  @Override
+  public boolean sameAs(FileValidationError other) {
+    if (other == null) return false;
+    if (!Objects.equals(schemaPath, other.schemaPath)) return false;
+    if (!Objects.equals(violationPath, other.violationPath)) return false;
+    if (!Objects.equals(message, other.message)) return false;
+    return Objects.equals(keyword, other.keyword);
+  }
 }

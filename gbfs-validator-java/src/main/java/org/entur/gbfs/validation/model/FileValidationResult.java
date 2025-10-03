@@ -36,55 +36,72 @@ import java.util.stream.IntStream;
  * @param validatorErrors A list of system errors encountered while trying to load or process the file
  */
 public record FileValidationResult(
-         String file,
-         boolean required,
-         boolean exists,
-         int errorsCount,
-         String schema,
-         String fileContents,
-         String version,
-         List<FileValidationError> errors,
-         List<ValidatorError> validatorErrors
-) implements ValidationResultComponentIdentity<FileValidationResult> {
+  String file,
+  boolean required,
+  boolean exists,
+  int errorsCount,
+  String schema,
+  String fileContents,
+  String version,
+  List<FileValidationError> errors,
+  List<ValidatorError> validatorErrors
+)
+  implements ValidationResultComponentIdentity<FileValidationResult> {
+  public FileValidationResult {
+    errors = new ArrayList<>(errors);
+    validatorErrors = new ArrayList<>(validatorErrors);
+  }
 
-    public FileValidationResult {
-        errors = new ArrayList<>(errors);
-        validatorErrors = new ArrayList<>(validatorErrors);
+  @Override
+  public String toString() {
+    return (
+      "FileValidationResult{" +
+      "file='" +
+      file +
+      '\'' +
+      ", required=" +
+      required +
+      ", exists=" +
+      exists +
+      ", errorsCount=" +
+      errorsCount +
+      ", schema='" +
+      schema +
+      '\'' +
+      ", fileContents='" +
+      fileContents +
+      '\'' +
+      ", version='" +
+      version +
+      '\'' +
+      ", errors=" +
+      errors +
+      ", systemErrors=" +
+      validatorErrors +
+      '}'
+    );
+  }
+
+  @Override
+  public boolean sameAs(FileValidationResult other) {
+    if (other == null) return false;
+    if (required != other.required) return false;
+    if (exists != other.exists) return false;
+    if (errorsCount != other.errorsCount) return false; // This should ideally reflect both validation and system errors count
+    if (!Objects.equals(file, other.file)) return false;
+    if (!Objects.equals(version, other.version)) return false;
+
+    // Compare validation errors
+    if (errors.size() != other.errors.size()) return false;
+    if (
+      !IntStream
+        .range(0, errors.size())
+        .allMatch(i -> errors.get(i).sameAs(other.errors.get(i)))
+    ) {
+      return false;
     }
-    
-    @Override
-    public String toString() {
-        return "FileValidationResult{" +
-                "file='" + file + '\'' +
-                ", required=" + required +
-                ", exists=" + exists +
-                ", errorsCount=" + errorsCount +
-                ", schema='" + schema + '\'' +
-                ", fileContents='" + fileContents + '\'' +
-                ", version='" + version + '\'' +
-                ", errors=" + errors +
-                ", systemErrors=" + validatorErrors +
-                '}';
-    }
 
-    @Override
-    public boolean sameAs(FileValidationResult other) {
-        if (other == null) return false;
-        if (required != other.required) return false;
-        if (exists != other.exists) return false;
-        if (errorsCount != other.errorsCount) return false; // This should ideally reflect both validation and system errors count
-        if (!Objects.equals(file, other.file)) return false;
-        if (!Objects.equals(version, other.version)) return false;
-
-        // Compare validation errors
-        if (errors.size() != other.errors.size()) return false;
-        if (!IntStream
-                .range(0, errors.size())
-                .allMatch(i -> errors.get(i).sameAs(other.errors.get(i)))) {
-            return false;
-        }
-
-        // Compare system errors (SystemError is a record, so its equals method is suitable)
-        return Objects.equals(validatorErrors, other.validatorErrors);
-    }
+    // Compare system errors (SystemError is a record, so its equals method is suitable)
+    return Objects.equals(validatorErrors, other.validatorErrors);
+  }
 }
