@@ -23,6 +23,9 @@ package org.entur.gbfs.validator.api.handler;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Component
 @ConfigurationProperties(prefix = "loader")
 public class LoaderProperties {
@@ -51,6 +54,7 @@ public class LoaderProperties {
         private int maxConnectionsPerRoute = 20;
         private int connectTimeoutSeconds = 5;
         private int responseTimeoutSeconds = 5;
+        private Map<String, String> headers = new HashMap<>();
 
         public int getMaxTotalConnections() {
             return maxTotalConnections;
@@ -82,6 +86,14 @@ public class LoaderProperties {
 
         public void setResponseTimeoutSeconds(int responseTimeoutSeconds) {
             this.responseTimeoutSeconds = responseTimeoutSeconds;
+        }
+
+        public Map<String, String> getHeaders() {
+            return headers;
+        }
+
+        public void setHeaders(Map<String, String> headers) {
+            this.headers = headers;
         }
     }
 

@@ -49,6 +49,8 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -59,6 +61,7 @@ import java.util.concurrent.TimeUnit;
 public class Loader {
     private final CloseableHttpClient httpClient;
     private final ExecutorService executorService;
+    private final Map<String, String> customHeaders;
 
     // Helper method to extract filename from URI
     private String getFileName(URI uri) {
@@ -70,12 +73,13 @@ public class Loader {
     }
 
     public Loader() {
-        this(50, 20, 5, 5, 20);
+        this(50, 20, 5, 5, 20, Collections.emptyMap());
     }
 
     public Loader(int maxTotalConnections, int maxConnectionsPerRoute,
                   int connectTimeoutSeconds, int responseTimeoutSeconds,
-                  int threadPoolSize) {
+                  int threadPoolSize, Map<String, String> customHeaders) {
+        this.customHeaders = customHeaders != null ? customHeaders : new HashMap<>();
         // Create connection pool manager
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
         // Set the maximum number of total connections
@@ -176,7 +180,6 @@ public class Loader {
         List<LoadedFile> loadedFeedFiles = new ArrayList<>();
         List<CompletableFuture<LoadedFile>> futures = new ArrayList<>();
 
-        String discoveryFileUrl = gbfsLoadedFile.url();
         // Add the discovery file itself for each language specified (pre-v3)
         // This part is tricky as the original structure added multiple copies of gbfs.json for each language.
         // For now, we've already added the main gbfsLoadedFile.
@@ -247,7 +250,9 @@ public class Loader {
 
     private InputStream getHTTPInputStream(URI fileURI, Authentication auth) throws IOException, ParseException { // Added ParseException to signature
         HttpGet httpGet = new HttpGet(fileURI);
-        httpGet.setHeader("Et-Client-Name", "entur-gbfs-validator");
+
+        // Set custom headers
+        customHeaders.forEach(httpGet::setHeader);
 
         if (auth != null) {
             if (auth instanceof BasicAuth basicAuth) {

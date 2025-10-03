@@ -34,7 +34,8 @@ public class LoaderConfiguration {
             properties.getHttp().getMaxConnectionsPerRoute(),
             properties.getHttp().getConnectTimeoutSeconds(),
             properties.getHttp().getResponseTimeoutSeconds(),
-            properties.getThreadPool().getSize()
+            properties.getThreadPool().getSize(),
+            properties.getHttp().getHeaders()
         );
     }
 }
