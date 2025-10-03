@@ -21,25 +21,30 @@
 package org.entur.gbfs.validator.loader.auth;
 
 public class OAuthClientCredentialsGrantAuth implements Authentication {
-    private final String clientId;
-    private final String clientSecret;
-    private final String tokenUrl;
 
-    public OAuthClientCredentialsGrantAuth(String clientId, String clientSecret, String tokenUrl) {
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
-        this.tokenUrl = tokenUrl;
-    }
+  private final String clientId;
+  private final String clientSecret;
+  private final String tokenUrl;
 
-    public String getClientId() {
-        return clientId;
-    }
+  public OAuthClientCredentialsGrantAuth(
+    String clientId,
+    String clientSecret,
+    String tokenUrl
+  ) {
+    this.clientId = clientId;
+    this.clientSecret = clientSecret;
+    this.tokenUrl = tokenUrl;
+  }
 
-    public String getClientSecret() {
-        return clientSecret;
-    }
+  public String getClientId() {
+    return clientId;
+  }
 
-    public String getTokenUrl() {
-        return tokenUrl;
-    }
+  public String getClientSecret() {
+    return clientSecret;
+  }
+
+  public String getTokenUrl() {
+    return tokenUrl;
+  }
 }

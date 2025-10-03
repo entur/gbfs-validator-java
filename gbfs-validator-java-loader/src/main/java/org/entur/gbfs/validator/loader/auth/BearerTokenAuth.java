@@ -21,13 +21,14 @@
 package org.entur.gbfs.validator.loader.auth;
 
 public class BearerTokenAuth implements Authentication {
-    private final String token;
 
-    public BearerTokenAuth(String token) {
-        this.token = token;
-    }
+  private final String token;
 
-    public String getToken() {
-        return token;
-    }
+  public BearerTokenAuth(String token) {
+    this.token = token;
+  }
+
+  public String getToken() {
+    return token;
+  }
 }

@@ -21,19 +21,20 @@
 package org.entur.gbfs.validator.loader.auth;
 
 public class BasicAuth implements Authentication {
-    private final String username;
-    private final String password;
 
-    public BasicAuth(String username, String password) {
-        this.username = username;
-        this.password = password;
-    }
+  private final String username;
+  private final String password;
 
-    public String getUsername() {
-        return username;
-    }
+  public BasicAuth(String username, String password) {
+    this.username = username;
+    this.password = password;
+  }
 
-    public String getPassword() {
-        return password;
-    }
+  public String getUsername() {
+    return username;
+  }
+
+  public String getPassword() {
+    return password;
+  }
 }

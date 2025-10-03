@@ -22,45 +22,51 @@ package org.entur.gbfs.validation.validator.rules;
 
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.util.Map;
 
 /**
  * A vehicle's pricing_plan_id must exist in the system's system_pricing_plan file
  */
-public class NoInvalidReferenceToPricingPlansInVehicleStatus implements CustomRuleSchemaPatcher {
+public class NoInvalidReferenceToPricingPlansInVehicleStatus
+  implements CustomRuleSchemaPatcher {
 
-    public static final String VEHICLE_PRICING_PLAN_ID_SCHEMA_PATH = "$.properties.data.properties.vehicles.items.properties.pricing_plan_id";
-    public static final String BIKE_PRICING_PLAN_ID_SCHEMA_PATH = "$.properties.data.properties.bikes.items.properties.pricing_plan_id";
+  public static final String VEHICLE_PRICING_PLAN_ID_SCHEMA_PATH =
+    "$.properties.data.properties.vehicles.items.properties.pricing_plan_id";
+  public static final String BIKE_PRICING_PLAN_ID_SCHEMA_PATH =
+    "$.properties.data.properties.bikes.items.properties.pricing_plan_id";
 
-    private final String fileName;
+  private final String fileName;
 
-    public NoInvalidReferenceToPricingPlansInVehicleStatus(String fileName) {
-        this.fileName = fileName;
+  public NoInvalidReferenceToPricingPlansInVehicleStatus(String fileName) {
+    this.fileName = fileName;
+  }
+
+  /**
+   * Adds an enum to vehicle_status's pricing_plan_id schema with the plan ids from the system_pricing_plan feed
+   */
+  @Override
+  public DocumentContext addRule(
+    DocumentContext rawSchemaDocumentContext,
+    Map<String, JSONObject> feeds
+  ) {
+    JSONObject pricingPlansFeed = feeds.get("system_pricing_plans");
+
+    String requiredPath = VEHICLE_PRICING_PLAN_ID_SCHEMA_PATH;
+    // backwards compatibility
+    if (fileName.equals("free_bike_status")) {
+      requiredPath = BIKE_PRICING_PLAN_ID_SCHEMA_PATH;
     }
+    JSONObject pricingPlanIdSchema = rawSchemaDocumentContext.read(
+      requiredPath
+    );
 
-    /**
-     * Adds an enum to vehicle_status's pricing_plan_id schema with the plan ids from the system_pricing_plan feed
-     */
-    @Override
-    public DocumentContext addRule(DocumentContext rawSchemaDocumentContext, Map<String, JSONObject> feeds) {
-        JSONObject pricingPlansFeed = feeds.get("system_pricing_plans");
+    JSONArray pricingPlanIds = pricingPlansFeed != null
+      ? JsonPath.parse(pricingPlansFeed).read("$.data.plans[*].plan_id")
+      : new JSONArray();
+    pricingPlanIdSchema.put("enum", pricingPlanIds);
 
-        String requiredPath = VEHICLE_PRICING_PLAN_ID_SCHEMA_PATH;
-        // backwards compatibility
-        if (fileName.equals("free_bike_status")) {
-            requiredPath = BIKE_PRICING_PLAN_ID_SCHEMA_PATH;
-        }
-        JSONObject pricingPlanIdSchema = rawSchemaDocumentContext.read(requiredPath);
-
-        JSONArray pricingPlanIds = pricingPlansFeed != null
-            ? JsonPath.parse(pricingPlansFeed).read("$.data.plans[*].plan_id")
-            : new JSONArray();
-        pricingPlanIdSchema.put("enum", pricingPlanIds);
-
-        return rawSchemaDocumentContext
-                .set(requiredPath, pricingPlanIdSchema);
-    }
+    return rawSchemaDocumentContext.set(requiredPath, pricingPlanIdSchema);
+  }
 }

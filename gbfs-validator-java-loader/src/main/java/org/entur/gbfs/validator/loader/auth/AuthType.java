@@ -21,7 +21,7 @@
 package org.entur.gbfs.validator.loader.auth;
 
 public enum AuthType {
-    BASIC,
-    BEARER_TOKEN,
-    OAUTH_CLIENT_CREDENTIALS
+  BASIC,
+  BEARER_TOKEN,
+  OAUTH_CLIENT_CREDENTIALS,
 }

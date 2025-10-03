@@ -26,25 +26,27 @@ import java.util.Objects;
  * @param timestamp The time when validation was performed
  * @param errorsCount The total amount of errors encountered during validation
  */
-public record ValidationSummary(
-         String version,
-         long timestamp,
-         int errorsCount
-) implements ValidationResultComponentIdentity<ValidationSummary> {
+public record ValidationSummary(String version, long timestamp, int errorsCount)
+  implements ValidationResultComponentIdentity<ValidationSummary> {
+  @Override
+  public String toString() {
+    return (
+      "ValidationSummary{" +
+      "version='" +
+      version +
+      '\'' +
+      ", timestamp=" +
+      timestamp +
+      ", errorsCount=" +
+      errorsCount +
+      '}'
+    );
+  }
 
-    @Override
-    public String toString() {
-        return "ValidationSummary{" +
-                "version='" + version + '\'' +
-                ", timestamp=" + timestamp +
-                ", errorsCount=" + errorsCount +
-                '}';
-    }
-
-    @Override
-    public boolean sameAs(ValidationSummary other) {
-        if (other == null) return false;
-        if (errorsCount != other.errorsCount) return false;
-        return Objects.equals(version, other.version);
-    }
+  @Override
+  public boolean sameAs(ValidationSummary other) {
+    if (other == null) return false;
+    if (errorsCount != other.errorsCount) return false;
+    return Objects.equals(version, other.version);
+  }
 }

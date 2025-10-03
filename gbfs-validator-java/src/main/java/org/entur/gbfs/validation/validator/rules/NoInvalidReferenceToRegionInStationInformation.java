@@ -22,10 +22,9 @@ package org.entur.gbfs.validation.validator.rules;
 
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.util.Map;
 
 /**
  * References to regions in station_information must exist in the system's system_regions file
@@ -34,7 +33,7 @@ public class NoInvalidReferenceToRegionInStationInformation
   implements CustomRuleSchemaPatcher {
 
   public static final String REGION_IDS_SCHEMA_PATH =
-      "$.properties.data.properties.stations.items.properties.region_id";
+    "$.properties.data.properties.stations.items.properties.region_id";
 
   /**
    * Adds an enum to the region_id schema of stations.region_id with the region ids from system_regions.json
@@ -46,21 +45,15 @@ public class NoInvalidReferenceToRegionInStationInformation
   ) {
     JSONObject systemRegionsFeed = feeds.get("system_regions");
     JSONObject regionIdSchema = rawSchemaDocumentContext.read(
-        REGION_IDS_SCHEMA_PATH
+      REGION_IDS_SCHEMA_PATH
     );
 
     JSONArray regionIds = systemRegionsFeed != null
-        ? JsonPath
-            .parse(systemRegionsFeed)
-            .read("$.data.regions[*].region_id")
-        : new JSONArray();
+      ? JsonPath.parse(systemRegionsFeed).read("$.data.regions[*].region_id")
+      : new JSONArray();
 
     regionIdSchema.put("enum", regionIds);
 
-    return rawSchemaDocumentContext
-      .set(
-          REGION_IDS_SCHEMA_PATH,
-        regionIdSchema
-      );
+    return rawSchemaDocumentContext.set(REGION_IDS_SCHEMA_PATH, regionIdSchema);
   }
 }

@@ -22,43 +22,56 @@ package org.entur.gbfs.validation.validator.rules;
 
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
+import java.util.Map;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.util.Map;
 
 /**
  * Bikes / vehicles must refer to a vehicle type when vehicle_types exists
  */
-public class NoMissingOrInvalidVehicleTypeIdInVehicleStatusWhenVehicleTypesExist implements CustomRuleSchemaPatcher {
+public class NoMissingOrInvalidVehicleTypeIdInVehicleStatusWhenVehicleTypesExist
+  implements CustomRuleSchemaPatcher {
 
-    private final String fileName;
+  private final String fileName;
 
-    public NoMissingOrInvalidVehicleTypeIdInVehicleStatusWhenVehicleTypesExist(String fileName) {
-        this.fileName = fileName;
+  public NoMissingOrInvalidVehicleTypeIdInVehicleStatusWhenVehicleTypesExist(
+    String fileName
+  ) {
+    this.fileName = fileName;
+  }
+
+  private static final String BIKE_ITEMS_SCHEMA_PATH =
+    "$.properties.data.properties.bikes.items";
+  private static final String VEHICLE_ITEMS_SCHEMA_PATH =
+    "$.properties.data.properties.vehicles.items";
+
+  @Override
+  public DocumentContext addRule(
+    DocumentContext rawSchemaDocumentContext,
+    Map<String, JSONObject> feeds
+  ) {
+    JSONObject vehicleTypesFeed = feeds.get("vehicle_types");
+
+    String requiredPath = VEHICLE_ITEMS_SCHEMA_PATH;
+
+    // backwards compatibility
+    if (fileName.equals("free_bike_status")) {
+      requiredPath = BIKE_ITEMS_SCHEMA_PATH;
     }
 
-    private static final String BIKE_ITEMS_SCHEMA_PATH = "$.properties.data.properties.bikes.items";
-    private static final String VEHICLE_ITEMS_SCHEMA_PATH = "$.properties.data.properties.vehicles.items";
-    @Override
-    public DocumentContext addRule(DocumentContext rawSchemaDocumentContext, Map<String, JSONObject> feeds) {
-        JSONObject vehicleTypesFeed = feeds.get("vehicle_types");
-
-        String requiredPath = VEHICLE_ITEMS_SCHEMA_PATH;
-
-        // backwards compatibility
-        if (fileName.equals("free_bike_status")) {
-            requiredPath = BIKE_ITEMS_SCHEMA_PATH;
-        }
-
-        JSONObject vehicleItemsSchema = rawSchemaDocumentContext.read(requiredPath);
-        if (vehicleTypesFeed != null) {
-            vehicleItemsSchema.append("required", "vehicle_type_id");
-        }
-        JSONArray vehicleTypeIds = vehicleTypesFeed != null
-            ? JsonPath.parse(vehicleTypesFeed).read("$.data.vehicle_types[*].vehicle_type_id")
-            : new JSONArray();
-        vehicleItemsSchema.getJSONObject( "properties").getJSONObject("vehicle_type_id").put("enum", vehicleTypeIds);
-        return rawSchemaDocumentContext.set(requiredPath, vehicleItemsSchema);
+    JSONObject vehicleItemsSchema = rawSchemaDocumentContext.read(requiredPath);
+    if (vehicleTypesFeed != null) {
+      vehicleItemsSchema.append("required", "vehicle_type_id");
     }
+    JSONArray vehicleTypeIds = vehicleTypesFeed != null
+      ? JsonPath
+        .parse(vehicleTypesFeed)
+        .read("$.data.vehicle_types[*].vehicle_type_id")
+      : new JSONArray();
+    vehicleItemsSchema
+      .getJSONObject("properties")
+      .getJSONObject("vehicle_type_id")
+      .put("enum", vehicleTypeIds);
+    return rawSchemaDocumentContext.set(requiredPath, vehicleItemsSchema);
+  }
 }

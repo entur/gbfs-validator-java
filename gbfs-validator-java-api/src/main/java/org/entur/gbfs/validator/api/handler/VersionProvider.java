@@ -30,13 +30,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class VersionProvider {
 
-    private final BuildProperties buildProperties;
+  private final BuildProperties buildProperties;
 
-    public VersionProvider(BuildProperties buildProperties) {
-        this.buildProperties = buildProperties;
-    }
+  public VersionProvider(BuildProperties buildProperties) {
+    this.buildProperties = buildProperties;
+  }
 
-    public String getVersion() {
-        return buildProperties.getVersion();
-    }
+  public String getVersion() {
+    return buildProperties.getVersion();
+  }
 }
