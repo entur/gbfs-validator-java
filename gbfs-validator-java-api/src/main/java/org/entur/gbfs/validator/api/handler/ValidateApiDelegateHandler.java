@@ -66,14 +66,17 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
     private static final Logger logger = LoggerFactory.getLogger(ValidateApiDelegateHandler.class);
 
     private final Loader loader;
+    private final VersionProvider versionProvider;
 
     /**
      * Creates a new validation handler.
      *
      * @param loader the GBFS file loader to use
+     * @param versionProvider provides access to application version information
      */
-    public ValidateApiDelegateHandler(Loader loader) {
+    public ValidateApiDelegateHandler(Loader loader, VersionProvider versionProvider) {
         this.loader = loader;
+        this.versionProvider = versionProvider;
     }
 
     /**
@@ -170,7 +173,7 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
         if (results.isEmpty()) {
             org.entur.gbfs.validator.api.model.ValidationResult emptyApiResult = new org.entur.gbfs.validator.api.model.ValidationResult();
             ValidationResultSummary emptySummary = new ValidationResultSummary();
-            emptySummary.setValidatorVersion("2.0.30-SNAPSHOT");
+            emptySummary.setValidatorVersion(versionProvider.getVersion());
             emptySummary.setFiles(new ArrayList<>());
             emptyApiResult.setSummary(emptySummary);
             return emptyApiResult;
@@ -199,7 +202,7 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
             String language
     ) {
         ValidationResultSummary validationResultSummary = new ValidationResultSummary();
-        validationResultSummary.setValidatorVersion("2.0.30-SNAPSHOT");
+        validationResultSummary.setValidatorVersion(versionProvider.getVersion());
 
         validationResultSummary.setFiles(
                 mapFiles(loadedFilesForLanguage, internalValidationResult.files(), language)
