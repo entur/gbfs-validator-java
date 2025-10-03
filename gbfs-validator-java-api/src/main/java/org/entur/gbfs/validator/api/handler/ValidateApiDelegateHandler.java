@@ -61,15 +61,12 @@ import java.util.Map;
 public class ValidateApiDelegateHandler implements ValidateApiDelegate {
     private static final Logger logger = LoggerFactory.getLogger(ValidateApiDelegateHandler.class);
 
-    // Single shared instance of Loader
     private final Loader loader;
-
-    // Initialize in constructor
-    public ValidateApiDelegateHandler() {
-        this.loader = new Loader();
+    
+    public ValidateApiDelegateHandler(Loader loader) {
+        this.loader = loader;
     }
 
-    // Clean up resources when the service is destroyed
     @PreDestroy
     public void destroy() {
         try {
