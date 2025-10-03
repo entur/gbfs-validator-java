@@ -66,19 +66,3 @@ List of additional rules:
 * `NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles`
 * `NoMissingStoreUriInSystemInformation`
 
-## Non-schema rules:
-
-Some rules can't be validated with json schema:
-
-Existing rules: 
-
-* All version of gbfs require the system_information endpoint.
-* In addition, gbfs endpoint is required as of v2.0.
-
-Planned rules:
-
-* Either station_information or station_status is required if the other is present
-  * Can this be checked by cross-checking ids between files - using schema patching?
-* vehicle_types is required if vehicle types are referenced in other files (already covered?)
-* system_pricing_plans is required if pricing plans are referenced in other files
-
