@@ -28,7 +28,13 @@ import org.springframework.context.annotation.Configuration;
 public class LoaderConfiguration {
 
     @Bean
-    public Loader loader() {
-        return new Loader();
+    public Loader loader(LoaderProperties properties) {
+        return new Loader(
+            properties.getHttp().getMaxTotalConnections(),
+            properties.getHttp().getMaxConnectionsPerRoute(),
+            properties.getHttp().getConnectTimeoutSeconds(),
+            properties.getHttp().getResponseTimeoutSeconds(),
+            properties.getThreadPool().getSize()
+        );
     }
 }

@@ -62,7 +62,7 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
     private static final Logger logger = LoggerFactory.getLogger(ValidateApiDelegateHandler.class);
 
     private final Loader loader;
-    
+
     public ValidateApiDelegateHandler(Loader loader) {
         this.loader = loader;
     }

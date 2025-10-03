@@ -70,20 +70,23 @@ public class Loader {
     }
 
     public Loader() {
+        this(50, 20, 5, 5, 20);
+    }
+
+    public Loader(int maxTotalConnections, int maxConnectionsPerRoute,
+                  int connectTimeoutSeconds, int responseTimeoutSeconds,
+                  int threadPoolSize) {
         // Create connection pool manager
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
         // Set the maximum number of total connections
-        // TODO configurable max total
-        connectionManager.setMaxTotal(50);
+        connectionManager.setMaxTotal(maxTotalConnections);
         // Set the maximum number of connections per route
-        // TODO configurable max per route
-        connectionManager.setDefaultMaxPerRoute(20);
+        connectionManager.setDefaultMaxPerRoute(maxConnectionsPerRoute);
 
         // Configure request timeouts
         RequestConfig requestConfig = RequestConfig.custom()
-                // TODO configurable timeouts
-                .setConnectTimeout(Timeout.of(5, TimeUnit.SECONDS))
-                .setResponseTimeout(Timeout.of(5, TimeUnit.SECONDS))
+                .setConnectTimeout(Timeout.of(connectTimeoutSeconds, TimeUnit.SECONDS))
+                .setResponseTimeout(Timeout.of(responseTimeoutSeconds, TimeUnit.SECONDS))
                 .build();
 
         // Build the HttpClient with connection pooling
@@ -93,8 +96,7 @@ public class Loader {
                 .build();
 
         // Create a thread pool for parallel execution
-        // TODO configurable pool size
-        executorService = Executors.newFixedThreadPool(20);
+        executorService = Executors.newFixedThreadPool(threadPoolSize);
     }
 
     public List<LoadedFile> load(String discoveryURIString) throws IOException {
