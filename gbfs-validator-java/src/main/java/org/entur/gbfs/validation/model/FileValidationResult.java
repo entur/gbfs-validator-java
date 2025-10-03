@@ -47,15 +47,11 @@ public record FileValidationResult(
          List<ValidatorError> validatorErrors
 ) implements ValidationResultComponentIdentity<FileValidationResult> {
 
-    // Canonical constructor provided by record will be used.
-    // For defensive copying if needed, a custom compact constructor could be added:
     public FileValidationResult {
-        // Make defensive copies if lists are mutable and external
         errors = new ArrayList<>(errors);
         validatorErrors = new ArrayList<>(validatorErrors);
     }
-
-
+    
     @Override
     public String toString() {
         return "FileValidationResult{" +
