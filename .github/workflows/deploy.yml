@@ -6,6 +6,9 @@ on:
   pull_request:
     branches:
       - master
+concurrency:
+    group: master-release
+    cancel-in-progress: false
 env:
     JFROG_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }}
     JFROG_PASS: ${{ secrets.ARTIFACTORY_AUTH_TOKEN }}
