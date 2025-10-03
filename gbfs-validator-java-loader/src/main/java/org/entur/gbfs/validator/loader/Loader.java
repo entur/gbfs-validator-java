@@ -58,85 +58,108 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Loads GBFS (General Bikeshare Feed Specification) files from HTTP/HTTPS URLs or local file system.
+ * Manages HTTP connection pooling and parallel file loading using a thread pool.
+ * Thread-safe and designed to be used as a singleton bean.
+ */
 public class Loader {
     private final CloseableHttpClient httpClient;
     private final ExecutorService executorService;
     private final Map<String, String> customHeaders;
 
-    // Helper method to extract filename from URI
     private String getFileName(URI uri) {
         String path = uri.getPath();
         if (path == null || path.isEmpty()) {
-            return "unknown_file"; // Or handle as an error/default
+            return "unknown_file";
         }
         return new File(path).getName();
     }
 
+    /**
+     * Creates a Loader with default configuration.
+     * Uses 50 max total connections, 20 max per route, 5 second timeouts, 20 threads, and no custom headers.
+     */
     public Loader() {
         this(50, 20, 5, 5, 20, Collections.emptyMap());
     }
 
+    /**
+     * Creates a Loader with custom configuration.
+     *
+     * @param maxTotalConnections maximum number of total HTTP connections in the pool
+     * @param maxConnectionsPerRoute maximum number of connections per route
+     * @param connectTimeoutSeconds connection timeout in seconds
+     * @param responseTimeoutSeconds response timeout in seconds
+     * @param threadPoolSize number of threads for parallel loading
+     * @param customHeaders custom HTTP headers to include in all requests
+     */
     public Loader(int maxTotalConnections, int maxConnectionsPerRoute,
                   int connectTimeoutSeconds, int responseTimeoutSeconds,
                   int threadPoolSize, Map<String, String> customHeaders) {
         this.customHeaders = customHeaders != null ? customHeaders : new HashMap<>();
-        // Create connection pool manager
+
         PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
-        // Set the maximum number of total connections
         connectionManager.setMaxTotal(maxTotalConnections);
-        // Set the maximum number of connections per route
         connectionManager.setDefaultMaxPerRoute(maxConnectionsPerRoute);
 
-        // Configure request timeouts
         RequestConfig requestConfig = RequestConfig.custom()
                 .setConnectTimeout(Timeout.of(connectTimeoutSeconds, TimeUnit.SECONDS))
                 .setResponseTimeout(Timeout.of(responseTimeoutSeconds, TimeUnit.SECONDS))
                 .build();
 
-        // Build the HttpClient with connection pooling
         httpClient = HttpClients.custom()
                 .setConnectionManager(connectionManager)
                 .setDefaultRequestConfig(requestConfig)
                 .build();
 
-        // Create a thread pool for parallel execution
         executorService = Executors.newFixedThreadPool(threadPoolSize);
     }
 
+    /**
+     * Loads GBFS files from the given discovery file URL without authentication.
+     *
+     * @param discoveryURIString URL or file path to the GBFS discovery file
+     * @return list of loaded files with their content and metadata
+     * @throws IOException if an error occurs during loading
+     */
     public List<LoadedFile> load(String discoveryURIString) throws IOException {
         return load(discoveryURIString, null);
     }
 
+    /**
+     * Loads GBFS files from the given discovery file URL with authentication.
+     *
+     * @param discoveryURIString URL or file path to the GBFS discovery file
+     * @param auth authentication credentials for protected feeds, or null for public feeds
+     * @return list of loaded files with their content and metadata
+     * @throws IOException if an error occurs during loading
+     */
     public List<LoadedFile> load(String discoveryURIString, Authentication auth) throws IOException {
         URI discoveryURI = URI.create(discoveryURIString);
         LoadedFile discoveryLoadedFile = loadFile(discoveryURI, auth);
 
         if (discoveryLoadedFile.fileContents() == null) {
-            // If discovery file itself failed to load, return it with its system errors
             List<LoadedFile> loadedFiles = new ArrayList<>();
             loadedFiles.add(discoveryLoadedFile);
             return loadedFiles;
         }
 
-        // Read the content of the discovery file for further processing
         ByteArrayOutputStream discoveryFileCopy = new ByteArrayOutputStream();
         org.apache.commons.io.IOUtils.copy(discoveryLoadedFile.fileContents(), discoveryFileCopy);
         byte[] discoveryFileBytes = discoveryFileCopy.toByteArray();
-        // Close the original stream now that we have a copy
         discoveryLoadedFile.fileContents().close();
 
-
         JSONObject discoveryFileJson = new JSONObject(new JSONTokener(new ByteArrayInputStream(discoveryFileBytes)));
-        String version = discoveryFileJson.getString("version"); // Use getString for mandatory fields
+        String version = discoveryFileJson.getString("version");
 
         List<LoadedFile> loadedFiles = new ArrayList<>();
-        // Add the successfully loaded discovery file (with its original byte array)
         loadedFiles.add(new LoadedFile(
                 discoveryLoadedFile.fileName(),
                 discoveryLoadedFile.url(),
-                new ByteArrayInputStream(discoveryFileBytes), // use the copied bytes
-                discoveryLoadedFile.language(), // language might be null
-                discoveryLoadedFile.loaderErrors() // should be empty here
+                new ByteArrayInputStream(discoveryFileBytes),
+                discoveryLoadedFile.language(),
+                discoveryLoadedFile.loaderErrors()
         ));
 
 
@@ -152,7 +175,6 @@ public class Loader {
     private List<LoadedFile> getV3Files(JSONObject discoveryFileJson, LoadedFile gbfsLoadedFile, Authentication auth) {
         List<LoadedFile> loadedFeedFiles = new ArrayList<>();
 
-        // Load feed files in parallel using CompletableFuture
         List<CompletableFuture<LoadedFile>> futures = discoveryFileJson.getJSONObject("data").getJSONArray("feeds").toList().stream()
                 .map(feed -> {
                     @SuppressWarnings("unchecked")
@@ -162,13 +184,10 @@ public class Loader {
 
                     return CompletableFuture.supplyAsync(() -> {
                         LoadedFile loadedFile = loadFile(URI.create(url), auth);
-                        // Ensure name and original url are from the discovery file, not overridden by potential redirects in loadFile
                         return new LoadedFile(name, url, loadedFile.fileContents(), loadedFile.language(), loadedFile.loaderErrors());
                     }, executorService);
                 })
                 .toList();
-
-        // Wait for all futures to complete and collect results
         loadedFeedFiles.addAll(futures.stream()
                 .map(CompletableFuture::join)
                 .toList());
@@ -180,15 +199,9 @@ public class Loader {
         List<LoadedFile> loadedFeedFiles = new ArrayList<>();
         List<CompletableFuture<LoadedFile>> futures = new ArrayList<>();
 
-        // Add the discovery file itself for each language specified (pre-v3)
-        // This part is tricky as the original structure added multiple copies of gbfs.json for each language.
-        // For now, we've already added the main gbfsLoadedFile.
-        // The feeds listed per language will be loaded below.
-
         discoveryFileJson.getJSONObject("data")
                 .keys()
                 .forEachRemaining(languageKey -> {
-                    // Create CompletableFutures for each feed file within this language
                     discoveryFileJson.getJSONObject("data").getJSONObject(languageKey).getJSONArray("feeds").toList().forEach(feed -> {
                         @SuppressWarnings("unchecked")
                         Map<String, Object> feedMap = (Map<String, Object>) feed;
@@ -197,13 +210,11 @@ public class Loader {
 
                         futures.add(CompletableFuture.supplyAsync(() -> {
                             LoadedFile loadedFile = loadFile(URI.create(url), auth);
-                            // Ensure name, original url, and language are from the discovery file
                             return new LoadedFile(name, url, loadedFile.fileContents(), languageKey, loadedFile.loaderErrors());
                         }, executorService));
                     });
                 });
 
-        // Wait for all futures to complete and collect results
         loadedFeedFiles.addAll(futures.stream()
                 .map(CompletableFuture::join)
                 .toList());
@@ -248,10 +259,9 @@ public class Loader {
         return new FileInputStream(new File(fileURI));
     }
 
-    private InputStream getHTTPInputStream(URI fileURI, Authentication auth) throws IOException, ParseException { // Added ParseException to signature
+    private InputStream getHTTPInputStream(URI fileURI, Authentication auth) throws IOException, ParseException {
         HttpGet httpGet = new HttpGet(fileURI);
 
-        // Set custom headers
         customHeaders.forEach(httpGet::setHeader);
 
         if (auth != null) {
@@ -264,24 +274,20 @@ public class Loader {
                 try {
                     String token = fetchOAuthToken(oauth.getTokenUrl(), oauth.getClientId(), oauth.getClientSecret());
                     httpGet.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token);
-                } catch (Exception e) { // Catch specific exceptions if possible
-                    // Propagate as IOException or a custom auth exception, or add to SystemError list for the file
+                } catch (Exception e) {
                     throw new IOException("OAuth token fetch failed: " + e.getMessage(), e);
                 }
             }
         }
 
         try (CloseableHttpResponse response = httpClient.execute(httpGet)) {
-            // Check if the response code indicates an error (e.g., 4xx or 5xx)
             if (response.getCode() >= 300) {
-                // Consume the entity to allow connection reuse, then throw an exception
                 EntityUtils.consumeQuietly(response.getEntity());
                 throw new IOException("HTTP error fetching file: " + response.getCode() + " " + response.getReasonPhrase());
             }
             String content = EntityUtils.toString(response.getEntity());
             return new ByteArrayInputStream(content.getBytes());
         }
-        // Removed the catch for ParseException here, as it will be caught by loadFile
     }
 
     private String fetchOAuthToken(String tokenUrl, String clientId, String clientSecret) throws IOException, ParseException {
@@ -304,17 +310,20 @@ public class Loader {
         }
     }
 
-    // Close the connection pool when the application shuts down
+    /**
+     * Closes the HTTP client and shuts down the thread pool.
+     * Attempts graceful shutdown with a 5-second timeout before forcing termination.
+     *
+     * @throws IOException if an error occurs closing the HTTP client
+     */
     public void close() throws IOException {
         if (httpClient != null) {
             httpClient.close();
         }
 
-        // Shutdown the executor service
         if (executorService != null && !executorService.isShutdown()) {
             executorService.shutdown();
             try {
-                // Wait for tasks to complete
                 if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
                     executorService.shutdownNow();
                 }

@@ -57,16 +57,29 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Service implementation for GBFS validation API operations.
+ * Handles validation requests by loading GBFS files and running them through the validator.
+ */
 @Service
 public class ValidateApiDelegateHandler implements ValidateApiDelegate {
     private static final Logger logger = LoggerFactory.getLogger(ValidateApiDelegateHandler.class);
 
     private final Loader loader;
 
+    /**
+     * Creates a new validation handler.
+     *
+     * @param loader the GBFS file loader to use
+     */
     public ValidateApiDelegateHandler(Loader loader) {
         this.loader = loader;
     }
 
+    /**
+     * Cleans up resources when the service is destroyed.
+     * Closes the loader's HTTP client and thread pool.
+     */
     @PreDestroy
     public void destroy() {
         try {
@@ -78,6 +91,12 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
         }
     }
 
+    /**
+     * Validates a GBFS feed by loading all files and running validation.
+     *
+     * @param validatePostRequest the validation request containing feed URL and optional authentication
+     * @return validation results with file-level errors and system errors
+     */
     @Override
     public ResponseEntity<org.entur.gbfs.validator.api.model.ValidationResult> validatePost(ValidatePostRequest validatePostRequest) {
         logger.debug("Received request for url: {}", validatePostRequest.getFeedUrl());
@@ -105,13 +124,8 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
 
             logger.debug("Loaded files: {}", allLoadedFiles.size());
 
-            // Group loaded files by language. For files without a language (e.g. gbfs.json, or if loader doesn't set it),
-            // use a default key or handle them as appropriate. loader.load() should populate language for pre-v3.
-            // For v3+, language is typically null at the LoadedFile stage for gbfs.json itself.
             Multimap<String, LoadedFile> filesByLanguage = MultimapBuilder.hashKeys().arrayListValues().build();
             for (LoadedFile loadedFile : allLoadedFiles) {
-                // Use a placeholder if language is null to ensure they are processed.
-                // gbfs.json (discovery file) itself might have null language.
                 String langKey = loadedFile.language() != null ? loadedFile.language() : "default_lang";
                 filesByLanguage.put(langKey, loadedFile);
             }
@@ -122,17 +136,12 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
             filesByLanguage.asMap().forEach((languageKey, loadedFilesForLang) -> {
                 logger.debug("Processing language group: {}", languageKey);
                 Map<String, InputStream> validatorInputMap = new HashMap<>();
-                // Keep track of LoadedFile objects for this language group to pass to mapping
                 List<LoadedFile> currentLanguageLoadedFiles = new ArrayList<>(loadedFilesForLang);
 
                 for (LoadedFile file : currentLanguageLoadedFiles) {
-                    // Only try to validate files that have content.
-                    // Files with system errors from loader might have null fileContents.
                     if (file.fileContents() != null) {
                         validatorInputMap.put(file.fileName(), file.fileContents());
                     }
-                    // Note: urlMap is not used in the refined plan for mapFiles directly,
-                    // as LoadedFile itself contains the URL.
                 }
 
                 ValidationResult internalValidationResult = validator.validate(validatorInputMap);
@@ -140,32 +149,28 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
                 resultsPerLanguage.add(
                         mapValidationResult(
                                 internalValidationResult,
-                                currentLanguageLoadedFiles, // Pass the list of LoadedFile for this language
-                                "default_lang".equals(languageKey) ? null : languageKey // Pass actual language, or null
+                                currentLanguageLoadedFiles,
+                                "default_lang".equals(languageKey) ? null : languageKey
                         )
                 );
                 logger.debug("Processed {} files for language group: {}", currentLanguageLoadedFiles.size(), languageKey);
             });
 
-            // merge the list of ValidationResult into a single validation result
             return ResponseEntity.ok(
                     mergeValidationResults(resultsPerLanguage)
             );
 
         } catch (IOException e) {
-            // Consider mapping IOExceptions from loader to a SystemError in the response too
             logger.error("IOException during validation process", e);
-            // Depending on desired API behavior, could return a 500 with a SystemError
-            throw new RuntimeException(e); // Or handle more gracefully
+            throw new RuntimeException(e);
         }
     }
 
     private org.entur.gbfs.validator.api.model.ValidationResult mergeValidationResults(List<org.entur.gbfs.validator.api.model.ValidationResult> results) {
         if (results.isEmpty()) {
-            // Handle case with no results, perhaps due to total load failure of discovery file
             org.entur.gbfs.validator.api.model.ValidationResult emptyApiResult = new org.entur.gbfs.validator.api.model.ValidationResult();
             ValidationResultSummary emptySummary = new ValidationResultSummary();
-            emptySummary.setValidatorVersion("2.0.30-SNAPSHOT"); // TODO: Inject this
+            emptySummary.setValidatorVersion("2.0.30-SNAPSHOT");
             emptySummary.setFiles(new ArrayList<>());
             emptyApiResult.setSummary(emptySummary);
             return emptyApiResult;
@@ -173,7 +178,6 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
 
         org.entur.gbfs.validator.api.model.ValidationResult mergedResult = new org.entur.gbfs.validator.api.model.ValidationResult();
         ValidationResultSummary summary = new ValidationResultSummary();
-        // Assuming validatorVersion is consistent or taking from the first result
         summary.setValidatorVersion(results.get(0).getSummary().getValidatorVersion());
         List<GbfsFile> allFiles = new ArrayList<>();
         results.forEach(result -> {
@@ -182,32 +186,20 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
             }
         });
 
-        // Dedup files if necessary, though current logic iterates by language group,
-        // so gbfs.json might appear multiple times if language key was 'default_lang' for it.
-        // For now, simple aggregation. A more sophisticated merge might be needed if files are duplicated across "language" groups.
-        // A simple distinct by URL or name could be:
-        // List<GbfsFile> distinctFiles = allFiles.stream().filter(distinctByKey(GbfsFile::getUrl)).toList();
-        // summary.setFiles(distinctFiles);
-        summary.setFiles(allFiles); // Using simple aggregation for now.
+        summary.setFiles(allFiles);
 
         mergedResult.setSummary(summary);
         return mergedResult;
     }
-    /*
-    private static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {
-        Map<Object, Boolean> seen = new ConcurrentHashMap<>();
-        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
-    }
-    */
 
 
     private org.entur.gbfs.validator.api.model.ValidationResult mapValidationResult(
             ValidationResult internalValidationResult,
-            List<LoadedFile> loadedFilesForLanguage, // Now includes LoadedFile list
-            String language // Actual language string, can be null
+            List<LoadedFile> loadedFilesForLanguage,
+            String language
     ) {
         ValidationResultSummary validationResultSummary = new ValidationResultSummary();
-        validationResultSummary.setValidatorVersion("2.0.30-SNAPSHOT"); // TODO inject this value
+        validationResultSummary.setValidatorVersion("2.0.30-SNAPSHOT");
 
         validationResultSummary.setFiles(
                 mapFiles(loadedFilesForLanguage, internalValidationResult.files(), language)
@@ -221,7 +213,7 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
     private List<GbfsFile> mapFiles(
             List<LoadedFile> loadedFilesForLanguage,
             Map<String, FileValidationResult> validatedFileResultsMap,
-            String language // Actual language string, can be null for gbfs.json
+            String language
     ) {
         List<GbfsFile> apiGbfsFiles = new ArrayList<>();
 
@@ -232,7 +224,6 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
 
             List<SystemError> combinedApiSystemErrors = new ArrayList<>();
 
-            // System errors from loader
             List<LoaderError> loaderSystemErrors = loadedFile.loaderErrors();
             if (loaderSystemErrors != null && !loaderSystemErrors.isEmpty()) {
                 combinedApiSystemErrors.addAll(mapLoaderSystemErrorsToApi(loaderSystemErrors));
@@ -241,29 +232,22 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
             FileValidationResult validationResult = validatedFileResultsMap.get(loadedFile.fileName());
 
             if (validationResult != null) {
-                // File was processed by validator
                 apiFile.setSchema(validationResult.schema());
                 apiFile.setVersion(validationResult.version());
                 apiFile.setErrors(mapFileValidationErrors(validationResult.errors()));
 
-                // Add system errors from validator (parsing errors)
                 List<ValidatorError> validatorSystemErrors = validationResult.validatorErrors();
                 if (validatorSystemErrors != null && !validatorSystemErrors.isEmpty()) {
                     combinedApiSystemErrors.addAll(mapValidatorSystemErrorsToApi(validatorSystemErrors));
                 }
             } else {
-                // File was not processed by validator (e.g. content was null due to load error)
-                // or validator skipped it. Schema/Version might be unknown.
-                // Validation errors are empty.
                 apiFile.setErrors(new ArrayList<>());
             }
 
             apiFile.setSystemErrors(combinedApiSystemErrors);
 
-            // Set language - gbfs.json (discovery file) typically has no language.
-            // Other files get the language of their group.
             if (loadedFile.fileName().equals("gbfs.json") || loadedFile.fileName().equals("gbfs")) {
-                 apiFile.setLanguage(null); // Explicitly null for discovery
+                 apiFile.setLanguage(null);
             } else {
                  apiFile.setLanguage(JsonNullable.of(language));
             }
