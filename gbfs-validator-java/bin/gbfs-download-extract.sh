@@ -35,6 +35,12 @@ wget -q ${WGET_URL} -O ${ZIP_FILE}
 
 if [ -f ${ZIP_FILE} ]; then
     echo "Done"
+    # Validate the downloaded zip file
+    if ! unzip -t "${ZIP_FILE}" > /dev/null; then
+        (>&2 echo "Error: Downloaded file ${ZIP_FILE} is not a valid zip archive.")
+        rm "${ZIP_FILE}"
+        exit 1
+    fi
     {
     echo "Create ${DESTINATION_PATH}" &&
     mkdir -p ${DESTINATION_PATH} &&

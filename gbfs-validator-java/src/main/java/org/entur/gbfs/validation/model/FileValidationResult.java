@@ -18,6 +18,7 @@
 
 package org.entur.gbfs.validation.model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
@@ -32,18 +33,25 @@ import java.util.stream.IntStream;
  * @param fileContents The contents of the file
  * @param version The version of the file
  * @param errors A list of errors encountered while validating the file
+ * @param validatorErrors A list of system errors encountered while trying to load or process the file
  */
 public record FileValidationResult(
-        String file,
+         String file,
          boolean required,
          boolean exists,
          int errorsCount,
          String schema,
          String fileContents,
          String version,
-         List<FileValidationError> errors
+         List<FileValidationError> errors,
+         List<ValidatorError> validatorErrors
 ) implements ValidationResultComponentIdentity<FileValidationResult> {
 
+    public FileValidationResult {
+        errors = new ArrayList<>(errors);
+        validatorErrors = new ArrayList<>(validatorErrors);
+    }
+    
     @Override
     public String toString() {
         return "FileValidationResult{" +
@@ -55,6 +63,7 @@ public record FileValidationResult(
                 ", fileContents='" + fileContents + '\'' +
                 ", version='" + version + '\'' +
                 ", errors=" + errors +
+                ", systemErrors=" + validatorErrors +
                 '}';
     }
 
@@ -63,11 +72,19 @@ public record FileValidationResult(
         if (other == null) return false;
         if (required != other.required) return false;
         if (exists != other.exists) return false;
-        if (errorsCount != other.errorsCount) return false;
+        if (errorsCount != other.errorsCount) return false; // This should ideally reflect both validation and system errors count
         if (!Objects.equals(file, other.file)) return false;
         if (!Objects.equals(version, other.version)) return false;
-        return IntStream
+
+        // Compare validation errors
+        if (errors.size() != other.errors.size()) return false;
+        if (!IntStream
                 .range(0, errors.size())
-                .allMatch(i -> errors.get(i).sameAs(other.errors.get(i)));
+                .allMatch(i -> errors.get(i).sameAs(other.errors.get(i)))) {
+            return false;
+        }
+
+        // Compare system errors (SystemError is a record, so its equals method is suitable)
+        return Objects.equals(validatorErrors, other.validatorErrors);
     }
 }

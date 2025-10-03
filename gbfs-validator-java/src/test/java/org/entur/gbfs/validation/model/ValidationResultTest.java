@@ -80,7 +80,8 @@ class ValidationResultTest {
                 List.of(
                         generateFileValidationError(message1),
                         generateFileValidationError(message2)
-                )
+                ),
+                List.of()
         );
     }
 
@@ -88,7 +89,8 @@ class ValidationResultTest {
         return new FileValidationError(
                 "schema/path",
                 "violation/path",
-                message
+                message,
+                "keyword"
         );
     }
 }
