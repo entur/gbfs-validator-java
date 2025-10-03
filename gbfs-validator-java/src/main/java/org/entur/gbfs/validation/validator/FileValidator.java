@@ -65,8 +65,13 @@ public class FileValidator {
       int errorsCount = 0;
       List<FileValidationError> validationErrors = List.of();
 
+      org.everit.json.schema.Schema schema = version.getSchema(
+        feedName,
+        feedMap
+      );
+
       try {
-        version.validate(feedName, feedMap);
+        schema.validate(feed);
       } catch (ValidationException validationException) {
         errorsCount = validationException.getViolationCount();
         validationErrors = mapToValidationErrors(validationException);
@@ -77,7 +82,7 @@ public class FileValidator {
         isRequired(feedName),
         feed != null,
         errorsCount,
-        version.getSchema(feedName, feedMap).toString(),
+        schema.toString(),
         Optional.ofNullable(feed).map(JSONObject::toString).orElse(null),
         version.getVersionString(),
         validationErrors,
