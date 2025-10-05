@@ -26,6 +26,7 @@
         <module>gbfs-validator-java</module>
         <module>gbfs-validator-java-loader</module>
         <module>gbfs-validator-java-api</module>
+        <module>gbfs-validator-java-cli</module>
     </modules>
 
     <developers>

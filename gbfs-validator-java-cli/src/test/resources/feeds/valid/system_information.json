@@ -1,0 +1,11 @@
+{
+  "last_updated": 1609459200,
+  "ttl": 0,
+  "version": "2.2",
+  "data": {
+    "system_id": "test_system",
+    "language": "en",
+    "name": "Test Bike Share",
+    "timezone": "America/New_York"
+  }
+}
