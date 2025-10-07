@@ -41,6 +41,9 @@
         <mockito.version>5.11.0</mockito.version>
         <junit-platform.version>6.0.0</junit-platform.version>
         <openapi-generator-maven-plugin>7.16.0</openapi-generator-maven-plugin>
+        <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
+        <!-- empty argLine property, the value is set up by Jacoco during unit tests execution -->
+        <argLine></argLine>
     </properties>
 
     <dependencyManagement>
@@ -227,6 +230,37 @@
                     <target>17</target>
                     <release>17</release>
                 </configuration>
+            </plugin>
+
+            <!-- Jacoco for code coverage -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>default-prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>default-report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>default-check</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules />
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- Configure Surefire plugin for JUnit 5 -->
