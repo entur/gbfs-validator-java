@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.entur.gbfs</groupId>
         <artifactId>gbfs-validator-java-parent</artifactId>
-        <version>2.0.56-SNAPSHOT</version>
+        <version>2.0.57-SNAPSHOT</version>
     </parent>
 
     <artifactId>gbfs-validator-java-api</artifactId>
@@ -40,7 +40,7 @@
         <junit.version>6.0.0</junit.version>
         <mockito.version>5.11.0</mockito.version>
         <junit-platform.version>6.0.0</junit-platform.version>
-        <openapi-generator-maven-plugin>6.0.0</openapi-generator-maven-plugin>
+        <openapi-generator-maven-plugin>7.16.0</openapi-generator-maven-plugin>
     </properties>
 
     <dependencyManagement>
@@ -48,7 +48,7 @@
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
-                <version>3.4.3</version>
+                <version>3.5.6</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -74,7 +74,7 @@
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-annotations</artifactId>
-            <version>2.2.28</version>
+            <version>2.2.38</version>
         </dependency>
 
         <dependency>
@@ -100,7 +100,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
-            <version>2.16.1</version>
+            <version>2.20</version>
         </dependency>
 
         <dependency>
@@ -113,25 +113,25 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.6.0</version>
+            <version>2.8.13</version>
         </dependency>
 
         <dependency>
             <groupId>org.openapitools</groupId>
             <artifactId>jackson-databind-nullable</artifactId>
-            <version>0.2.6</version>
+            <version>0.2.7</version>
         </dependency>
 
         <dependency>
             <groupId>org.entur.gbfs</groupId>
             <artifactId>gbfs-validator-java-loader</artifactId>
-            <version>2.0.56-SNAPSHOT</version>
+            <version>2.0.57-SNAPSHOT</version>
         </dependency>
 
         <dependency>
             <groupId>org.entur.gbfs</groupId>
             <artifactId>gbfs-validator-java</artifactId>
-            <version>2.0.56-SNAPSHOT</version>
+            <version>2.0.57-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -207,7 +207,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>3.4.3</version>
+                <version>3.5.6</version>
                 <executions>
                     <execution>
                         <goals>
@@ -221,7 +221,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
+                <version>3.14.1</version>
                 <configuration>
                     <source>17</source>
                     <target>17</target>
@@ -233,7 +233,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.2</version>
+                <version>3.5.4</version>
                 <configuration>
                     <includes>
                         <include>**/*Test.java</include>
