@@ -23,7 +23,7 @@ import picocli.CommandLine.Option;
 @Command(
   name = "gbfs-validator",
   mixinStandardHelpOptions = true,
-  version = "2.0.52-SNAPSHOT",
+  version = "2.0.52-SNAPSHOT", // TODO this needs to be injected
   description = "Validate GBFS feeds against JSON schemas",
   headerHeading = "Usage:%n%n",
   synopsisHeading = "%n",
