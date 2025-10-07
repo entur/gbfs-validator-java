@@ -1,6 +1,7 @@
 package org.entur.gbfs.validator.cli;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -74,68 +75,28 @@ public class GbfsValidatorCli implements Callable<Integer> {
     Loader loader = null;
 
     try {
-      // 1. Build authentication
       Authentication auth = AuthenticationHandler.buildAuthentication(
         authOptions
       );
 
-      // 2. Create loader and load feeds
       loader = new Loader();
       List<LoadedFile> loadedFiles = loader.load(feedUrl, auth);
 
-      // 3. Check for fatal loader errors
-      boolean hasFatalLoaderErrors = loadedFiles
-        .stream()
-        .anyMatch(file ->
-          file.loaderErrors() != null && !file.loaderErrors().isEmpty()
-        );
-
-      if (
-        hasFatalLoaderErrors &&
-        loadedFiles.stream().noneMatch(file -> file.fileContents() != null)
-      ) {
+      boolean hasFatalLoaderErrors = hasFatalLoaderErrors(loadedFiles);
+      if (hasFatalLoaderErrors && hasNoValidContent(loadedFiles)) {
         System.err.println("ERROR: Failed to load any feeds from " + feedUrl);
-        return 2; // System error
+        return 2;
       }
 
-      // 4. Convert loaded files to validator input format
-      Map<String, InputStream> fileMap = new HashMap<>();
-      for (LoadedFile file : loadedFiles) {
-        if (file.fileContents() != null) {
-          fileMap.put(file.fileName(), file.fileContents());
-        }
-      }
+      Map<String, InputStream> fileMap = buildFileMap(loadedFiles);
 
-      // 5. Validate
       GbfsValidator validator = GbfsValidatorFactory.getGbfsJsonValidator();
       ValidationResult result = validator.validate(fileMap);
 
-      // 6. Format report
-      ReportFormatter formatter = createFormatter(format);
-      String report = formatter.format(result, loadedFiles, verbose);
+      String report = formatReport(result, loadedFiles);
+      outputReport(report);
 
-      // 7. Output report
-      if ("yes".equalsIgnoreCase(printReport)) {
-        System.out.println(report);
-      }
-
-      if (reportFile != null) {
-        ReportWriter.writeReport(reportFile, report);
-        if (!"yes".equalsIgnoreCase(printReport)) {
-          System.out.println(
-            "Report saved to: " + reportFile.getAbsolutePath()
-          );
-        }
-      }
-
-      // 8. Determine exit code
-      if (hasFatalLoaderErrors) {
-        return 2; // System error
-      } else if (result.summary().errorsCount() > 0) {
-        return 1; // Validation failure
-      } else {
-        return 0; // Success
-      }
+      return determineExitCode(hasFatalLoaderErrors, result);
     } catch (Exception e) {
       System.err.println("ERROR: " + e.getMessage());
       if (verbose) {
@@ -146,6 +107,66 @@ public class GbfsValidatorCli implements Callable<Integer> {
       if (loader != null) {
         loader.close();
       }
+    }
+  }
+
+  private boolean hasFatalLoaderErrors(List<LoadedFile> loadedFiles) {
+    return loadedFiles
+      .stream()
+      .anyMatch(file ->
+        file.loaderErrors() != null && !file.loaderErrors().isEmpty()
+      );
+  }
+
+  private boolean hasNoValidContent(List<LoadedFile> loadedFiles) {
+    return loadedFiles
+      .stream()
+      .noneMatch(file -> file.fileContents() != null);
+  }
+
+  private Map<String, InputStream> buildFileMap(List<LoadedFile> loadedFiles) {
+    Map<String, InputStream> fileMap = new HashMap<>();
+    for (LoadedFile file : loadedFiles) {
+      if (file.fileContents() != null) {
+        fileMap.put(file.fileName(), file.fileContents());
+      }
+    }
+    return fileMap;
+  }
+
+  private String formatReport(
+    ValidationResult result,
+    List<LoadedFile> loadedFiles
+  ) {
+    ReportFormatter formatter = createFormatter(format);
+    return formatter.format(result, loadedFiles, verbose);
+  }
+
+  private void outputReport(String report) throws IOException {
+    if ("yes".equalsIgnoreCase(printReport)) {
+      System.out.println(report);
+    }
+
+    if (reportFile != null) {
+      ReportWriter.writeReport(reportFile, report);
+      if (!"yes".equalsIgnoreCase(printReport)) {
+        System.out.println(
+          "Report saved to: " + reportFile.getAbsolutePath()
+        );
+      }
+    }
+  }
+
+  private int determineExitCode(
+    boolean hasFatalLoaderErrors,
+    ValidationResult result
+  ) {
+    if (hasFatalLoaderErrors) {
+      return 2;
+    } else if (result.summary().errorsCount() > 0) {
+      return 1;
+    } else {
+      return 0;
     }
   }
 
