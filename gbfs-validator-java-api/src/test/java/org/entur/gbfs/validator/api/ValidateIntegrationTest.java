@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.entur.gbfs.validator.api.handler.OpenApiGeneratorApplication;
 import org.entur.gbfs.validator.api.model.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-@SpringBootTest(classes = TestApplication.class)
+@SpringBootTest(classes = OpenApiGeneratorApplication.class)
 @AutoConfigureMockMvc
 public class ValidateIntegrationTest {
 
@@ -46,8 +47,8 @@ public class ValidateIntegrationTest {
     ValidatePostRequest request = new ValidatePostRequest();
     request.setFeedUrl("http://example.com/gbfs.json");
 
-    BasicAuth basicAuth = new BasicAuth();
-    basicAuth.setAuthType("basic");
+    ValidatePostRequestAuth basicAuth = new ValidatePostRequestAuth();
+    basicAuth.setAuthType("basicAuth");
     basicAuth.setUsername("user");
     basicAuth.setPassword("pass");
     request.setAuth(basicAuth);
@@ -69,8 +70,8 @@ public class ValidateIntegrationTest {
     ValidatePostRequest request = new ValidatePostRequest();
     request.setFeedUrl("http://example.com/gbfs.json");
 
-    BearerTokenAuth bearerAuth = new BearerTokenAuth();
-    bearerAuth.setAuthType("bearer");
+    ValidatePostRequestAuth bearerAuth = new ValidatePostRequestAuth();
+    bearerAuth.setAuthType("bearerToken");
     bearerAuth.setToken("token123");
     request.setAuth(bearerAuth);
 
@@ -91,9 +92,8 @@ public class ValidateIntegrationTest {
     ValidatePostRequest request = new ValidatePostRequest();
     request.setFeedUrl("http://example.com/gbfs.json");
 
-    OAuthClientCredentialsGrantAuth oauthAuth =
-      new OAuthClientCredentialsGrantAuth();
-    oauthAuth.setAuthType("oauth");
+    ValidatePostRequestAuth oauthAuth = new ValidatePostRequestAuth();
+    oauthAuth.setAuthType("oauthClientCredentialsGrant");
     oauthAuth.setTokenUrl("https://auth.example.com/token");
     oauthAuth.setClientId("client_id");
     oauthAuth.setClientSecret("client_secret");
@@ -116,8 +116,8 @@ public class ValidateIntegrationTest {
     ValidatePostRequest request = new ValidatePostRequest();
     request.setFeedUrl("http://example.com/gbfs.json");
 
-    BasicAuth basicAuth = new BasicAuth();
-    basicAuth.setAuthType("basic");
+    ValidatePostRequestAuth basicAuth = new ValidatePostRequestAuth();
+    basicAuth.setAuthType("basicAuth");
     basicAuth.setUsername("wrong_user");
     basicAuth.setPassword("wrong_password");
     request.setAuth(basicAuth);

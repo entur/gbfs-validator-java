@@ -36,11 +36,8 @@ import org.entur.gbfs.validation.model.FileValidationResult;
 import org.entur.gbfs.validation.model.ValidationResult;
 import org.entur.gbfs.validation.model.ValidatorError;
 import org.entur.gbfs.validator.api.gen.ValidateApiDelegate;
-import org.entur.gbfs.validator.api.model.BasicAuth;
-import org.entur.gbfs.validator.api.model.BearerTokenAuth;
 import org.entur.gbfs.validator.api.model.FileError;
 import org.entur.gbfs.validator.api.model.GbfsFile;
-import org.entur.gbfs.validator.api.model.OAuthClientCredentialsGrantAuth;
 import org.entur.gbfs.validator.api.model.SystemError;
 import org.entur.gbfs.validator.api.model.ValidatePostRequest;
 import org.entur.gbfs.validator.api.model.ValidatePostRequestAuth;
@@ -113,40 +110,7 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
       validatePostRequest.getFeedUrl()
     );
     try {
-      Authentication loaderAuth = null;
-      ValidatePostRequestAuth apiAuth = validatePostRequest.getAuth();
-
-      if (apiAuth != null) {
-        if (apiAuth instanceof BasicAuth basic) {
-          if (basic.getUsername() != null && basic.getPassword() != null) {
-            loaderAuth =
-              new org.entur.gbfs.validator.loader.auth.BasicAuth(
-                basic.getUsername(),
-                basic.getPassword()
-              );
-          }
-        } else if (apiAuth instanceof BearerTokenAuth bearer) {
-          if (bearer.getToken() != null) {
-            loaderAuth =
-              new org.entur.gbfs.validator.loader.auth.BearerTokenAuth(
-                bearer.getToken()
-              );
-          }
-        } else if (apiAuth instanceof OAuthClientCredentialsGrantAuth oauth) {
-          if (
-            oauth.getClientId() != null &&
-            oauth.getClientSecret() != null &&
-            oauth.getTokenUrl() != null
-          ) {
-            loaderAuth =
-              new org.entur.gbfs.validator.loader.auth.OAuthClientCredentialsGrantAuth(
-                oauth.getClientId(),
-                oauth.getClientSecret(),
-                oauth.getTokenUrl().toString()
-              );
-          }
-        }
-      }
+      Authentication loaderAuth = getAuthentication(validatePostRequest);
 
       List<LoadedFile> allLoadedFiles = loader.load(
         validatePostRequest.getFeedUrl(),
@@ -208,6 +172,47 @@ public class ValidateApiDelegateHandler implements ValidateApiDelegate {
       logger.error("IOException during validation process", e);
       throw new RuntimeException(e);
     }
+  }
+
+  private static Authentication getAuthentication(
+    ValidatePostRequest validatePostRequest
+  ) {
+    Authentication loaderAuth = null;
+    ValidatePostRequestAuth apiAuth = validatePostRequest.getAuth();
+
+    if (apiAuth != null) {
+      String authType = apiAuth.getAuthType();
+      if ("basicAuth".equals(authType)) {
+        if (apiAuth.getUsername() != null && apiAuth.getPassword() != null) {
+          loaderAuth =
+            new org.entur.gbfs.validator.loader.auth.BasicAuth(
+              apiAuth.getUsername(),
+              apiAuth.getPassword()
+            );
+        }
+      } else if ("bearerToken".equals(authType)) {
+        if (apiAuth.getToken() != null) {
+          loaderAuth =
+            new org.entur.gbfs.validator.loader.auth.BearerTokenAuth(
+              apiAuth.getToken()
+            );
+        }
+      } else if ("oauthClientCredentialsGrant".equals(authType)) {
+        if (
+          apiAuth.getClientId() != null &&
+          apiAuth.getClientSecret() != null &&
+          apiAuth.getTokenUrl() != null
+        ) {
+          loaderAuth =
+            new org.entur.gbfs.validator.loader.auth.OAuthClientCredentialsGrantAuth(
+              apiAuth.getClientId(),
+              apiAuth.getClientSecret(),
+              apiAuth.getTokenUrl()
+            );
+        }
+      }
+    }
+    return loaderAuth;
   }
 
   private org.entur.gbfs.validator.api.model.ValidationResult mergeValidationResults(
