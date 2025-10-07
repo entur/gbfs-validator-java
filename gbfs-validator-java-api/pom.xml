@@ -40,7 +40,7 @@
         <junit.version>6.0.0</junit.version>
         <mockito.version>5.11.0</mockito.version>
         <junit-platform.version>6.0.0</junit-platform.version>
-        <openapi-generator-maven-plugin>6.0.0</openapi-generator-maven-plugin>
+        <openapi-generator-maven-plugin>7.16.0</openapi-generator-maven-plugin>
     </properties>
 
     <dependencyManagement>
