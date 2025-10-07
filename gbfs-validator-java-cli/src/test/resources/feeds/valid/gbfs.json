@@ -1,0 +1,15 @@
+{
+  "last_updated": 1609459200,
+  "ttl": 0,
+  "version": "2.2",
+  "data": {
+    "en": {
+      "feeds": [
+        {
+          "name": "system_information",
+          "url": "file:///${project.basedir}/src/test/resources/feeds/valid/system_information.json"
+        }
+      ]
+    }
+  }
+}

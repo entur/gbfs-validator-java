@@ -31,7 +31,6 @@ jobs:
             ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
             ${{ runner.os }}-maven-
             ${{ runner.os }}-
-
       - name: Run maven build
         run: mvn verify -s .github/workflows/settings.xml -PprettierCheck -Dprettier.nodePath=node -Dprettier.npmPath=npm
       - name: Sonar Scan
@@ -47,6 +46,10 @@ jobs:
                   -Dsonar.projectName=${SONAR_PROJECT_NAME} \
                   -Dsonar.host.url=https://sonarcloud.io \
                   -Dsonar.token=${SONAR_TOKEN}
+      - name: codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./**/target/site/jacoco/jacoco.xml
       - name: Upload artifact
         uses: actions/upload-artifact@v4.6.2
         with:
