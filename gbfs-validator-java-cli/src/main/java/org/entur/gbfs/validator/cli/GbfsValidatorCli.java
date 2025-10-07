@@ -119,9 +119,7 @@ public class GbfsValidatorCli implements Callable<Integer> {
   }
 
   private boolean hasNoValidContent(List<LoadedFile> loadedFiles) {
-    return loadedFiles
-      .stream()
-      .noneMatch(file -> file.fileContents() != null);
+    return loadedFiles.stream().noneMatch(file -> file.fileContents() != null);
   }
 
   private Map<String, InputStream> buildFileMap(List<LoadedFile> loadedFiles) {
@@ -150,9 +148,7 @@ public class GbfsValidatorCli implements Callable<Integer> {
     if (reportFile != null) {
       ReportWriter.writeReport(reportFile, report);
       if (!"yes".equalsIgnoreCase(printReport)) {
-        System.out.println(
-          "Report saved to: " + reportFile.getAbsolutePath()
-        );
+        System.out.println("Report saved to: " + reportFile.getAbsolutePath());
       }
     }
   }
