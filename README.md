@@ -1,4 +1,5 @@
-![Build and Deploy Maven Central](https://github.com/entur/gbfs-validator-java/actions/workflows/deploy.yml/badge.svg)
+![Build](https://github.com/entur/gbfs-validator-java/actions/workflows/build.yml/badge.svg?branch=master)
+![Deploy Maven Central](https://github.com/entur/gbfs-validator-java/actions/workflows/deploy.yml/badge.svg)
 [![codecov](https://codecov.io/gh/entur/gbfs-validator-java/graph/badge.svg?token=WP0DSLPSVR)](https://codecov.io/gh/entur/gbfs-validator-java)
 
 # gbfs-validator-java
