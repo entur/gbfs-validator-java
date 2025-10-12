@@ -21,7 +21,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <picocli.version>4.7.7</picocli.version>
         <jackson.version>2.15.2</jackson.version>
-        <junit.version>5.10.2</junit.version>
+        <junit.version>6.0.0</junit.version>
         <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
         <!-- empty argLine property, the value is set up by Jacoco during unit tests execution -->
         <argLine></argLine>
