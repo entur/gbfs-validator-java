@@ -2,10 +2,10 @@ name: Build
 on:
   pull_request:
     branches:
-      - master
+      - entur
   push:
     branches:
-      - master
+      - entur
 jobs:
   maven-package:
     runs-on: ubuntu-24.04
