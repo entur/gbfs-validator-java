@@ -62,6 +62,7 @@ List of additional rules:
 * `NoInvalidReferenceToPricingPlansInVehicleStatus`
 * `NoInvalidReferenceToPricingPlansInVehicleTypes`
 * `NoInvalidReferenceToRegionInStationInformation`
+* `NoInvalidReferenceToStation`
 * `NoInvalidReferenceToVehicleTypesInStationStatus`
 * `NoMissingVehicleTypesAvailableWhenVehicleTypesExists`
 * `NoMissingOrInvalidVehicleTypeIdInVehicleStatusWhenVehicleTypesExist`
