@@ -5,13 +5,23 @@
   "data": {
     "stations": [
       {
-        "station_id": "pga",
+        "station_id": "station1",
         "name": "Parking garage A",
         "lat": 12.345678,
         "lon": 45.678901,
         "vehicle_type_capacity": {
           "abc123": 7,
           "def456": 9
+        }
+      },
+      {
+        "station_id": "station2",
+        "name": "SE Belmont & SE 10th",
+        "lat": 45.516445,
+        "lon": -122.655775,
+        "vehicle_type_capacity": {
+          "abc123": 0,
+          "def456": 0
         }
       }
     ]

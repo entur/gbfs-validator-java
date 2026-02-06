@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import org.entur.gbfs.validation.validator.rules.CustomRuleSchemaPatcher;
 import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToRegionInStationInformation;
+import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToStation;
 import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToVehicleTypesInStationStatus;
 import org.entur.gbfs.validation.validator.rules.NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles;
 import org.entur.gbfs.validation.validator.rules.NoMissingOrInvalidVehicleTypeIdInVehicleStatusWhenVehicleTypesExist;
@@ -54,7 +55,8 @@ public class Version21 extends AbstractVersion {
       "station_status",
       List.of(
         new NoInvalidReferenceToVehicleTypesInStationStatus(),
-        new NoMissingVehicleTypesAvailableWhenVehicleTypesExists()
+        new NoMissingVehicleTypesAvailableWhenVehicleTypesExists(),
+        new NoInvalidReferenceToStation("station_information")
       ),
       "free_bike_status",
       List.of(
@@ -68,7 +70,10 @@ public class Version21 extends AbstractVersion {
       "system_information",
       List.of(new NoMissingStoreUriInSystemInformation("free_bike_status")),
       "station_information",
-      List.of(new NoInvalidReferenceToRegionInStationInformation())
+      List.of(
+        new NoInvalidReferenceToRegionInStationInformation(),
+        new NoInvalidReferenceToStation("station_status")
+      )
     );
 
   protected Version21() {

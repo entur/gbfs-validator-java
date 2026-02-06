@@ -25,6 +25,7 @@ import org.entur.gbfs.validation.validator.rules.CustomRuleSchemaPatcher;
 import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToPricingPlansInVehicleStatus;
 import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToPricingPlansInVehicleTypes;
 import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToRegionInStationInformation;
+import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToStation;
 import org.entur.gbfs.validation.validator.rules.NoInvalidReferenceToVehicleTypesInStationStatus;
 import org.entur.gbfs.validation.validator.rules.NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles;
 import org.entur.gbfs.validation.validator.rules.NoMissingOrInvalidVehicleTypeIdInVehicleStatusWhenVehicleTypesExist;
@@ -57,7 +58,8 @@ public class Version30 extends AbstractVersion {
       "station_status",
       List.of(
         new NoInvalidReferenceToVehicleTypesInStationStatus(),
-        new NoMissingVehicleTypesAvailableWhenVehicleTypesExists()
+        new NoMissingVehicleTypesAvailableWhenVehicleTypesExists(),
+        new NoInvalidReferenceToStation("station_information")
       ),
       "vehicle_status",
       List.of(
@@ -72,7 +74,10 @@ public class Version30 extends AbstractVersion {
       "system_information",
       List.of(new NoMissingStoreUriInSystemInformation("vehicle_status")),
       "station_information",
-      List.of(new NoInvalidReferenceToRegionInStationInformation())
+      List.of(
+        new NoInvalidReferenceToRegionInStationInformation(),
+        new NoInvalidReferenceToStation("station_status")
+      )
     );
 
   protected Version30() {
