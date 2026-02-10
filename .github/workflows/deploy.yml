@@ -1,13 +1,13 @@
 name: Deploy Maven Central
 
 concurrency:
-  group: deploy-master
+  group: deploy-entur
   cancel-in-progress: false
 
 on:
   push:
     branches:
-      - master
+      - entur
 env:
     JFROG_USER: ${{ secrets.ARTIFACTORY_AUTH_USER }}
     JFROG_PASS: ${{ secrets.ARTIFACTORY_AUTH_TOKEN }}
