@@ -24,9 +24,9 @@ import static com.jayway.jsonpath.Criteria.where;
 
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.Filter;
-import com.jayway.jsonpath.JsonPath;
 import java.util.List;
 import java.util.Map;
+import org.entur.gbfs.validation.validator.SchemaJsonPath;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -64,7 +64,7 @@ public class NoMissingCurrentRangeMetersInVehicleStatusForMotorizedVehicles
 
     if (vehicleTypesFeed != null) {
       motorizedVehicleTypeIds =
-        JsonPath
+        SchemaJsonPath
           .parse(vehicleTypesFeed)
           .read(
             "$.data.vehicle_types[?].vehicle_type_id",
