@@ -21,8 +21,8 @@
 package org.entur.gbfs.validation.validator.rules;
 
 import com.jayway.jsonpath.DocumentContext;
-import com.jayway.jsonpath.JsonPath;
 import java.util.Map;
+import org.entur.gbfs.validation.validator.SchemaJsonPath;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -64,7 +64,7 @@ public class NoMissingOrInvalidVehicleTypeIdInVehicleStatusWhenVehicleTypesExist
       vehicleItemsSchema.append("required", "vehicle_type_id");
     }
     JSONArray vehicleTypeIds = vehicleTypesFeed != null
-      ? JsonPath
+      ? SchemaJsonPath
         .parse(vehicleTypesFeed)
         .read("$.data.vehicle_types[*].vehicle_type_id")
       : new JSONArray();

@@ -21,8 +21,8 @@
 package org.entur.gbfs.validation.validator.rules;
 
 import com.jayway.jsonpath.DocumentContext;
-import com.jayway.jsonpath.JsonPath;
 import java.util.Map;
+import org.entur.gbfs.validation.validator.SchemaJsonPath;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -55,7 +55,7 @@ public class NoInvalidReferenceToStation implements CustomRuleSchemaPatcher {
     );
 
     JSONArray stationIds = stationReferenceFeed != null
-      ? JsonPath
+      ? SchemaJsonPath
         .parse(stationReferenceFeed)
         .read("$.data.stations[*].station_id")
       : new JSONArray();

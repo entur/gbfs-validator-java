@@ -21,8 +21,8 @@
 package org.entur.gbfs.validation.validator.rules;
 
 import com.jayway.jsonpath.DocumentContext;
-import com.jayway.jsonpath.JsonPath;
 import java.util.Map;
+import org.entur.gbfs.validation.validator.SchemaJsonPath;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -54,7 +54,7 @@ public class NoInvalidReferenceToPricingPlansInVehicleTypes
     );
 
     JSONArray pricingPlanIds = pricingPlansFeed != null
-      ? JsonPath.parse(pricingPlansFeed).read("$.data.plans[*].plan_id")
+      ? SchemaJsonPath.parse(pricingPlansFeed).read("$.data.plans[*].plan_id")
       : new JSONArray();
     defaultPricingPlanIdSchema.put("enum", pricingPlanIds);
     pricingPlanIdsSchema.put("enum", pricingPlanIds);

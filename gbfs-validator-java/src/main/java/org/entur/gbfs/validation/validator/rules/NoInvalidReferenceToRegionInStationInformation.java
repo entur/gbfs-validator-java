@@ -21,8 +21,8 @@
 package org.entur.gbfs.validation.validator.rules;
 
 import com.jayway.jsonpath.DocumentContext;
-import com.jayway.jsonpath.JsonPath;
 import java.util.Map;
+import org.entur.gbfs.validation.validator.SchemaJsonPath;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -49,7 +49,9 @@ public class NoInvalidReferenceToRegionInStationInformation
     );
 
     JSONArray regionIds = systemRegionsFeed != null
-      ? JsonPath.parse(systemRegionsFeed).read("$.data.regions[*].region_id")
+      ? SchemaJsonPath
+        .parse(systemRegionsFeed)
+        .read("$.data.regions[*].region_id")
       : new JSONArray();
 
     regionIdSchema.put("enum", regionIds);
