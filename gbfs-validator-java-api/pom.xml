@@ -33,6 +33,14 @@
         <url>https://github.com/entur/gbfs-validator-java/tree/master</url>
         <tag>HEAD</tag>
     </scm>
+    <distributionManagement>
+        <relocation>
+            <groupId>org.mobilitydata</groupId>
+            <artifactId>gbfs-validator-java-api</artifactId>
+            <version>3.1.0</version>
+            <message>This project has moved to MobilityData. Future releases are published under the org.mobilitydata groupId. See https://github.com/MobilityData/gbfs-validator-java</message>
+        </relocation>
+    </distributionManagement>
     <properties>
         <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>

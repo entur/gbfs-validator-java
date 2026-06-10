@@ -4,6 +4,12 @@
 
 # gbfs-validator-java
 
+> [!IMPORTANT]
+> **This project has moved to [MobilityData/gbfs-validator-java](https://github.com/MobilityData/gbfs-validator-java).**
+> Artifacts are now published to Maven Central under the `org.mobilitydata` groupId
+> (e.g. `org.mobilitydata:gbfs-validator-java:3.1.0`). No further releases will be made
+> under `org.entur.gbfs`. Please update your dependencies.
+
 Validate GBFS feeds. Intended as Java native alternative to https://github.com/MobilityData/gbfs-validator.
 
 Uses the official json schema to validate files.
